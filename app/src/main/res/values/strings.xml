@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Lintas</string>
+    <string name="vpn_channel_name">Status koneksi</string>
+    <string name="vpn_channel_description">Notifikasi status Lintas</string>
+    <string name="vpn_notification_title">Lintas aktif</string>
+    <string name="vpn_notification_text">Tunnel Lintas berjalan.</string>
+    <string name="vpn_notification_stop">Putuskan</string>
+</resources>

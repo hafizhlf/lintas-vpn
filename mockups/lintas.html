@@ -1,0 +1,2136 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lintas — mockup klien MASQUE</title>
+<style>
+  :root {
+    --lintas-signal: #ff6a3d;
+    --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, "Times New Roman", serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  [hidden] { display: none !important; }
+
+  html, body {
+    margin: 0;
+    background: transparent;
+  }
+
+  body {
+    font-family: var(--sans);
+    color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  button {
+    font: inherit;
+    color: inherit;
+  }
+
+  button, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .icon {
+    width: 20px;
+    height: 20px;
+    display: block;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .board {
+    width: 100%;
+    max-width: 1120px;
+    margin: 0 auto;
+    padding-block: 26px 34px;
+  }
+
+  .board-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+    padding-inline: 24px;
+  }
+
+  .board-intro { min-width: 0; }
+
+  .board-brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .board-brand .mark {
+    width: 23px;
+    height: 23px;
+    color: var(--lintas-signal);
+    stroke-width: 2.2;
+  }
+
+  .board-brand span {
+    font-family: var(--serif);
+    font-size: 25px;
+    line-height: 1;
+    letter-spacing: -0.015em;
+  }
+
+  .board-intro p {
+    margin: 9px 0 0;
+    max-width: 56ch;
+    color: var(--muted-foreground);
+    font-size: 13px;
+    line-height: 1.55;
+    text-wrap: pretty;
+  }
+
+  .board-controls {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .screen-tabs {
+    display: flex;
+    gap: 2px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .screen-tabs button {
+    min-height: 44px;
+    padding: 0 11px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--muted-foreground);
+    font-size: 12.5px;
+    cursor: pointer;
+  }
+
+  .screen-tabs button:hover { color: var(--foreground); }
+
+  .screen-tabs button[aria-selected="true"] {
+    color: var(--foreground);
+    border-bottom-color: var(--lintas-signal);
+  }
+
+  .screen-tabs button:focus-visible,
+  .theme-button:focus-visible {
+    outline: 2px solid var(--lintas-signal);
+    outline-offset: -2px;
+  }
+
+  .theme-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 44px;
+    padding: 0 13px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--muted-foreground);
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .theme-button:hover {
+    color: var(--foreground);
+    border-color: var(--muted-foreground);
+  }
+
+  .theme-button .icon { width: 15px; height: 15px; }
+
+  .stage {
+    display: flex;
+    justify-content: center;
+    padding: 24px 12px 26px;
+  }
+
+  .phone {
+    --bg: #0b171b;
+    --panel: #102127;
+    --panel-2: #142a31;
+    --ink: #f2efe4;
+    --muted: #8fa5a4;
+    --faint: #607876;
+    --line: #1f373c;
+    --line-strong: #2e4a4f;
+    --signal: #ff6a3d;
+    --signal-soft: rgba(255, 106, 61, 0.13);
+    --on-signal: #0b171b;
+    --safe: #8bd6b2;
+    --safe-soft: rgba(139, 214, 178, 0.13);
+    --land: #163139;
+    --land-line: #224650;
+    --grid: rgba(143, 165, 164, 0.14);
+
+    width: 410px;
+    max-width: 100%;
+    padding: 10px;
+    border-radius: 52px;
+    background: #050c0e;
+    box-shadow:
+      0 28px 74px rgba(3, 10, 12, 0.34),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.09);
+  }
+
+  .phone[data-theme="light"] {
+    --bg: #e9eee7;
+    --panel: #f6f8f1;
+    --panel-2: #dfe7dd;
+    --ink: #12292b;
+    --muted: #556d6b;
+    --faint: #7c908c;
+    --line: #d3dccf;
+    --line-strong: #b9c7b9;
+    --signal: #c4471f;
+    --signal-soft: rgba(196, 71, 31, 0.10);
+    --on-signal: #f9fbf4;
+    --safe: #1f6d54;
+    --safe-soft: rgba(31, 109, 84, 0.12);
+    --land: #dbe4d7;
+    --land-line: #c1cfc0;
+    --grid: rgba(18, 41, 43, 0.08);
+
+    box-shadow:
+      0 28px 74px rgba(30, 40, 32, 0.18),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  }
+
+  .screen {
+    position: relative;
+    width: 100%;
+    height: 844px;
+    border-radius: 43px;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    isolation: isolate;
+  }
+
+  .camera {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    width: 9px;
+    height: 9px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: #071417;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    z-index: 6;
+  }
+
+  .screen-watermark {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.55;
+  }
+
+  .screen-watermark path {
+    fill: none;
+    stroke: var(--line);
+    stroke-width: 1;
+  }
+
+  .statusbar {
+    position: relative;
+    z-index: 4;
+    height: 42px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  .clock { font-variant-numeric: tabular-nums; }
+
+  .sysicons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .sysicons svg { display: block; }
+
+  .panels {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .panel {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    padding: 4px 20px 14px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    overscroll-behavior: contain;
+  }
+
+  .panel::-webkit-scrollbar { display: none; }
+  .panel.is-active { display: flex; }
+  .panel[hidden] { display: none !important; }
+
+  .appbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+    flex: none;
+  }
+
+  .wordmark {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--serif);
+    font-size: 22px;
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+
+  .wordmark .mark {
+    width: 21px;
+    height: 21px;
+    color: var(--signal);
+    stroke-width: 2.2;
+  }
+
+  .plan-chip {
+    min-height: 44px;
+    padding: 0 10px 0 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: 0.045em;
+    cursor: pointer;
+  }
+
+  .plan-chip:hover { border-color: var(--line-strong); color: var(--ink); }
+  .plan-chip .icon { width: 14px; height: 14px; }
+  .plan-chip:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+
+  .home-status { margin-top: 16px; }
+
+  .session-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--safe);
+    box-shadow: 0 0 0 3px var(--safe-soft);
+    flex: none;
+  }
+
+  .phone[data-connected="false"] .status-dot {
+    background: var(--faint);
+    box-shadow: none;
+  }
+
+  .phone[data-connecting="true"] .status-dot {
+    background: var(--signal);
+    box-shadow: 0 0 0 3px var(--signal-soft);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .phone[data-connecting="true"] .status-dot {
+      animation: dotPulse 1s ease-in-out infinite alternate;
+    }
+  }
+
+  @keyframes dotPulse {
+    from { opacity: 0.45; }
+    to { opacity: 1; }
+  }
+
+  .home-status h2 {
+    margin: 8px 0 4px;
+    font-family: var(--serif);
+    font-size: 34px;
+    line-height: 1.05;
+    font-weight: 500;
+    letter-spacing: -0.022em;
+    text-wrap: balance;
+  }
+
+  .home-status p {
+    margin: 0;
+    max-width: 34ch;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+    text-wrap: pretty;
+  }
+
+  .route-card {
+    position: relative;
+    margin-top: 18px;
+    padding: 13px 14px 11px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--panel);
+    overflow: hidden;
+  }
+
+  .route-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .micro {
+    display: block;
+    color: var(--faint);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.015em;
+  }
+
+  .mode-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 650;
+    letter-spacing: 0.045em;
+    white-space: nowrap;
+  }
+
+  .mode-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--safe);
+    flex: none;
+  }
+
+  .phone[data-connected="false"] .mode-dot { background: var(--faint); }
+  .phone[data-connecting="true"] .mode-dot { background: var(--signal); }
+
+  .chart {
+    position: relative;
+    height: 168px;
+    margin-top: 1px;
+  }
+
+  .chart svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .land path {
+    fill: var(--land);
+    stroke: var(--land-line);
+    stroke-width: 0.8;
+  }
+
+  .land .contour {
+    fill: none;
+    stroke: var(--land-line);
+    stroke-width: 0.7;
+    opacity: 0.7;
+  }
+
+  .grid-marks {
+    stroke: var(--grid);
+    stroke-width: 1;
+  }
+
+  .route-base {
+    fill: none;
+    stroke: var(--line-strong);
+    stroke-width: 1.7;
+    stroke-dasharray: 2 7;
+    stroke-linecap: round;
+  }
+
+  .route-live {
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 2.3;
+    stroke-dasharray: 1 8;
+    stroke-linecap: round;
+    opacity: 0;
+    transition: opacity 200ms ease;
+  }
+
+  .phone[data-connected="true"] .route-live { opacity: 1; }
+
+  .endpoint { fill: var(--ink); }
+
+  .endpoint.exit {
+    fill: var(--faint);
+    transition: fill 200ms ease;
+  }
+
+  .phone[data-connected="true"] .endpoint.exit { fill: var(--signal); }
+
+  .endpoint-ring {
+    fill: none;
+    stroke: var(--line-strong);
+    stroke-width: 1;
+    opacity: 0.55;
+  }
+
+  .exit-ring {
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .phone[data-connected="true"] .exit-ring { opacity: 0.4; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .phone[data-connected="true"] .route-live {
+      animation: routeFlow 2.8s linear infinite;
+    }
+    .phone[data-connected="true"] .exit-ring {
+      animation: ringPulse 2.8s ease-out infinite;
+    }
+  }
+
+  @keyframes routeFlow {
+    to { stroke-dashoffset: -90; }
+  }
+
+  @keyframes ringPulse {
+    0% { transform: scale(0.8); opacity: 0.45; }
+    70%, 100% { transform: scale(1.65); opacity: 0; }
+  }
+
+  .route-summary {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 10px;
+    align-items: end;
+    padding-top: 8px;
+    border-top: 1px solid var(--line);
+  }
+
+  .place {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  .place strong {
+    font-family: var(--serif);
+    font-size: 19px;
+    line-height: 1.2;
+    font-weight: 550;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .place small {
+    color: var(--muted);
+    font-size: 10.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .place.align-end {
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  .route-arrow {
+    color: var(--faint);
+    padding-bottom: 2px;
+  }
+
+  .route-arrow .icon { width: 19px; height: 19px; }
+
+  .session-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 14px;
+  }
+
+  .session-stats > div {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    padding: 0 12px;
+  }
+
+  .session-stats > div:first-child { padding-left: 0; }
+  .session-stats > div + div { border-left: 1px solid var(--line); }
+
+  .session-stats span {
+    color: var(--faint);
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .session-stats strong {
+    font-size: 14.5px;
+    font-weight: 600;
+    letter-spacing: 0.005em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .when-offline { display: none; }
+
+  .quick-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .quick-action {
+    flex: 1;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .quick-action:hover {
+    color: var(--ink);
+    border-color: var(--line-strong);
+    background: var(--panel);
+  }
+
+  .quick-action:focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: 2px;
+  }
+
+  .quick-action .icon { width: 15px; height: 15px; }
+
+  .phone[data-connected="false"] .when-connected { display: none; }
+  .phone[data-connected="false"] .when-offline { display: block; }
+
+  .offline-note {
+    margin: 14px 0 0;
+    padding: 12px 14px;
+    border: 1px dashed var(--line-strong);
+    border-radius: 12px;
+    color: var(--muted);
+    font-size: 11.5px;
+    line-height: 1.5;
+  }
+
+  .home-spacer { flex: 1; min-height: 14px; }
+
+  .connect-button {
+    width: 100%;
+    min-height: 56px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 18px;
+    border: 1px solid transparent;
+    border-radius: 14px;
+    background: var(--signal);
+    color: var(--on-signal);
+    font-size: 15px;
+    font-weight: 650;
+    letter-spacing: 0.005em;
+    cursor: pointer;
+    transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+  }
+
+  .connect-button .icon { width: 22px; height: 22px; }
+  .connect-button:hover { background: color-mix(in srgb, var(--signal) 90%, var(--ink)); }
+
+  .phone[data-connected="true"] .connect-button {
+    background: transparent;
+    color: var(--ink);
+    border-color: var(--line-strong);
+  }
+
+  .phone[data-connected="true"] .connect-button:hover { background: var(--panel); }
+
+  .connect-button:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+  }
+
+  .connect-button[aria-busy="true"] { cursor: wait; }
+
+  .screen-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: 6px;
+    flex: none;
+  }
+
+  .screen-head h2 {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: 30px;
+    line-height: 1.1;
+    font-weight: 500;
+    letter-spacing: -0.022em;
+  }
+
+  .screen-head p {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .icon-button {
+    width: 44px;
+    height: 44px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .icon-button:hover { background: var(--panel); border-color: var(--line-strong); }
+  .icon-button:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+  .icon-button .icon { width: 19px; height: 19px; }
+
+  .auto-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--panel);
+  }
+
+  .auto-icon {
+    width: 34px;
+    height: 34px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: var(--signal-soft);
+    color: var(--signal);
+  }
+
+  .auto-icon .icon { width: 19px; height: 19px; }
+
+  .auto-copy { flex: 1; min-width: 0; }
+
+  .auto-copy strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 650;
+  }
+
+  .auto-copy p {
+    margin: 3px 0 0;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.45;
+    text-wrap: pretty;
+  }
+
+  .switch {
+    position: relative;
+    width: 46px;
+    height: 28px;
+    min-width: 46px;
+    margin-top: 2px;
+    padding: 0;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: var(--panel-2);
+    cursor: pointer;
+    flex: none;
+  }
+
+  .switch::after {
+    content: "";
+    position: absolute;
+    inset: -8px;
+  }
+
+  .switch span {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: transform 160ms ease, background-color 160ms ease;
+  }
+
+  .switch[aria-checked="true"] {
+    background: var(--signal);
+    border-color: var(--signal);
+  }
+
+  .switch[aria-checked="true"] span {
+    transform: translateX(18px);
+    background: var(--on-signal);
+  }
+
+  .switch:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .switch span { transition: none; }
+  }
+
+  .list-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 20px 2px 8px;
+    color: var(--faint);
+    font-size: 10.5px;
+    font-weight: 600;
+  }
+
+  .route-list {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--panel);
+    overflow: hidden;
+  }
+
+  .route-row {
+    width: 100%;
+    min-height: 62px;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 10px 12px;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .route-row:last-child { border-bottom: 0; }
+  .route-row:hover { background: var(--panel-2); }
+
+  .route-row.is-selected {
+    background: var(--panel-2);
+    box-shadow: inset 2px 0 var(--signal);
+  }
+
+  .route-row:focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: -3px;
+  }
+
+  .country {
+    width: 32px;
+    height: 32px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+  }
+
+  .route-row.is-selected .country {
+    color: var(--signal);
+    border-color: color-mix(in srgb, var(--signal) 45%, var(--line));
+  }
+
+  .route-copy {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .route-copy strong {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .route-copy small {
+    color: var(--muted);
+    font-size: 10px;
+  }
+
+  .latency {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex: none;
+    color: var(--muted);
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .signal-bars {
+    height: 12px;
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  .signal-bars i {
+    width: 2.5px;
+    border-radius: 1px;
+    background: var(--line-strong);
+  }
+
+  .signal-bars i:nth-child(1) { height: 5px; }
+  .signal-bars i:nth-child(2) { height: 8px; }
+  .signal-bars i:nth-child(3) { height: 12px; }
+  .route-row.is-selected .signal-bars i { background: var(--signal); }
+
+  .row-check {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    color: var(--signal);
+    opacity: 0;
+  }
+
+  .row-check .icon { width: 15px; height: 15px; stroke-width: 2.2; }
+  .route-row.is-selected .row-check { opacity: 1; }
+
+  .import-row {
+    width: 100%;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    padding: 10px 12px;
+    border: 1px dashed var(--line-strong);
+    border-radius: 14px;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .import-row:hover { background: var(--panel); }
+  .import-row:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+
+  .plus {
+    width: 32px;
+    height: 32px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+    color: var(--muted);
+  }
+
+  .plus .icon { width: 16px; height: 16px; }
+
+  .import-copy {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .import-copy strong { font-size: 12px; font-weight: 600; }
+  .import-copy small { color: var(--muted); font-size: 10px; }
+  .import-row > .icon { width: 14px; height: 14px; color: var(--faint); flex: none; }
+
+  .session-card {
+    margin-top: 16px;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--panel);
+  }
+
+  .session-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .state-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: var(--safe-soft);
+    color: var(--safe);
+    font-size: 9.5px;
+    font-weight: 650;
+  }
+
+  .state-pill i {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .state-pill.is-off {
+    background: var(--panel-2);
+    color: var(--muted);
+  }
+
+  .big-time {
+    margin: 7px 0 10px;
+    font-family: var(--serif);
+    font-size: 42px;
+    line-height: 1;
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .session-stats.compact { margin: 0; }
+  .session-stats.compact strong { font-size: 13px; }
+
+  .spark {
+    display: block;
+    width: 100%;
+    height: 60px;
+    margin-top: 12px;
+    overflow: visible;
+  }
+
+  .spark-area { fill: var(--signal-soft); }
+
+  .spark-line {
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 1.8;
+    stroke-linecap: round;
+  }
+
+  .check-list {
+    margin-top: 12px;
+    border-top: 1px solid var(--line);
+  }
+
+  .check-row {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .check-icon {
+    width: 22px;
+    height: 22px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--safe-soft);
+    color: var(--safe);
+  }
+
+  .check-icon .icon { width: 13px; height: 13px; stroke-width: 2.4; }
+
+  .check-copy {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .check-copy strong { font-size: 12px; font-weight: 600; }
+  .check-copy small { color: var(--muted); font-size: 10px; }
+
+  .check-meta {
+    flex: none;
+    color: var(--muted);
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 18px 0 3px;
+    color: var(--faint);
+    font-size: 10.5px;
+    font-weight: 600;
+  }
+
+  .text-button {
+    min-height: 44px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--signal);
+    font-size: 10.5px;
+    font-weight: 650;
+    cursor: pointer;
+  }
+
+  .text-button:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+
+  .log-row {
+    display: flex;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .log-row time {
+    flex: none;
+    padding-top: 1px;
+    color: var(--faint);
+    font-size: 9.5px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .log-row p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.4;
+    text-wrap: pretty;
+  }
+
+  .secondary-action {
+    width: 100%;
+    min-height: 48px;
+    margin-top: 14px;
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .secondary-action:hover { background: var(--panel); }
+  .secondary-action:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+
+  .settings-group { margin-top: 14px; }
+
+  .settings-group h3 {
+    margin: 0 0 1px;
+    color: var(--faint);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  .setting-row {
+    width: 100%;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    background: transparent;
+    text-align: left;
+  }
+
+  button.setting-row { cursor: pointer; }
+  button.setting-row:hover .setting-copy strong { color: var(--signal); }
+  button.setting-row:focus-visible { outline: 2px solid var(--signal); outline-offset: -2px; }
+
+  .setting-copy {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .setting-copy strong { font-size: 12px; font-weight: 600; }
+  .setting-copy small {
+    color: var(--muted);
+    font-size: 10px;
+    line-height: 1.35;
+    text-wrap: pretty;
+  }
+
+  .setting-value {
+    flex: none;
+    color: var(--muted);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .setting-row > .icon {
+    width: 13px;
+    height: 13px;
+    flex: none;
+    color: var(--faint);
+  }
+
+  .setting-row .switch { margin-left: auto; }
+
+  .settings-foot {
+    margin: 22px 0 6px;
+    color: var(--faint);
+    font-size: 9.5px;
+    line-height: 1.5;
+  }
+
+  .tabbar {
+    position: relative;
+    z-index: 5;
+    flex: none;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 2px;
+    padding: 6px 10px 9px;
+    border-top: 1px solid var(--line);
+    background: var(--bg);
+  }
+
+  .tab {
+    position: relative;
+    min-height: 52px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border: 0;
+    background: transparent;
+    color: var(--faint);
+    font-size: 9.5px;
+    font-weight: 550;
+    cursor: pointer;
+  }
+
+  .tab .icon { width: 21px; height: 21px; }
+  .tab:hover { color: var(--ink); }
+  .tab.is-active { color: var(--signal); }
+
+  .tab.is-active::before {
+    content: "";
+    position: absolute;
+    top: -7px;
+    left: 50%;
+    width: 18px;
+    height: 2px;
+    transform: translateX(-50%);
+    border-radius: 2px;
+    background: var(--signal);
+  }
+
+  .tab:focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: -2px;
+    border-radius: 8px;
+  }
+
+  .board-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding-inline: 24px;
+    color: var(--muted-foreground);
+    font-size: 10.5px;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 760px) {
+    .board-head {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .board-controls { width: 100%; justify-content: space-between; }
+    .theme-button { margin-left: auto; }
+
+    .screen-tabs {
+      max-width: 100%;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .screen-tabs::-webkit-scrollbar { display: none; }
+  }
+
+  @media (max-width: 440px) {
+    .board { padding-block: 16px 24px; }
+    .board-head, .board-foot { padding-inline: 16px; }
+    .stage { padding: 16px 8px 22px; }
+
+    .phone {
+      padding: 7px;
+      border-radius: 40px;
+    }
+
+    .screen {
+      height: 790px;
+      border-radius: 33px;
+    }
+
+    .panel { padding-inline: 17px; }
+
+    .home-status h2 { font-size: 31px; }
+    .chart { height: 158px; }
+
+    .screen-watermark { opacity: 0.4; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .route-live { transition: none; }
+    .connect-button { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" aria-hidden="true" style="position:absolute;overflow:hidden">
+  <defs>
+    <symbol id="i-mark" viewBox="0 0 24 24">
+      <path d="M6 3.5v17M18 3.5v17M9 18.5c5.4-2.7 3.3-9.4 6-12.4"/>
+    </symbol>
+    <symbol id="i-home" viewBox="0 0 24 24">
+      <path d="M4 11.3 12 4l8 7.3V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z"/>
+    </symbol>
+    <symbol id="i-route" viewBox="0 0 24 24">
+      <circle cx="6" cy="18" r="2.5"/>
+      <circle cx="18" cy="6" r="2.5"/>
+      <path d="M8.5 18h4.3a4.2 4.2 0 0 0 0-8.4H11a4 4 0 0 1 0-8h4.3"/>
+    </symbol>
+    <symbol id="i-activity" viewBox="0 0 24 24">
+      <path d="M3 12h4l2.4-6 4.2 12 2.4-6H21"/>
+    </symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24">
+      <path d="M4 7h9M18 7h2M4 17h2M11 17h9"/>
+      <circle cx="15.5" cy="7" r="2.2"/>
+      <circle cx="8.5" cy="17" r="2.2"/>
+    </symbol>
+    <symbol id="i-power" viewBox="0 0 24 24">
+      <path d="M12 3v9"/>
+      <path d="M6.3 6.3a8 8 0 1 0 11.4 0"/>
+    </symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24">
+      <path d="M20 12a8 8 0 1 1-2.3-5.6"/>
+      <path d="M20 4v5h-5"/>
+    </symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24">
+      <path d="m9 5 7 7-7 7"/>
+    </symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24">
+      <path d="M12 5v14M5 12h14"/>
+    </symbol>
+    <symbol id="i-check" viewBox="0 0 24 24">
+      <path d="m5 12 4.4 4.4L19 7"/>
+    </symbol>
+    <symbol id="i-compass" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="8"/>
+      <path d="m15.5 8.5-2.1 4.9-4.9 2.1 2.1-4.9z"/>
+    </symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24">
+      <path d="M4 12h15M14 7l5 5-5 5"/>
+    </symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="4"/>
+      <path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/>
+    </symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24">
+      <path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="board">
+  <header class="board-head">
+    <div class="board-intro">
+      <div class="board-brand">
+        <svg class="icon mark" aria-hidden="true"><use href="#i-mark"/></svg>
+        <span>Lintas</span>
+      </div>
+      <p>Lintas, klien MASQUE untuk Android. Rute jadi hal utama, bukan tombol raksasa.</p>
+    </div>
+    <div class="board-controls">
+      <div class="screen-tabs" role="tablist" aria-label="Layar aplikasi">
+        <button type="button" role="tab" id="tab-home" aria-selected="true" aria-controls="panel-home" data-screen-tab="home">Beranda</button>
+        <button type="button" role="tab" id="tab-routes" aria-selected="false" tabindex="-1" aria-controls="panel-routes" data-screen-tab="routes">Rute</button>
+        <button type="button" role="tab" id="tab-activity" aria-selected="false" tabindex="-1" aria-controls="panel-activity" data-screen-tab="activity">Aktivitas</button>
+        <button type="button" role="tab" id="tab-settings" aria-selected="false" tabindex="-1" aria-controls="panel-settings" data-screen-tab="settings">Setelan</button>
+      </div>
+      <button class="theme-button" id="themeButton" type="button">
+        <svg class="icon icon-sun" aria-hidden="true"><use href="#i-sun"/></svg>
+        <svg class="icon icon-moon" aria-hidden="true" hidden><use href="#i-moon"/></svg>
+        <span>Tema terang</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="stage">
+    <div class="phone" id="phone" data-theme="dark" data-connected="true">
+      <div class="screen">
+        <span class="camera" aria-hidden="true"></span>
+
+        <svg class="screen-watermark" viewBox="0 0 390 844" aria-hidden="true">
+          <path d="M-30 676c88-54 138 24 228-34s132-28 222 14"/>
+          <path d="M-20 716c82-48 140 18 222-32s134-22 208 12"/>
+          <path d="M-10 758c76-40 138 12 212-26s128-18 198 10"/>
+          <path d="M46 190c-38 46-22 92 24 118s62 64 30 102"/>
+          <path d="M68 166c-34 42-18 82 22 106s54 58 26 92"/>
+        </svg>
+
+        <div class="statusbar" aria-hidden="true">
+          <span class="clock">9:41</span>
+          <span class="sysicons">
+            <svg width="17" height="11" viewBox="0 0 17 11"><path d="M1 10V7M5 10V5M9 10V3M13 10V1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>
+            <svg width="15" height="11" viewBox="0 0 15 11"><path d="M1 4.5C4.5 1.5 10.5 1.5 14 4.5M3.5 7C6 5 9 5 11.5 7M6 9.5c1-.8 2-.8 3 0" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>
+            <svg width="22" height="11" viewBox="0 0 22 11"><rect x="1" y="1" width="17" height="9" rx="2" stroke="currentColor" fill="none"/><rect x="3" y="3" width="12" height="5" rx="1" fill="currentColor"/><path d="M20 4v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </span>
+        </div>
+
+        <div class="panels">
+          <section class="panel is-active" id="panel-home" role="tabpanel" aria-labelledby="tab-home" data-panel="home">
+            <div class="appbar">
+              <div class="wordmark">
+                <svg class="icon mark" aria-hidden="true"><use href="#i-mark"/></svg>
+                <span>Lintas</span>
+              </div>
+              <button class="plan-chip" type="button" data-go="routes" aria-label="Buka pilihan rute">
+                <span id="networkChipLabel">WARP</span>
+                <svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg>
+              </button>
+            </div>
+
+            <div class="home-status">
+              <div class="session-line">
+                <span class="status-dot" aria-hidden="true"></span>
+                <span id="sessionLabel">Sesi aktif</span>
+              </div>
+              <h2 id="statusTitle">Terlindungi</h2>
+              <p id="statusCopy">Trafik keluar dari Singapura lewat WARP.</p>
+            </div>
+
+            <div class="route-card" aria-label="Rute dari perangkat ke gerbang pilihan">
+              <div class="route-card-head">
+                <span class="micro">Jalur</span>
+                <span class="mode-pill">
+                  <span class="mode-dot" aria-hidden="true"></span>
+                  <span id="routeMode">MASQUE · HTTP/3</span>
+                </span>
+              </div>
+
+              <div class="chart">
+                <svg viewBox="0 0 326 168" role="img" aria-label="Peta jalur menuju gerbang pilihan">
+                  <g class="land">
+                    <path d="M-12 -12H146C138 10 116 14 96 28C78 40 72 62 50 72C34 80 16 96 4 110L-12 118Z"/>
+                    <path class="contour" d="M-10 26C28 20 60 32 82 20S120 4 144 2"/>
+                    <path class="contour" d="M-8 66C22 58 44 68 66 58S104 38 126 38"/>
+                    <path class="contour" d="M-6 102C16 94 36 98 54 88S86 66 104 64"/>
+                  </g>
+                  <g class="land">
+                    <path d="M338 180H196C206 158 226 146 240 130C258 108 262 84 288 74C304 68 318 58 338 52Z"/>
+                    <path class="contour" d="M338 88C314 90 298 100 286 114S256 138 222 140"/>
+                    <path class="contour" d="M338 118C316 120 302 130 288 144S250 160 218 162"/>
+                  </g>
+                  <g class="grid-marks" aria-hidden="true">
+                    <path d="M74 82h8M78 78v8"/>
+                    <path d="M198 46h8M202 42v8"/>
+                    <path d="M136 132h8M140 128v8"/>
+                  </g>
+                  <path class="route-base" d="M38 136C84 132 92 92 148 88S242 104 290 42"/>
+                  <path class="route-live" d="M38 136C84 132 92 92 148 88S242 104 290 42"/>
+                  <circle class="endpoint" cx="38" cy="136" r="4"/>
+                  <circle class="endpoint-ring" cx="38" cy="136" r="9"/>
+                  <circle class="endpoint exit" cx="290" cy="42" r="4"/>
+                  <circle class="endpoint-ring exit-ring" cx="290" cy="42" r="9"/>
+                </svg>
+              </div>
+
+              <div class="route-summary">
+                <div class="place">
+                  <span class="micro">Dari</span>
+                  <strong>Anda</strong>
+                  <small>Jakarta · 103.47.132.18</small>
+                </div>
+                <div class="route-arrow" aria-hidden="true">
+                  <svg class="icon"><use href="#i-arrow"/></svg>
+                </div>
+                <div class="place align-end">
+                  <span class="micro">Ke</span>
+                  <strong id="homeExit">Singapura</strong>
+                  <small id="homeExitMeta">WARP · 24 ms</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="session-stats when-connected" aria-label="Statistik sesi">
+              <div>
+                <span>Durasi</span>
+                <strong id="homeUptime">00:12:48</strong>
+              </div>
+              <div>
+                <span>Unduh</span>
+                <strong>4,2 MB</strong>
+              </div>
+              <div>
+                <span>Unggah</span>
+                <strong>0,6 MB</strong>
+              </div>
+            </div>
+
+            <div class="quick-actions when-connected">
+              <button class="quick-action" type="button" data-go="routes">
+                <svg class="icon" aria-hidden="true"><use href="#i-route"/></svg>
+                Ganti rute
+              </button>
+              <button class="quick-action" type="button" data-go="activity">
+                <svg class="icon" aria-hidden="true"><use href="#i-activity"/></svg>
+                Uji koneksi
+              </button>
+            </div>
+
+            <p class="offline-note when-offline">Rute terakhir tetap tersimpan. Tekan Hubungkan untuk memakainya lagi.</p>
+
+            <div class="home-spacer"></div>
+
+            <button class="connect-button" id="connectButton" type="button" aria-pressed="true">
+              <span id="connectLabel">Putuskan</span>
+              <svg class="icon" aria-hidden="true"><use href="#i-power"/></svg>
+            </button>
+          </section>
+
+          <section class="panel" id="panel-routes" role="tabpanel" aria-labelledby="tab-routes" data-panel="routes" hidden>
+            <div class="screen-head">
+              <div>
+                <h2>Rute</h2>
+                <p>Pilih gerbang keluar</p>
+              </div>
+              <button class="icon-button" type="button" aria-label="Pindai ulang gerbang">
+                <svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg>
+              </button>
+            </div>
+
+            <div class="auto-card">
+              <span class="auto-icon" aria-hidden="true">
+                <svg class="icon"><use href="#i-compass"/></svg>
+              </span>
+              <div class="auto-copy">
+                <strong>Pilih otomatis</strong>
+                <p>Latensi terendah, dicoba ulang saat jalur terblokir.</p>
+              </div>
+              <button class="switch" type="button" role="switch" aria-checked="true" aria-label="Pilih rute otomatis" data-switch data-auto-switch>
+                <span aria-hidden="true"></span>
+              </button>
+            </div>
+
+            <div class="list-head">
+              <span>Gerbang</span>
+              <span>4 tersedia</span>
+            </div>
+
+            <div class="route-list" role="group" aria-label="Daftar gerbang keluar">
+              <button class="route-row is-selected" type="button" aria-pressed="true" data-exit="Singapura" data-network="WARP" data-meta="WARP · 24 ms" data-transport="HTTP/3" data-latency="24 ms" data-ip="104.28.216.44">
+                <span class="country" aria-hidden="true">SG</span>
+                <span class="route-copy">
+                  <strong>Singapura</strong>
+                  <small>WARP · HTTP/3</small>
+                </span>
+                <span class="latency">
+                  <span class="signal-bars" aria-hidden="true"><i></i><i></i><i></i></span>
+                  <span>24 ms</span>
+                </span>
+                <span class="row-check" aria-hidden="true">
+                  <svg class="icon"><use href="#i-check"/></svg>
+                </span>
+              </button>
+
+              <button class="route-row" type="button" aria-pressed="false" data-exit="Jakarta" data-network="VPS pribadi" data-meta="VPS pribadi · 38 ms" data-transport="HTTP/3" data-latency="38 ms" data-ip="103.47.132.18">
+                <span class="country" aria-hidden="true">ID</span>
+                <span class="route-copy">
+                  <strong>Jakarta</strong>
+                  <small>VPS pribadi · HTTP/3</small>
+                </span>
+                <span class="latency">
+                  <span class="signal-bars" aria-hidden="true"><i></i><i></i><i></i></span>
+                  <span>38 ms</span>
+                </span>
+                <span class="row-check" aria-hidden="true">
+                  <svg class="icon"><use href="#i-check"/></svg>
+                </span>
+              </button>
+
+              <button class="route-row" type="button" aria-pressed="false" data-exit="Tokyo" data-network="WARP" data-meta="WARP · 61 ms" data-transport="HTTP/2" data-latency="61 ms" data-ip="104.28.74.19">
+                <span class="country" aria-hidden="true">JP</span>
+                <span class="route-copy">
+                  <strong>Tokyo</strong>
+                  <small>WARP · HTTP/2</small>
+                </span>
+                <span class="latency">
+                  <span class="signal-bars" aria-hidden="true"><i></i><i></i><i></i></span>
+                  <span>61 ms</span>
+                </span>
+                <span class="row-check" aria-hidden="true">
+                  <svg class="icon"><use href="#i-check"/></svg>
+                </span>
+              </button>
+
+              <button class="route-row" type="button" aria-pressed="false" data-exit="Frankfurt" data-network="WARP" data-meta="WARP · 182 ms" data-transport="HTTP/3" data-latency="182 ms" data-ip="104.28.162.87">
+                <span class="country" aria-hidden="true">DE</span>
+                <span class="route-copy">
+                  <strong>Frankfurt</strong>
+                  <small>WARP · HTTP/3</small>
+                </span>
+                <span class="latency">
+                  <span class="signal-bars" aria-hidden="true"><i></i><i></i><i></i></span>
+                  <span>182 ms</span>
+                </span>
+                <span class="row-check" aria-hidden="true">
+                  <svg class="icon"><use href="#i-check"/></svg>
+                </span>
+              </button>
+            </div>
+
+            <button class="import-row" type="button">
+              <span class="plus" aria-hidden="true">
+                <svg class="icon"><use href="#i-plus"/></svg>
+              </span>
+              <span class="import-copy">
+                <strong>Impor profil MASQUE</strong>
+                <small>.conf, URL, atau kode</small>
+              </span>
+              <svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg>
+            </button>
+          </section>
+
+          <section class="panel" id="panel-activity" role="tabpanel" aria-labelledby="tab-activity" data-panel="activity" hidden>
+            <div class="screen-head">
+              <div>
+                <h2>Aktivitas</h2>
+                <p>Sesi dan pemeriksaan</p>
+              </div>
+            </div>
+
+            <div class="session-card">
+              <div class="session-card-top">
+                <span class="micro" id="activitySessionLabel">Sesi berjalan</span>
+                <span class="state-pill" id="activityState"><i aria-hidden="true"></i><span id="activityStateLabel">Stabil</span></span>
+              </div>
+              <div class="big-time" id="activityUptime">12:48</div>
+              <div class="session-stats compact">
+                <div>
+                  <span>Unduh</span>
+                  <strong>4,2 MB</strong>
+                </div>
+                <div>
+                  <span>Unggah</span>
+                  <strong>0,6 MB</strong>
+                </div>
+                <div>
+                  <span>Latensi</span>
+                  <strong id="activityLatencyStat">24 ms</strong>
+                </div>
+              </div>
+              <svg class="spark" viewBox="0 0 312 60" preserveAspectRatio="none" aria-hidden="true">
+                <path class="spark-area" d="M0 46C18 44 28 49 44 41S70 28 88 34S116 46 134 36S162 20 180 26S210 40 228 30S258 16 276 23L312 15V60H0Z"/>
+                <path class="spark-line" d="M0 46C18 44 28 49 44 41S70 28 88 34S116 46 134 36S162 20 180 26S210 40 228 30S258 16 276 23L312 15"/>
+              </svg>
+            </div>
+
+            <div class="check-list" aria-label="Pemeriksaan koneksi">
+              <div class="check-row">
+                <span class="check-icon" aria-hidden="true"><svg class="icon"><use href="#i-check"/></svg></span>
+                <span class="check-copy">
+                  <strong>Tunnel MASQUE</strong>
+                  <small id="activityTunnel">HTTP/3 ke Singapura</small>
+                </span>
+                <span class="check-meta" id="activityLatency">24 ms</span>
+              </div>
+              <div class="check-row">
+                <span class="check-icon" aria-hidden="true"><svg class="icon"><use href="#i-check"/></svg></span>
+                <span class="check-copy">
+                  <strong>DNS</strong>
+                  <small>Tidak ada kebocoran</small>
+                </span>
+                <span class="check-meta">Aman</span>
+              </div>
+              <div class="check-row">
+                <span class="check-icon" aria-hidden="true"><svg class="icon"><use href="#i-check"/></svg></span>
+                <span class="check-copy">
+                  <strong>Alamat keluar</strong>
+                  <small id="activityExitIp">104.28.216.44</small>
+                </span>
+                <span class="check-meta" id="activityExitMeta">WARP</span>
+              </div>
+            </div>
+
+            <div class="section-head">
+              <span>Catatan</span>
+              <button class="text-button" type="button">Ekspor</button>
+            </div>
+
+            <div class="log-list">
+              <div class="log-row">
+                <time>10:42</time>
+                <p>Gerbang terhubung lewat HTTP/3.</p>
+              </div>
+              <div class="log-row">
+                <time>10:42</time>
+                <p>Pemeriksaan lalu lintas lolos. Sesi dianggap siap.</p>
+              </div>
+              <div class="log-row">
+                <time>10:43</time>
+                <p>Sinyal stabil. Tidak ada paket yang dibuang.</p>
+              </div>
+            </div>
+
+            <button class="secondary-action" type="button">Uji koneksi lagi</button>
+          </section>
+
+          <section class="panel" id="panel-settings" role="tabpanel" aria-labelledby="tab-settings" data-panel="settings" hidden>
+            <div class="screen-head">
+              <div>
+                <h2>Setelan</h2>
+                <p>Koneksi dan tampilan</p>
+              </div>
+            </div>
+
+            <section class="settings-group">
+              <h3>Koneksi</h3>
+              <button class="setting-row" type="button">
+                <span class="setting-copy">
+                  <strong>Transport</strong>
+                  <small>Protokol ke gerbang</small>
+                </span>
+                <span class="setting-value">HTTP/3</span>
+                <svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg>
+              </button>
+              <div class="setting-row">
+                <span class="setting-copy">
+                  <strong>Fallback HTTP/2</strong>
+                  <small>Saat UDP diblokir</small>
+                </span>
+                <button class="switch" type="button" role="switch" aria-checked="true" aria-label="Fallback HTTP/2" data-switch>
+                  <span aria-hidden="true"></span>
+                </button>
+              </div>
+              <div class="setting-row">
+                <span class="setting-copy">
+                  <strong>Kill switch</strong>
+                  <small>Putuskan trafik jika tunnel jatuh</small>
+                </span>
+                <button class="switch" type="button" role="switch" aria-checked="true" aria-label="Kill switch" data-switch>
+                  <span aria-hidden="true"></span>
+                </button>
+              </div>
+            </section>
+
+            <section class="settings-group">
+              <h3>Lalu lintas</h3>
+              <button class="setting-row" type="button">
+                <span class="setting-copy">
+                  <strong>Split tunnel</strong>
+                  <small>4 aplikasi dikecualikan</small>
+                </span>
+                <span class="setting-value">Kelola</span>
+                <svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg>
+              </button>
+              <button class="setting-row" type="button">
+                <span class="setting-copy">
+                  <strong>DNS</strong>
+                  <small>Resolver di dalam tunnel</small>
+                </span>
+                <span class="setting-value">Cloudflare</span>
+                <svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg>
+              </button>
+              <button class="setting-row" type="button">
+                <span class="setting-copy">
+                  <strong>Aturan rute</strong>
+                  <small>Blokir atau lewati langsung</small>
+                </span>
+                <span class="setting-value">2 aturan</span>
+                <svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg>
+              </button>
+            </section>
+
+            <section class="settings-group">
+              <h3>Tampilan</h3>
+              <button class="setting-row" type="button" data-theme-row>
+                <span class="setting-copy">
+                  <strong>Tema</strong>
+                  <small>Ikut sistem atau pilih sendiri</small>
+                </span>
+                <span class="setting-value" id="themeValue">Malam</span>
+                <svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg>
+              </button>
+              <button class="setting-row" type="button">
+                <span class="setting-copy">
+                  <strong>Bahasa</strong>
+                  <small>Bahasa antarmuka</small>
+                </span>
+                <span class="setting-value">Indonesia</span>
+                <svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg>
+              </button>
+            </section>
+
+            <section class="settings-group">
+              <h3>Lanjutan</h3>
+              <button class="setting-row" type="button">
+                <span class="setting-copy">
+                  <strong>SNI kustom</strong>
+                  <small>Untuk jaringan yang memeriksa nama server</small>
+                </span>
+                <span class="setting-value">Bawaan</span>
+                <svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg>
+              </button>
+              <div class="setting-row">
+                <span class="setting-copy">
+                  <strong>Log debug</strong>
+                  <small>Simpan catatan rinci untuk diagnosis</small>
+                </span>
+                <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Log debug" data-switch>
+                  <span aria-hidden="true"></span>
+                </button>
+              </div>
+            </section>
+
+            <p class="settings-foot">Lintas 0.1 · MASQUE RFC 9484<br>Mockup antarmuka, bukan build final.</p>
+          </section>
+        </div>
+
+        <nav class="tabbar" aria-label="Navigasi utama">
+          <button class="tab is-active" type="button" data-tab="home" aria-current="page">
+            <svg class="icon" aria-hidden="true"><use href="#i-home"/></svg>
+            <span>Beranda</span>
+          </button>
+          <button class="tab" type="button" data-tab="routes">
+            <svg class="icon" aria-hidden="true"><use href="#i-route"/></svg>
+            <span>Rute</span>
+          </button>
+          <button class="tab" type="button" data-tab="activity">
+            <svg class="icon" aria-hidden="true"><use href="#i-activity"/></svg>
+            <span>Aktivitas</span>
+          </button>
+          <button class="tab" type="button" data-tab="settings">
+            <svg class="icon" aria-hidden="true"><use href="#i-settings"/></svg>
+            <span>Setelan</span>
+          </button>
+        </nav>
+      </div>
+    </div>
+  </main>
+
+  <footer class="board-foot">
+    <span>Lintas · Klien MASQUE Android · Arah visual: peta lintas, bukan orb bercahaya.</span>
+    <span>Mockup interaktif. Klik tab, rute, dan tombol untuk mencoba.</span>
+  </footer>
+</div>
+
+<script>
+  const phone = document.getElementById('phone');
+  const connectButton = document.getElementById('connectButton');
+  const connectLabel = document.getElementById('connectLabel');
+  const statusTitle = document.getElementById('statusTitle');
+  const statusCopy = document.getElementById('statusCopy');
+  const sessionLabel = document.getElementById('sessionLabel');
+  const routeMode = document.getElementById('routeMode');
+  const homeExit = document.getElementById('homeExit');
+  const homeExitMeta = document.getElementById('homeExitMeta');
+  const homeUptime = document.getElementById('homeUptime');
+  const activityUptime = document.getElementById('activityUptime');
+  const networkChipLabel = document.getElementById('networkChipLabel');
+  const activitySessionLabel = document.getElementById('activitySessionLabel');
+  const activityState = document.getElementById('activityState');
+  const activityStateLabel = document.getElementById('activityStateLabel');
+  const activityTunnel = document.getElementById('activityTunnel');
+  const activityLatency = document.getElementById('activityLatency');
+  const activityLatencyStat = document.getElementById('activityLatencyStat');
+  const activityExitIp = document.getElementById('activityExitIp');
+  const activityExitMeta = document.getElementById('activityExitMeta');
+  const autoSwitch = document.querySelector('[data-auto-switch]');
+  const themeButton = document.getElementById('themeButton');
+  const themeLabel = themeButton.querySelector('span');
+  const themeValue = document.getElementById('themeValue');
+  const sunIcon = themeButton.querySelector('.icon-sun');
+  const moonIcon = themeButton.querySelector('.icon-moon');
+
+  const panels = Array.from(document.querySelectorAll('[data-panel]'));
+  const screenTabs = Array.from(document.querySelectorAll('[data-screen-tab]'));
+  const navTabs = Array.from(document.querySelectorAll('[data-tab]'));
+  const routeRows = Array.from(document.querySelectorAll('.route-row'));
+
+  let connected = true;
+  let connecting = false;
+  let dark = true;
+  let seconds = 12 * 60 + 48;
+  let selectedExit = 'Singapura';
+  let selectedNetwork = 'WARP';
+  let selectedTransport = 'HTTP/3';
+  let selectedLatency = '24 ms';
+  let selectedIp = '104.28.216.44';
+
+  function formatLong(total) {
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const s = total % 60;
+    return [h, m, s].map((value) => String(value).padStart(2, '0')).join(':');
+  }
+
+  function formatShort(total) {
+    const m = Math.floor(total / 60);
+    const s = total % 60;
+    return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  }
+
+  function renderTime() {
+    homeUptime.textContent = formatLong(seconds);
+    activityUptime.textContent = formatShort(seconds);
+  }
+
+  function renderConnection() {
+    phone.dataset.connected = String(connected);
+    connectButton.setAttribute('aria-pressed', String(connected));
+    connectButton.removeAttribute('aria-busy');
+    connectLabel.textContent = connected ? 'Putuskan' : 'Hubungkan';
+    statusTitle.textContent = connected ? 'Terlindungi' : 'Belum terhubung';
+    statusCopy.textContent = connected
+      ? 'Trafik keluar dari ' + selectedExit + ' lewat ' + selectedNetwork + '.'
+      : 'Pilih gerbang otomatis, atau tentukan rute sendiri.';
+    sessionLabel.textContent = connected ? 'Sesi aktif' : 'Belum ada sesi';
+    routeMode.textContent = connected ? 'MASQUE · ' + selectedTransport : 'Siap dihubungkan';
+    networkChipLabel.textContent = selectedNetwork;
+    activitySessionLabel.textContent = connected ? 'Sesi berjalan' : 'Sesi terakhir';
+    activityStateLabel.textContent = connected ? 'Stabil' : 'Berhenti';
+    activityState.classList.toggle('is-off', !connected);
+    phone.dataset.connecting = 'false';
+  }
+
+  function setSwitch(button, on) {
+    button.setAttribute('aria-checked', String(on));
+    button.classList.toggle('is-on', on);
+  }
+
+  function selectRoute(row, turnOffAuto) {
+    routeRows.forEach((other) => {
+      const selected = other === row;
+      other.classList.toggle('is-selected', selected);
+      other.setAttribute('aria-pressed', String(selected));
+    });
+
+    selectedExit = row.dataset.exit;
+    selectedNetwork = row.dataset.network;
+    selectedTransport = row.dataset.transport;
+    selectedLatency = row.dataset.latency;
+    selectedIp = row.dataset.ip;
+
+    homeExit.textContent = selectedExit;
+    homeExitMeta.textContent = row.dataset.meta;
+    networkChipLabel.textContent = selectedNetwork;
+    activityTunnel.textContent = selectedTransport + ' ke ' + selectedExit;
+    activityLatency.textContent = selectedLatency;
+    activityLatencyStat.textContent = selectedLatency;
+    activityExitIp.textContent = selectedIp;
+    activityExitMeta.textContent = selectedNetwork;
+
+    if (connected) {
+      statusCopy.textContent = 'Trafik keluar dari ' + selectedExit + ' lewat ' + selectedNetwork + '.';
+      routeMode.textContent = 'MASQUE · ' + selectedTransport;
+    }
+
+    if (turnOffAuto) setSwitch(autoSwitch, false);
+  }
+
+  function applyTheme(isDark) {
+    dark = isDark;
+    phone.dataset.theme = isDark ? 'dark' : 'light';
+    themeLabel.textContent = isDark ? 'Tema terang' : 'Tema malam';
+    themeValue.textContent = isDark ? 'Malam' : 'Terang';
+    sunIcon.hidden = !isDark;
+    moonIcon.hidden = isDark;
+  }
+
+  function showScreen(name, focusTab) {
+    panels.forEach((panel) => {
+      const active = panel.dataset.panel === name;
+      panel.classList.toggle('is-active', active);
+      panel.hidden = !active;
+    });
+
+    screenTabs.forEach((tab) => {
+      const active = tab.dataset.screenTab === name;
+      tab.setAttribute('aria-selected', String(active));
+      tab.tabIndex = active ? 0 : -1;
+      if (active && focusTab) tab.focus();
+    });
+
+    navTabs.forEach((tab) => {
+      const active = tab.dataset.tab === name;
+      tab.classList.toggle('is-active', active);
+      if (active) {
+        tab.setAttribute('aria-current', 'page');
+      } else {
+        tab.removeAttribute('aria-current');
+      }
+    });
+  }
+
+  connectButton.addEventListener('click', () => {
+    if (connecting) return;
+
+    if (connected) {
+      connected = false;
+      renderConnection();
+      return;
+    }
+
+    connecting = true;
+    phone.dataset.connecting = 'true';
+    connectButton.setAttribute('aria-busy', 'true');
+    connectLabel.textContent = 'Menghubungkan';
+    statusTitle.textContent = 'Menyiapkan rute';
+    statusCopy.textContent = 'Memeriksa gerbang dan membangun tunnel MASQUE.';
+    sessionLabel.textContent = 'Sedang menghubungkan';
+    routeMode.textContent = 'Mencari jalur';
+
+    window.setTimeout(() => {
+      connecting = false;
+      connected = true;
+      renderConnection();
+    }, 1200);
+  });
+
+  routeRows.forEach((row) => {
+    row.addEventListener('click', () => selectRoute(row, true));
+  });
+
+  autoSwitch.addEventListener('click', () => {
+    const on = autoSwitch.getAttribute('aria-checked') !== 'true';
+    setSwitch(autoSwitch, on);
+
+    if (on && routeRows.length > 0) {
+      selectRoute(routeRows[0], false);
+    }
+  });
+
+  document.querySelectorAll('[data-switch]').forEach((button) => {
+    if (button.hasAttribute('data-auto-switch')) return;
+
+    button.addEventListener('click', () => {
+      setSwitch(button, button.getAttribute('aria-checked') !== 'true');
+    });
+  });
+
+  screenTabs.forEach((tab) => {
+    tab.addEventListener('click', () => showScreen(tab.dataset.screenTab));
+  });
+
+  navTabs.forEach((tab) => {
+    tab.addEventListener('click', () => showScreen(tab.dataset.tab));
+  });
+
+  document.querySelectorAll('[data-go]').forEach((element) => {
+    element.addEventListener('click', () => showScreen(element.dataset.go));
+  });
+
+  document.querySelector('[data-theme-row]').addEventListener('click', () => {
+    applyTheme(!dark);
+  });
+
+  themeButton.addEventListener('click', () => {
+    applyTheme(!dark);
+  });
+
+  document.querySelector('.screen-tabs').addEventListener('keydown', (event) => {
+    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+    event.preventDefault();
+
+    const currentIndex = screenTabs.findIndex((tab) => tab.getAttribute('aria-selected') === 'true');
+    const step = event.key === 'ArrowRight' ? 1 : -1;
+    const nextIndex = (currentIndex + step + screenTabs.length) % screenTabs.length;
+    const nextTab = screenTabs[nextIndex];
+
+    showScreen(nextTab.dataset.screenTab, true);
+  });
+
+  window.setInterval(() => {
+    if (!connected || connecting) return;
+    seconds += 1;
+    renderTime();
+  }, 1000);
+
+  renderConnection();
+  renderTime();
+  applyTheme(true);
+</script>
+</body>
+</html>
