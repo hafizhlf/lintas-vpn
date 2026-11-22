@@ -302,7 +302,7 @@ Contoh payload:
   "version": 42,
   "issued_at": "2026-11-22T00:00:00Z",
   "expires_at": "2026-12-22T00:00:00Z",
-  "min_app_version": "1.0.2",
+  "min_app_version": "1.0.4",
   "endpoints": {
     "warp_masque_seeds": ["..."],
     "scan_timeout_ms": 2500
@@ -405,7 +405,7 @@ Aturan state:
 | UI | Kotlin + Jetpack Compose | Android-only; akses langsung VpnService, Keystore, FGS; APK lebih kecil; lifecycle service lebih sederhana | Tidak reusable untuk desktop/iOS |
 | Control plane | Kotlin `:vpn` service + Room | WARP identity, profil, policy, dan notifikasi dekat dengan API Android | Logika tidak langsung portable; core harus tetap bersih |
 | WARP provider | Kotlin `WarpRepository`; consumer only | Registrasi dan identity memakai API Android/Keystore langsung | Zero Trust dan provider lain harus ditambah nanti |
-| Transport v1.0.2 | WireGuard WARP + MASQUE H3 | Satu identitas WARP, dua transport; WireGuard via boringtun, MASQUE via quiche/CONNECT-IP; keduanya diverifikasi di Poco | PATCH `tunnel_type` saat berganti protokol |
+| Transport v1.0.4 | WireGuard WARP + MASQUE H3 | Satu identitas WARP, dua transport; WireGuard via boringtun, MASQUE via quiche/CONNECT-IP; keduanya diverifikasi di Poco | PATCH `tunnel_type` saat berganti protokol |
 | Identitas WARP | Registrasi langsung dari perangkat | Tidak perlu backend di jalur data; privasi lebih baik | Bergantung pada API/ToS Cloudflare; rate limit |
 | WARP+ | License key via dialog Setelan | Akun/device sama; WARP+ tetap konsisten dengan WireGuard/MASQUE | Butuh key valid; aktivasi lewat API Cloudflare |
 | Config | Signed JSON dari edge | Endpoint dan flag bisa berubah tanpa rilis app | Perlu key management dan rollback |
@@ -619,7 +619,7 @@ cd ..
 ./gradlew :app:assembleDebug
 ```
 
-- APK debug: `app/build/outputs/apk/debug/app-debug.apk` (v1.0.2).
+- APK debug: `app/build/outputs/apk/debug/app-debug.apk` (v1.0.4).
 - Unit test core: `cd core && cargo test --release`; handshake WireGuard sudah lulus.
 - MASQUE memakai quiche + BoringSSL; build Android memerlukan NDK/CMake dan waktu kompilasi lebih lama.
 - Runtime verification: install di Poco X8 Pro Max; WireGuard dan MASQUE masing-masing menghasilkan `warp=on`, `colo=SIN`, dan HTTP/3 di `https://www.cloudflare.com/cdn-cgi/trace`.

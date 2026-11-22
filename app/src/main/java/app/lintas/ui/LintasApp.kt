@@ -1102,7 +1102,7 @@ private fun SettingsScreen(
         }
         Spacer(Modifier.height(16.dp))
         SettingsGroup(title = "Aplikasi") {
-            ValueSettingRow("Versi", "1.0.3", "Open source · GPL-3.0")
+            ValueSettingRow("Versi", "1.0.4", "Open source · GPL-3.0")
             SettingDivider()
             ValueSettingRow("Mesin", "Rust + Kotlin", "Android 16")
             SettingDivider()

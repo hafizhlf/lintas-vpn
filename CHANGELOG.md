@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.4 - 2026-11-22
+
+- Count inbound and outbound traffic in the `Data` counter.
+- Show the traffic split on the Activity screen.
+- Add real feedback to `Uji koneksi`: latency on success, timeout or error on
+  failure, with a running state on the button.
+- Send the connection probe through the active tunnel.
+
 ## 1.0.3 - 2026-11-22
 
 - Keep the MASQUE QUIC path alive with a PING every 15 seconds while idle.
