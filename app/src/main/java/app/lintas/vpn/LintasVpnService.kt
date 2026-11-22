@@ -9,6 +9,7 @@ import android.content.pm.ServiceInfo
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
+import android.util.Log
 import android.util.Base64
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
@@ -48,6 +49,7 @@ class LintasVpnService : VpnService() {
     @Volatile private var currentProtocol = VpnProtocol.WIREGUARD
     @Volatile private var lastNetworkSnapshot: UnderlyingNetworkMonitor.Snapshot? = null
     @Volatile private var transportTransition = false
+    @Volatile private var initialConnect = false
     private var networkMonitor: UnderlyingNetworkMonitor? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -72,6 +74,7 @@ class LintasVpnService : VpnService() {
     private fun startTunnel(protocol: VpnProtocol) {
         if (tunnelRequested) return
         tunnelRequested = true
+        initialConnect = true
         currentProtocol = protocol
         lastNetworkSnapshot = networkMonitor?.snapshot()
         VpnController.connecting()
@@ -149,18 +152,18 @@ class LintasVpnService : VpnService() {
             return
         }
 
-        val descriptor = establishTun(identity.ipv4, identity.ipv6)
+        val descriptor = tun ?: establishTun(identity.ipv4, identity.ipv6)
         if (descriptor == null) {
             socket.close()
             failAndStop("Alamat WARP tidak valid")
             return
         }
+        tun = descriptor
 
         val udpDescriptor = runCatching {
             ParcelFileDescriptor.fromDatagramSocket(socket)
         }.getOrNull()
         if (udpDescriptor == null) {
-            descriptor.close()
             socket.close()
             failAndStop("Gagal mengambil socket WARP")
             return
@@ -173,14 +176,12 @@ class LintasVpnService : VpnService() {
         }.getOrDefault(ByteArray(0)).let { if (it.size == 3) it else ByteArray(3) }
 
         if (privateKey == null || peerKey == null) {
-            descriptor.close()
             udpDescriptor.close()
             socket.close()
             failAndStop("Key WireGuard WARP tidak valid")
             return
         }
 
-        tun = descriptor
         udpPfd = udpDescriptor
         udpSocket = socket
         val handle = NativeCore.startWireGuard(
@@ -234,18 +235,18 @@ class LintasVpnService : VpnService() {
             return
         }
 
-        val descriptor = establishTun(identity.ipv4, identity.ipv6)
+        val descriptor = tun ?: establishTun(identity.ipv4, identity.ipv6)
         if (descriptor == null) {
             socket.close()
             failAndStop("Alamat WARP tidak valid")
             return
         }
+        tun = descriptor
 
         val udpDescriptor = runCatching {
             ParcelFileDescriptor.fromDatagramSocket(socket)
         }.getOrNull()
         if (udpDescriptor == null) {
-            descriptor.close()
             socket.close()
             failAndStop("Gagal mengambil socket MASQUE")
             return
@@ -258,14 +259,12 @@ class LintasVpnService : VpnService() {
             File(cacheDir, "masque-key.pem").apply { writeText(privateKeyPem) }
         }.getOrNull()
         if (certFile == null || keyFile == null) {
-            descriptor.close()
             udpDescriptor.close()
             socket.close()
             failAndStop("Gagal menulis sertifikat MASQUE")
             return
         }
 
-        tun = descriptor
         udpPfd = udpDescriptor
         udpSocket = socket
         masqueCertFile = certFile
@@ -305,7 +304,9 @@ class LintasVpnService : VpnService() {
             return
         }
         val snapshot = networkMonitor?.snapshot()
-        val networkChanged = lastNetworkSnapshot != null && lastNetworkSnapshot != snapshot
+        initialConnect = false
+        val previous = lastNetworkSnapshot
+        val networkChanged = previous?.hasNetwork == true && previous != snapshot
         lastNetworkSnapshot = snapshot
         startStatsLoop(watchHandshake = true, transport = transport)
         scope.launch {
@@ -313,25 +314,32 @@ class LintasVpnService : VpnService() {
             sendWarpProbe()
         }
         if (networkChanged) {
-            scheduleReconnect()
+            Log.i(TAG, "network changed during start ${snapshotLabel(previous)} -> ${snapshotLabel(snapshot)}")
+            scheduleReconnect("network-during-start")
         }
     }
 
     private fun onUnderlyingNetworksChanged() {
         if (!tunnelRequested || transportTransition) return
-        if (connectJob?.isActive == true) return
         val snapshot = networkMonitor?.snapshot() ?: return
+        if (initialConnect) {
+            lastNetworkSnapshot = snapshot
+            return
+        }
         if (snapshot == lastNetworkSnapshot) return
-        scheduleReconnect()
+        Log.i(TAG, "network changed ${snapshotLabel(lastNetworkSnapshot)} -> ${snapshotLabel(snapshot)}")
+        scheduleReconnect("network-changed")
     }
 
     private fun networkChangedSinceStart(): Boolean {
         val previous = lastNetworkSnapshot ?: return false
+        if (!previous.hasNetwork) return false
         return networkMonitor?.snapshot()?.let { it != previous } ?: false
     }
 
-    private fun scheduleReconnect(immediate: Boolean = false) {
+    private fun scheduleReconnect(reason: String, immediate: Boolean = false) {
         if (!tunnelRequested) return
+        Log.i(TAG, "schedule reconnect reason=$reason immediate=$immediate")
         reconnectJob?.cancel()
         reconnectJob = scope.launch {
             if (!immediate) delay(RECONNECT_DEBOUNCE_MS)
@@ -341,10 +349,10 @@ class LintasVpnService : VpnService() {
             val snapshot = monitor.snapshot()
             transportTransition = true
             try {
-                closeResources()
+                closeTransport()
                 VpnController.connecting()
                 lastNetworkSnapshot = snapshot
-                if (!snapshot.hasValidatedNetwork) return@launch
+                if (!snapshot.hasNetwork) return@launch
 
                 val identity = runCatching {
                     WarpIdentityStore.load(this@LintasVpnService)
@@ -371,7 +379,8 @@ class LintasVpnService : VpnService() {
 
             val current = networkMonitor?.snapshot()
             if (tunnelRequested && current != null && current != lastNetworkSnapshot) {
-                scheduleReconnect()
+                Log.i(TAG, "network changed after start ${snapshotLabel(lastNetworkSnapshot)} -> ${snapshotLabel(current)}")
+                scheduleReconnect("network-after-start")
             }
         }
     }
@@ -408,11 +417,11 @@ class LintasVpnService : VpnService() {
                 val sample = sampleNative() ?: break
                 if (!sample.running) {
                     if (networkChangedSinceStart()) {
-                        scheduleReconnect(immediate = true)
+                        scheduleReconnect("native-stopped-network", immediate = true)
                     } else if (watchHandshake && !handshakeDone) {
                         failAndStop("Handshake WARP gagal; periksa jaringan atau daftar ulang.")
                     } else {
-                        scheduleReconnect(immediate = true)
+                        scheduleReconnect("native-stopped", immediate = true)
                     }
                     break
                 }
@@ -426,7 +435,7 @@ class LintasVpnService : VpnService() {
                     }
                     if (watchHandshake && !handshakeDone && ticks >= 20) {
                         if (networkChangedSinceStart()) {
-                            scheduleReconnect(immediate = true)
+                            scheduleReconnect("handshake-timeout-network", immediate = true)
                         } else {
                             failAndStop("Handshake WARP gagal; periksa jaringan atau daftar ulang.")
                         }
@@ -499,7 +508,7 @@ class LintasVpnService : VpnService() {
     }
 
     @Synchronized
-    private fun closeResources() {
+    private fun closeTransport() {
         statsJob?.cancel()
         statsJob = null
         val handle = synchronized(nativeLock) {
@@ -510,12 +519,17 @@ class LintasVpnService : VpnService() {
         if (handle != 0L) {
             runCatching { NativeCore.stop(handle) }
         }
-        runCatching { tun?.close() }
-        tun = null
         runCatching { udpPfd?.close() }
         udpPfd = null
         runCatching { udpSocket?.close() }
         udpSocket = null
+    }
+
+    @Synchronized
+    private fun closeResources() {
+        closeTransport()
+        runCatching { tun?.close() }
+        tun = null
         runCatching { masqueCertFile?.delete() }
         masqueCertFile = null
         runCatching { masqueKeyFile?.delete() }
@@ -524,6 +538,7 @@ class LintasVpnService : VpnService() {
 
     private fun stopTunnel() {
         tunnelRequested = false
+        initialConnect = false
         connectJob?.cancel()
         connectJob = null
         reconnectJob?.cancel()
@@ -536,6 +551,7 @@ class LintasVpnService : VpnService() {
 
     private fun failAndStop(message: String) {
         tunnelRequested = false
+        initialConnect = false
         reconnectJob?.cancel()
         reconnectJob = null
         closeResources()
@@ -598,6 +614,7 @@ class LintasVpnService : VpnService() {
 
     override fun onDestroy() {
         tunnelRequested = false
+        initialConnect = false
         connectJob?.cancel()
         reconnectJob?.cancel()
         networkMonitor?.stop()
@@ -607,6 +624,10 @@ class LintasVpnService : VpnService() {
         super.onDestroy()
     }
 
+    private fun snapshotLabel(snapshot: UnderlyingNetworkMonitor.Snapshot?): String {
+        return snapshot?.path?.joinToString(prefix = "{", postfix = "}") { it.toString() } ?: "null"
+    }
+
     private data class NativeSample(val running: Boolean, val stats: LongArray?)
 
     companion object {
@@ -614,6 +635,7 @@ class LintasVpnService : VpnService() {
         const val ACTION_START_MASQUE = "app.lintas.action.START_MASQUE"
         const val ACTION_STOP = "app.lintas.action.STOP"
         const val ACTION_PROBE = "app.lintas.action.PROBE"
+        private const val TAG = "LintasVpn"
         private const val MASQUE_SNI = "consumer-masque.cloudflareclient.com"
         private const val CHANNEL_ID = "lintas_vpn"
         private const val NOTIFICATION_ID = 1

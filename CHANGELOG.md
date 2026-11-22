@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.2 - 2026-11-22
+
+- Keep the TUN/VPN interface open during a network handover and restart only
+  the transport socket and handshake, so existing TCP sessions survive.
+- Track the selected active network path with hysteresis instead of reacting to
+  every validated secondary network.
+- Preserve session duration across a transport restart.
+- Add network selection and reconnect diagnostics.
+
 ## 1.0.1 - 2026-11-22
 
 - Restart WireGuard or MASQUE automatically when the underlying network changes.

@@ -65,11 +65,15 @@ object VpnController {
     }
 
     internal fun connected(transport: TunnelTransport) {
-        _state.value = TunnelState(
-            status = TunnelStatus.CONNECTED,
-            transport = transport,
-            startedAtMillis = System.currentTimeMillis(),
-        )
+        val startedAt = _state.value.startedAtMillis ?: System.currentTimeMillis()
+        _state.update {
+            it.copy(
+                status = TunnelStatus.CONNECTED,
+                transport = transport,
+                startedAtMillis = startedAt,
+                error = null,
+            )
+        }
     }
 
     internal fun updateStats(packets: Long, bytes: Long, netRxPackets: Long) {
