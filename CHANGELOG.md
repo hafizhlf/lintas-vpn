@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1 - 2026-11-22
+
+- Restart WireGuard or MASQUE automatically when the underlying network changes.
+- Detect a stopped native transport thread and reconnect.
+- Re-resolve the endpoint and recreate the transport socket after a handover.
+
 ## 1.0.0 - 2026-11-22
 
 - WireGuard WARP and MASQUE (HTTP/3 / CONNECT-IP) transports.

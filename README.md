@@ -12,14 +12,15 @@ both WireGuard and MASQUE (HTTP/3 / CONNECT-IP) from a single WARP identity.
 - One WARP consumer identity shared by both transports.
 - Protocol selector in Settings; the Home connect button follows it.
 - WARP+ license activation with a license key.
+- Automatic transport restart when the underlying Wi-Fi or cellular network changes.
 - Encrypted identity storage using Android Keystore.
 - No account, billing, telemetry, or backend in the data path.
 
 ## Status
 
-v1.0.0. WireGuard and MASQUE have been tested on a Poco X8 Pro Max
-(Android 16). Split tunneling, kill switch, and auto-reconnect are not part
-of this release yet.
+WireGuard and MASQUE have been tested on a Poco X8 Pro Max (Android 16).
+The transport reconnects automatically after network changes. Split
+tunneling and kill switch are not part of this release yet.
 
 ## Requirements
 

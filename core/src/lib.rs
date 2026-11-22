@@ -6,7 +6,7 @@ use std::thread::{self, JoinHandle};
 use boringtun::noise::{Tunn, TunnResult};
 use boringtun::x25519::{PublicKey, StaticSecret};
 use jni::objects::{JByteArray, JClass, JString};
-use jni::sys::{jint, jlong, jlongArray};
+use jni::sys::{jboolean, jint, jlong, jlongArray};
 use jni::JNIEnv;
 
 mod masque;
@@ -21,6 +21,7 @@ pub(crate) struct Stats {
 struct Handle {
     stop: Arc<AtomicBool>,
     stats: Arc<Stats>,
+    alive: Arc<AtomicBool>,
     thread: Option<JoinHandle<()>>,
 }
 
@@ -44,13 +45,8 @@ fn packet_loop(fd: i32, stop: Arc<AtomicBool>, stats: Arc<Stats>) {
             continue;
         }
 
-        let read = unsafe {
-            libc::read(
-                fd,
-                buffer.as_mut_ptr() as *mut libc::c_void,
-                buffer.len(),
-            )
-        };
+        let read =
+            unsafe { libc::read(fd, buffer.as_mut_ptr() as *mut libc::c_void, buffer.len()) };
 
         if read > 0 {
             stats.packets.fetch_add(1, Ordering::Relaxed);
@@ -242,11 +238,7 @@ fn udp_send(fd: i32, packet: &[u8], peer: SocketAddr, stats: &Stats) {
 
 fn tun_write(fd: i32, packet: &[u8]) {
     unsafe {
-        libc::write(
-            fd,
-            packet.as_ptr() as *const libc::c_void,
-            packet.len(),
-        );
+        libc::write(fd, packet.as_ptr() as *const libc::c_void, packet.len());
     }
 }
 
@@ -301,10 +293,7 @@ fn read_bytes(env: &JNIEnv, array: JByteArray) -> Vec<u8> {
         return Vec::new();
     }
     let mut buffer = vec![0i8; length];
-    if env
-        .get_byte_array_region(&array, 0, &mut buffer)
-        .is_err()
-    {
+    if env.get_byte_array_region(&array, 0, &mut buffer).is_err() {
         return Vec::new();
     }
     buffer.into_iter().map(|value| value as u8).collect()
@@ -328,16 +317,22 @@ pub extern "system" fn Java_app_lintas_core_NativeCore_start(
         net_tx_packets: AtomicU64::new(0),
     });
 
+    let alive = Arc::new(AtomicBool::new(true));
     let thread_stop = stop.clone();
     let thread_stats = stats.clone();
+    let thread_alive = alive.clone();
     let spawned = thread::Builder::new()
         .name("lintas-packet-loop".to_string())
-        .spawn(move || packet_loop(tun_fd, thread_stop, thread_stats));
+        .spawn(move || {
+            packet_loop(tun_fd, thread_stop, thread_stats);
+            thread_alive.store(false, Ordering::Relaxed);
+        });
 
     match spawned {
         Ok(thread) => Box::into_raw(Box::new(Handle {
             stop,
             stats,
+            alive,
             thread: Some(thread),
         })) as jlong,
         Err(_) => 0,
@@ -404,16 +399,30 @@ pub extern "system" fn Java_app_lintas_core_NativeCore_startWireGuard(
         net_tx_packets: AtomicU64::new(0),
     });
 
+    let alive = Arc::new(AtomicBool::new(true));
     let thread_stop = stop.clone();
     let thread_stats = stats.clone();
+    let thread_alive = alive.clone();
     let spawned = thread::Builder::new()
         .name("lintas-wireguard".to_string())
-        .spawn(move || wireguard_loop(tun_fd, udp_fd, tunn, reserved_array, peer, thread_stop, thread_stats));
+        .spawn(move || {
+            wireguard_loop(
+                tun_fd,
+                udp_fd,
+                tunn,
+                reserved_array,
+                peer,
+                thread_stop,
+                thread_stats,
+            );
+            thread_alive.store(false, Ordering::Relaxed);
+        });
 
     match spawned {
         Ok(thread) => Box::into_raw(Box::new(Handle {
             stop,
             stats,
+            alive,
             thread: Some(thread),
         })) as jlong,
         Err(_) => 0,
@@ -439,13 +448,23 @@ pub extern "system" fn Java_app_lintas_core_NativeCore_startMasque(
         return 0;
     }
 
-    let Some(cert_path) = read_string(&mut env, cert_path) else { return 0; };
-    let Some(key_path) = read_string(&mut env, key_path) else { return 0; };
-    let Some(peer_host) = read_string(&mut env, peer_address) else { return 0; };
-    let Some(local_host) = read_string(&mut env, local_address) else { return 0; };
-    let Some(sni) = read_string(&mut env, sni) else { return 0; };
-    let endpoint_pub_key_pem = read_string(&mut env, endpoint_pub_key_pem)
-        .filter(|value| !value.trim().is_empty());
+    let Some(cert_path) = read_string(&mut env, cert_path) else {
+        return 0;
+    };
+    let Some(key_path) = read_string(&mut env, key_path) else {
+        return 0;
+    };
+    let Some(peer_host) = read_string(&mut env, peer_address) else {
+        return 0;
+    };
+    let Some(local_host) = read_string(&mut env, local_address) else {
+        return 0;
+    };
+    let Some(sni) = read_string(&mut env, sni) else {
+        return 0;
+    };
+    let endpoint_pub_key_pem =
+        read_string(&mut env, endpoint_pub_key_pem).filter(|value| !value.trim().is_empty());
 
     let peer_ip: IpAddr = match peer_host.parse() {
         Ok(value) => value,
@@ -477,20 +496,24 @@ pub extern "system" fn Java_app_lintas_core_NativeCore_startMasque(
         net_tx_packets: AtomicU64::new(0),
     });
 
+    let alive = Arc::new(AtomicBool::new(true));
     let thread_stop = stop.clone();
     let thread_stats = stats.clone();
+    let thread_alive = alive.clone();
     let spawned = thread::Builder::new()
         .name("lintas-masque".to_string())
         .spawn(move || {
             if let Err(error) = masque::run(config, thread_stop, thread_stats) {
                 logcat(&format!("masque: {error:?}"));
             }
+            thread_alive.store(false, Ordering::Relaxed);
         });
 
     match spawned {
         Ok(thread) => Box::into_raw(Box::new(Handle {
             stop,
             stats,
+            alive,
             thread: Some(thread),
         })) as jlong,
         Err(_) => 0,
@@ -512,7 +535,25 @@ pub extern "system" fn Java_app_lintas_core_NativeCore_stop(
     if let Some(thread) = boxed.thread.take() {
         let _ = thread.join();
     }
+    boxed.alive.store(false, Ordering::Relaxed);
     std::mem::forget(boxed);
+}
+
+#[no_mangle]
+pub extern "system" fn Java_app_lintas_core_NativeCore_isRunning(
+    _env: JNIEnv,
+    _class: JClass,
+    handle: jlong,
+) -> jboolean {
+    if handle == 0 {
+        return 0;
+    }
+    let state = unsafe { &*(handle as *const Handle) };
+    if state.alive.load(Ordering::Relaxed) {
+        1
+    } else {
+        0
+    }
 }
 
 #[no_mangle]
@@ -565,8 +606,8 @@ mod tests {
         let mut b = Tunn::new(b_secret, a_public, None, None, 1, None);
 
         let packet = [
-            0x45, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x40, 0x01,
-            0x00, 0x00, 0x0a, 0x00, 0x00, 0x01, 0x0a, 0x00, 0x00, 0x02,
+            0x45, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x40, 0x01, 0x00, 0x00, 0x0a, 0x00,
+            0x00, 0x01, 0x0a, 0x00, 0x00, 0x02,
         ];
         let mut a_out = vec![0u8; 2048];
         let mut b_out = vec![0u8; 2048];

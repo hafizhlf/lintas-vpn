@@ -48,5 +48,7 @@ public final class NativeCore {
 
     public static native void stop(long handle);
 
+    public static native boolean isRunning(long handle);
+
     public static native long[] stats(long handle);
 }

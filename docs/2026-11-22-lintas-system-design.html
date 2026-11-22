@@ -705,7 +705,7 @@ if (window.top === window) document.documentElement.classList.add('standalone');
     <span>Rust core</span>
     <span>WireGuard + MASQUE</span>
     <span>GitHub Releases</span>
-    <span>± 24 menit baca</span>
+    <span>± 25 menit baca</span>
   </div>
 
   <div class='facts'>
@@ -1073,7 +1073,7 @@ App ← TUN ← netstack ← flow table ← CONNECT-IP ← MASQUE ← WARP edge
   &quot;version&quot;: 42,
   &quot;issued_at&quot;: &quot;2026-11-22T00:00:00Z&quot;,
   &quot;expires_at&quot;: &quot;2026-12-22T00:00:00Z&quot;,
-  &quot;min_app_version&quot;: &quot;1.0.0&quot;,
+  &quot;min_app_version&quot;: &quot;1.0.1&quot;,
   &quot;endpoints&quot;: {
     &quot;warp_masque_seeds&quot;: [&quot;...&quot;],
     &quot;scan_timeout_ms&quot;: 2500
@@ -1157,7 +1157,7 @@ App ← TUN ← netstack ← flow table ← CONNECT-IP ← MASQUE ← WARP edge
 <td>Zero Trust dan provider lain harus ditambah nanti</td>
 </tr>
 <tr>
-<td>Transport v1.0.0</td>
+<td>Transport v1.0.1</td>
 <td>WireGuard WARP + MASQUE H3</td>
 <td>Satu identitas WARP, dua transport; WireGuard via boringtun, MASQUE via quiche/CONNECT-IP; keduanya diverifikasi di Poco</td>
 <td>PATCH <code>tunnel_type</code> saat berganti protokol</td>
@@ -1536,10 +1536,11 @@ cd ..
 ./gradlew :app:assembleDebug
 </code></pre></div>
 <ul>
-<li>APK debug: <code>app/build/outputs/apk/debug/app-debug.apk</code> (v1.0.0).</li>
+<li>APK debug: <code>app/build/outputs/apk/debug/app-debug.apk</code> (v1.0.1).</li>
 <li>Unit test core: <code>cd core &amp;&amp; cargo test --release</code>; handshake WireGuard sudah lulus.</li>
 <li>MASQUE memakai quiche + BoringSSL; build Android memerlukan NDK/CMake dan waktu kompilasi lebih lama.</li>
 <li>Runtime verification: install di Poco X8 Pro Max; WireGuard dan MASQUE masing-masing menghasilkan <code>warp=on</code>, <code>colo=SIN</code>, dan HTTP/3 di <code>https://www.cloudflare.com/cdn-cgi/trace</code>.</li>
+<li>Network handover: Wi-Fi ↔ seluler memicu restart transport; WireGuard dan MASQUE kembali terhubung otomatis.</li>
 <li>JDK 21, Android SDK 36, Gradle wrapper 8.11.1, Rust stable, dan <code>cargo-ndk</code> diperlukan.</li>
 <li>Debug APK memakai debug signing; release GitHub butuh keystore terpisah.</li>
 <li>Debug APK lebih besar karena berisi dua ABI dan icon set; release/minified akan lebih kecil.</li>

@@ -4,9 +4,9 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use anyhow::{bail, Result};
-use ring::rand::SecureRandom;
 use octets::{Octets, OctetsMut};
 use quiche::h3::NameValue;
+use ring::rand::SecureRandom;
 
 use crate::Stats;
 
@@ -106,16 +106,15 @@ pub fn run(config: MasqueConfig, stop: Arc<AtomicBool>, stats: Arc<Stats>) -> Re
         } else if let Some(cert_der) = conn.peer_cert() {
             let (_, cert) = x509_parser::parse_x509_certificate(cert_der)
                 .map_err(|e| anyhow::anyhow!("parse peer cert: {e}"))?;
-            let expected = pem::parse(expected_pem)
-                .map_err(|e| anyhow::anyhow!("parse endpoint key: {e}"))?;
+            let expected =
+                pem::parse(expected_pem).map_err(|e| anyhow::anyhow!("parse endpoint key: {e}"))?;
             if cert.tbs_certificate.subject_pki.raw != expected.contents() {
                 bail!("MASQUE endpoint key pin mismatch");
             }
         }
     }
 
-    let mut h3_config = quiche::h3::Config::new()
-        .map_err(|e| anyhow::anyhow!("h3 config: {e}"))?;
+    let mut h3_config = quiche::h3::Config::new().map_err(|e| anyhow::anyhow!("h3 config: {e}"))?;
     h3_config.enable_extended_connect(true);
     let mut h3 = quiche::h3::Connection::with_transport(&mut conn, &h3_config)
         .map_err(|e| anyhow::anyhow!("h3 connection: {e}"))?;
@@ -401,11 +400,7 @@ fn send_to(fd: i32, data: &[u8], peer: SocketAddr) -> Result<()> {
 
 fn write_tun(fd: i32, packet: &[u8]) {
     unsafe {
-        libc::write(
-            fd,
-            packet.as_ptr() as *const libc::c_void,
-            packet.len(),
-        );
+        libc::write(fd, packet.as_ptr() as *const libc::c_void, packet.len());
     }
 }
 
