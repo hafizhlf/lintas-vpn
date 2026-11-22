@@ -14,6 +14,7 @@ mod masque;
 pub(crate) struct Stats {
     pub(crate) packets: AtomicU64,
     pub(crate) bytes: AtomicU64,
+    pub(crate) rx_bytes: AtomicU64,
     pub(crate) net_rx_packets: AtomicU64,
     pub(crate) net_tx_packets: AtomicU64,
 }
@@ -124,10 +125,10 @@ fn wireguard_loop(
                             udp_send(udp_fd, packet, peer, &stats);
                         }
                         TunnResult::WriteToTunnelV4(packet, _) => {
-                            tun_write(tun_fd, packet);
+                            tun_write(tun_fd, packet, &stats);
                         }
                         TunnResult::WriteToTunnelV6(packet, _) => {
-                            tun_write(tun_fd, packet);
+                            tun_write(tun_fd, packet, &stats);
                         }
                         _ => {}
                     }
@@ -158,11 +159,11 @@ fn wireguard_loop(
                                 datagram = &[];
                             }
                             TunnResult::WriteToTunnelV4(packet, _) => {
-                                tun_write(tun_fd, packet);
+                                tun_write(tun_fd, packet, &stats);
                                 datagram = &[];
                             }
                             TunnResult::WriteToTunnelV6(packet, _) => {
-                                tun_write(tun_fd, packet);
+                                tun_write(tun_fd, packet, &stats);
                                 datagram = &[];
                             }
                         }
@@ -177,10 +178,10 @@ fn wireguard_loop(
                 udp_send(udp_fd, packet, peer, &stats);
             }
             TunnResult::WriteToTunnelV4(packet, _) => {
-                tun_write(tun_fd, packet);
+                tun_write(tun_fd, packet, &stats);
             }
             TunnResult::WriteToTunnelV6(packet, _) => {
-                tun_write(tun_fd, packet);
+                tun_write(tun_fd, packet, &stats);
             }
             _ => {}
         }
@@ -236,7 +237,10 @@ fn udp_send(fd: i32, packet: &[u8], peer: SocketAddr, stats: &Stats) {
     }
 }
 
-fn tun_write(fd: i32, packet: &[u8]) {
+fn tun_write(fd: i32, packet: &[u8], stats: &Stats) {
+    stats
+        .rx_bytes
+        .fetch_add(packet.len() as u64, Ordering::Relaxed);
     unsafe {
         libc::write(fd, packet.as_ptr() as *const libc::c_void, packet.len());
     }
@@ -313,6 +317,7 @@ pub extern "system" fn Java_app_lintas_core_NativeCore_start(
     let stats = Arc::new(Stats {
         packets: AtomicU64::new(0),
         bytes: AtomicU64::new(0),
+        rx_bytes: AtomicU64::new(0),
         net_rx_packets: AtomicU64::new(0),
         net_tx_packets: AtomicU64::new(0),
     });
@@ -395,6 +400,7 @@ pub extern "system" fn Java_app_lintas_core_NativeCore_startWireGuard(
     let stats = Arc::new(Stats {
         packets: AtomicU64::new(0),
         bytes: AtomicU64::new(0),
+        rx_bytes: AtomicU64::new(0),
         net_rx_packets: AtomicU64::new(0),
         net_tx_packets: AtomicU64::new(0),
     });
@@ -492,6 +498,7 @@ pub extern "system" fn Java_app_lintas_core_NativeCore_startMasque(
     let stats = Arc::new(Stats {
         packets: AtomicU64::new(0),
         bytes: AtomicU64::new(0),
+        rx_bytes: AtomicU64::new(0),
         net_rx_packets: AtomicU64::new(0),
         net_tx_packets: AtomicU64::new(0),
     });
@@ -562,25 +569,27 @@ pub extern "system" fn Java_app_lintas_core_NativeCore_stats(
     _class: JClass,
     handle: jlong,
 ) -> jlongArray {
-    let (packets, bytes, net_rx, net_tx) = if handle == 0 {
-        (0, 0, 0, 0)
+    let (packets, tx_bytes, rx_bytes, net_rx, net_tx) = if handle == 0 {
+        (0, 0, 0, 0, 0)
     } else {
         let state = unsafe { &*(handle as *const Handle) };
         (
             state.stats.packets.load(Ordering::Relaxed),
             state.stats.bytes.load(Ordering::Relaxed),
+            state.stats.rx_bytes.load(Ordering::Relaxed),
             state.stats.net_rx_packets.load(Ordering::Relaxed),
             state.stats.net_tx_packets.load(Ordering::Relaxed),
         )
     };
 
-    match env.new_long_array(4) {
+    match env.new_long_array(5) {
         Ok(array) => {
             let values = [
                 packets as jlong,
-                bytes as jlong,
+                tx_bytes as jlong,
                 net_rx as jlong,
                 net_tx as jlong,
+                rx_bytes as jlong,
             ];
             if env.set_long_array_region(&array, 0, &values).is_err() {
                 return std::ptr::null_mut();

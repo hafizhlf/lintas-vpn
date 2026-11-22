@@ -440,7 +440,8 @@ class LintasVpnService : VpnService() {
                 val stats = sample.stats
                 if (stats != null && stats.size >= 2) {
                     val netRx = stats.getOrElse(2) { 0L }
-                    VpnController.updateStats(stats[0], stats[1], netRx)
+                    val rxBytes = stats.getOrElse(4) { 0L }
+                    VpnController.updateStats(stats[0], stats[1], rxBytes, netRx)
                     if (watchHandshake && !handshakeDone && netRx > 0L) {
                         handshakeDone = true
                         VpnController.connected(transport)
@@ -479,39 +480,75 @@ class LintasVpnService : VpnService() {
     }
 
     private fun sendProbe() {
-        when (VpnController.state.value.transport) {
-            TunnelTransport.WIREGUARD, TunnelTransport.MASQUE -> sendWarpProbe()
-            TunnelTransport.SPIKE -> sendUdpProbe("10.111.0.1", 9, "lintas-phase0".toByteArray())
-            null -> Unit
+        scope.launch {
+            val transport = VpnController.state.value.transport
+            if (tun == null || (transport != TunnelTransport.WIREGUARD && transport != TunnelTransport.MASQUE)) {
+                VpnController.probeFailure("Tunnel belum siap")
+                return@launch
+            }
+            val started = System.nanoTime()
+            runCatching { probeDns() }
+                .onSuccess {
+                    val latency = (System.nanoTime() - started) / 1_000_000L
+                    VpnController.probeSuccess(latency)
+                }
+                .onFailure { error ->
+                    Log.w(TAG, "probe failed: ${error.message}")
+                    val message = if (error is java.net.SocketTimeoutException) {
+                        "Tidak ada balasan dari WARP (timeout)"
+                    } else {
+                        error.message ?: "Tidak ada balasan dari 1.1.1.1"
+                    }
+                    VpnController.probeFailure(message)
+                }
+        }
+    }
+
+    private fun probeDns() {
+        val query = dnsQuery()
+        DatagramSocket().use { socket ->
+            socket.soTimeout = PROBE_TIMEOUT_MS
+            socket.send(
+                DatagramPacket(
+                    query,
+                    query.size,
+                    InetAddress.getByName("1.1.1.1"),
+                    53,
+                ),
+            )
+            val buffer = ByteArray(MAX_DNS_RESPONSE)
+            val response = DatagramPacket(buffer, buffer.size)
+            socket.receive(response)
+            if (response.length < 12 || buffer[0] != query[0] || buffer[1] != query[1]) {
+                error("Balasan DNS tidak valid")
+            }
         }
     }
 
     private fun sendWarpProbe() {
         if (tun == null) return
-        val query = byteArrayOf(
-            0x12, 0x34, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x04, 0x77, 0x61, 0x72,
-            0x70, 0x00, 0x00, 0x01, 0x00, 0x01,
-        )
-        sendUdpProbe("1.1.1.1", 53, query)
-    }
-
-    private fun sendUdpProbe(host: String, port: Int, payload: ByteArray) {
+        val query = dnsQuery()
         scope.launch {
             runCatching {
                 DatagramSocket().use { socket ->
                     socket.send(
                         DatagramPacket(
-                            payload,
-                            payload.size,
-                            InetAddress.getByName(host),
-                            port,
+                            query,
+                            query.size,
+                            InetAddress.getByName("1.1.1.1"),
+                            53,
                         ),
                     )
                 }
             }
         }
     }
+
+    private fun dnsQuery(): ByteArray = byteArrayOf(
+        0x12, 0x34, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x04, 0x77, 0x61, 0x72,
+        0x70, 0x00, 0x00, 0x01, 0x00, 0x01,
+    )
 
     private fun decodeKey(value: String): ByteArray? {
         return runCatching { Base64.decode(value, Base64.NO_WRAP) }
@@ -652,6 +689,8 @@ class LintasVpnService : VpnService() {
         private const val CHANNEL_ID = "lintas_vpn"
         private const val NOTIFICATION_ID = 1
         private const val RECONNECT_DEBOUNCE_MS = 1200L
+        private const val PROBE_TIMEOUT_MS = 3500
+        private const val MAX_DNS_RESPONSE = 1500
     }
 }
 

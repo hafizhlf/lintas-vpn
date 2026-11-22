@@ -292,7 +292,7 @@ pub fn run(config: MasqueConfig, stop: Arc<AtomicBool>, stats: Arc<Stats>) -> Re
                     if let Some(packet) = parse_datagram(&datagram, flow_id) {
                         if validate_incoming(packet).is_ok() {
                             stats.net_rx_packets.fetch_add(1, Ordering::Relaxed);
-                            write_tun(config.tun_fd, packet);
+                            write_tun(config.tun_fd, packet, &stats);
                         }
                     }
                 }
@@ -416,7 +416,10 @@ fn send_to(fd: i32, data: &[u8], peer: SocketAddr) -> Result<()> {
     Ok(())
 }
 
-fn write_tun(fd: i32, packet: &[u8]) {
+fn write_tun(fd: i32, packet: &[u8], stats: &Stats) {
+    stats
+        .rx_bytes
+        .fetch_add(packet.len() as u64, Ordering::Relaxed);
     unsafe {
         libc::write(fd, packet.as_ptr() as *const libc::c_void, packet.len());
     }

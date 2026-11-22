@@ -40,6 +40,7 @@ import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -78,6 +79,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.lintas.core.NativeCore
 import app.lintas.ui.theme.LintasTheme
+import app.lintas.vpn.ProbeState
+import app.lintas.vpn.ProbeStatus
 import app.lintas.vpn.TunnelState
 import app.lintas.vpn.VpnPreferences
 import app.lintas.vpn.VpnProtocol
@@ -100,6 +103,7 @@ fun LintasApp(
 ) {
     val context = LocalContext.current
     val tunnel by VpnController.state.collectAsStateWithLifecycle()
+    val probe by VpnController.probeState.collectAsStateWithLifecycle()
     val warp by WarpController.state.collectAsStateWithLifecycle()
     val warpPlusState by WarpController.warpPlus.collectAsStateWithLifecycle()
     var tab by rememberSaveable { mutableIntStateOf(0) }
@@ -127,6 +131,7 @@ fun LintasApp(
             when (tab) {
                 0 -> HomeScreen(
                     tunnel = tunnel,
+                    probe = probe,
                     protocol = protocol,
                     warpPlus = warp.identity?.warpPlus == true,
                     onConnect = { onConnect(protocol) },
@@ -138,6 +143,7 @@ fun LintasApp(
                 1 -> RoutesScreen(
                     warp = warp,
                     tunnel = tunnel,
+                    probe = probe,
                     onProbe = onProbe,
                 )
                 2 -> ActivityScreen(
@@ -204,6 +210,7 @@ private fun LintasNavBar(selected: Int, onTab: (Int) -> Unit) {
 @Composable
 private fun HomeScreen(
     tunnel: TunnelState,
+    probe: ProbeState,
     protocol: VpnProtocol,
     warpPlus: Boolean,
     onConnect: () -> Unit,
@@ -283,17 +290,29 @@ private fun HomeScreen(
                 }
                 OutlinedButton(
                     onClick = onProbe,
-                    enabled = connected,
+                    enabled = connected && probe.status != ProbeStatus.RUNNING,
                     modifier = Modifier.weight(1f).height(44.dp),
                     shape = RoundedCornerShape(11.dp),
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.7f)),
                     contentPadding = PaddingValues(horizontal = 10.dp),
                 ) {
-                    Icon(Icons.Outlined.Speed, contentDescription = null, modifier = Modifier.size(15.dp))
+                    if (probe.status == ProbeStatus.RUNNING) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(15.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    } else {
+                        Icon(Icons.Outlined.Speed, contentDescription = null, modifier = Modifier.size(15.dp))
+                    }
                     Spacer(Modifier.width(7.dp))
-                    Text("Uji koneksi", style = MaterialTheme.typography.labelMedium)
+                    Text(
+                        if (probe.status == ProbeStatus.RUNNING) "Menguji..." else "Uji koneksi",
+                        style = MaterialTheme.typography.labelMedium,
+                    )
                 }
             }
+            ProbeFeedback(probe)
             Spacer(Modifier.height(26.dp))
         }
 
@@ -573,8 +592,8 @@ private fun StatsRow(tunnel: TunnelState) {
         )
         StatDivider()
         StatColumn(
-            label = "Data",
-            value = formatBytes(tunnel.bytes),
+            label = "Data ↑↓",
+            value = formatBytes(tunnel.bytes + tunnel.rxBytes),
             modifier = Modifier.weight(1f),
         )
     }
@@ -646,6 +665,7 @@ private fun ConnectButton(
 private fun RoutesScreen(
     warp: WarpState,
     tunnel: TunnelState,
+    probe: ProbeState,
     onProbe: () -> Unit,
 ) {
     val connected = tunnel.status == TunnelStatus.CONNECTED
@@ -677,8 +697,19 @@ private fun RoutesScreen(
             title = "Rute",
             subtitle = "Jalur WARP saat ini",
             action = {
-                IconButton(onClick = onProbe, enabled = connected) {
-                    Icon(Icons.Outlined.Speed, contentDescription = "Uji koneksi")
+                IconButton(
+                    onClick = onProbe,
+                    enabled = connected && probe.status != ProbeStatus.RUNNING,
+                ) {
+                    if (probe.status == ProbeStatus.RUNNING) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    } else {
+                        Icon(Icons.Outlined.Speed, contentDescription = "Uji koneksi")
+                    }
                 }
             },
         )
@@ -756,16 +787,66 @@ private fun RoutesScreen(
         Spacer(Modifier.height(18.dp))
         OutlinedButton(
             onClick = onProbe,
-            enabled = connected,
+            enabled = connected && probe.status != ProbeStatus.RUNNING,
             modifier = Modifier.fillMaxWidth().height(48.dp),
             shape = RoundedCornerShape(12.dp),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         ) {
-            Icon(Icons.Outlined.Speed, contentDescription = null, modifier = Modifier.size(17.dp))
+            if (probe.status == ProbeStatus.RUNNING) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(17.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                Icon(Icons.Outlined.Speed, contentDescription = null, modifier = Modifier.size(17.dp))
+            }
             Spacer(Modifier.width(8.dp))
-            Text("Uji koneksi", style = MaterialTheme.typography.labelLarge)
+            Text(
+                if (probe.status == ProbeStatus.RUNNING) "Menguji koneksi..." else "Uji koneksi",
+                style = MaterialTheme.typography.labelLarge,
+            )
         }
+        ProbeFeedback(probe)
         Spacer(Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun ProbeFeedback(probe: ProbeState) {
+    if (probe.status == ProbeStatus.IDLE) return
+    val running = probe.status == ProbeStatus.RUNNING
+    val success = probe.status == ProbeStatus.SUCCESS
+    val color = when {
+        running -> MaterialTheme.colorScheme.onSurfaceVariant
+        success -> MaterialTheme.colorScheme.secondary
+        else -> MaterialTheme.colorScheme.error
+    }
+    Spacer(Modifier.height(10.dp))
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Icon(
+            imageVector = when {
+                running -> Icons.Outlined.Speed
+                success -> Icons.Outlined.CheckCircle
+                else -> Icons.Outlined.Info
+            },
+            contentDescription = null,
+            tint = color,
+            modifier = Modifier.size(16.dp),
+        )
+        Spacer(Modifier.width(7.dp))
+        Text(
+            text = when {
+                running -> "Menguji DNS 1.1.1.1 melalui tunnel..."
+                success -> "Koneksi OK · ${probe.latencyMs ?: 0} ms"
+                else -> probe.message ?: "Uji koneksi gagal"
+            },
+            style = MaterialTheme.typography.labelMedium,
+            color = color,
+        )
     }
 }
 
@@ -843,7 +924,7 @@ private fun ActivityScreen(tunnel: TunnelState, warp: WarpState) {
             Row {
                 StatColumn("Paket", tunnel.packets.toString(), Modifier.weight(1f))
                 StatDivider()
-                StatColumn("Data", formatBytes(tunnel.bytes), Modifier.weight(1f))
+                StatColumn("Data ↑↓", formatBytes(tunnel.bytes + tunnel.rxBytes), Modifier.weight(1f))
                 StatDivider()
                 StatColumn("Transport", if (connected) transport else "—", Modifier.weight(1f))
             }
@@ -864,8 +945,8 @@ private fun ActivityScreen(tunnel: TunnelState, warp: WarpState) {
         CheckRow(
             ok = tunnel.packets > 0,
             title = "Lalu lintas",
-            subtitle = "${tunnel.packets} keluar · ${tunnel.netRxPackets} masuk",
-            value = formatBytes(tunnel.bytes),
+            subtitle = "${tunnel.packets} keluar · ${tunnel.netRxPackets} masuk · ↑ ${formatBytes(tunnel.bytes)} · ↓ ${formatBytes(tunnel.rxBytes)}",
+            value = formatBytes(tunnel.bytes + tunnel.rxBytes),
         )
         CheckRow(
             ok = connected && tunnel.transport == TunnelTransport.MASQUE,
@@ -1021,7 +1102,7 @@ private fun SettingsScreen(
         }
         Spacer(Modifier.height(16.dp))
         SettingsGroup(title = "Aplikasi") {
-            ValueSettingRow("Versi", "1.0.2", "Open source · GPL-3.0")
+            ValueSettingRow("Versi", "1.0.3", "Open source · GPL-3.0")
             SettingDivider()
             ValueSettingRow("Mesin", "Rust + Kotlin", "Android 16")
             SettingDivider()

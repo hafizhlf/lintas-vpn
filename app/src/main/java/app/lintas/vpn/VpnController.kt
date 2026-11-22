@@ -21,11 +21,25 @@ enum class TunnelTransport {
     MASQUE,
 }
 
+enum class ProbeStatus {
+    IDLE,
+    RUNNING,
+    SUCCESS,
+    FAILURE,
+}
+
+data class ProbeState(
+    val status: ProbeStatus = ProbeStatus.IDLE,
+    val latencyMs: Long? = null,
+    val message: String? = null,
+)
+
 data class TunnelState(
     val status: TunnelStatus = TunnelStatus.IDLE,
     val transport: TunnelTransport? = null,
     val packets: Long = 0L,
     val bytes: Long = 0L,
+    val rxBytes: Long = 0L,
     val netRxPackets: Long = 0L,
     val startedAtMillis: Long? = null,
     val error: String? = null,
@@ -34,9 +48,12 @@ data class TunnelState(
 object VpnController {
     private val _state = MutableStateFlow(TunnelState())
     val state: StateFlow<TunnelState> = _state.asStateFlow()
+    private val _probeState = MutableStateFlow(ProbeState())
+    val probeState: StateFlow<ProbeState> = _probeState.asStateFlow()
 
     fun start(context: Context, protocol: VpnProtocol = VpnProtocol.WIREGUARD) {
         _state.value = TunnelState(status = TunnelStatus.CONNECTING)
+        _probeState.value = ProbeState()
         val action = if (protocol == VpnProtocol.MASQUE) {
             LintasVpnService.ACTION_START_MASQUE
         } else {
@@ -53,14 +70,35 @@ object VpnController {
     }
 
     fun probe(context: Context) {
+        if (_state.value.status != TunnelStatus.CONNECTED || _probeState.value.status == ProbeStatus.RUNNING) {
+            return
+        }
+        _probeState.value = ProbeState(status = ProbeStatus.RUNNING)
         val intent = Intent(context, LintasVpnService::class.java)
             .setAction(LintasVpnService.ACTION_PROBE)
         runCatching { context.startService(intent) }
+            .onFailure { error ->
+                _probeState.value = ProbeState(
+                    status = ProbeStatus.FAILURE,
+                    message = error.message ?: "Tidak bisa memulai uji koneksi",
+                )
+            }
+    }
+
+    internal fun probeSuccess(latencyMs: Long) {
+        _probeState.value = ProbeState(status = ProbeStatus.SUCCESS, latencyMs = latencyMs)
+    }
+
+    internal fun probeFailure(message: String) {
+        _probeState.value = ProbeState(status = ProbeStatus.FAILURE, message = message)
     }
 
     internal fun connecting() {
         _state.update {
             it.copy(status = TunnelStatus.CONNECTING, error = null)
+        }
+        if (_probeState.value.status != ProbeStatus.IDLE) {
+            _probeState.value = ProbeState()
         }
     }
 
@@ -76,11 +114,12 @@ object VpnController {
         }
     }
 
-    internal fun updateStats(packets: Long, bytes: Long, netRxPackets: Long) {
+    internal fun updateStats(packets: Long, bytes: Long, rxBytes: Long, netRxPackets: Long) {
         _state.update {
             it.copy(
                 packets = packets,
                 bytes = bytes,
+                rxBytes = rxBytes,
                 netRxPackets = netRxPackets,
             )
         }
@@ -88,9 +127,11 @@ object VpnController {
 
     internal fun idle() {
         _state.value = TunnelState()
+        _probeState.value = ProbeState()
     }
 
     internal fun error(message: String) {
         _state.value = TunnelState(status = TunnelStatus.ERROR, error = message)
+        _probeState.value = ProbeState()
     }
 }
