@@ -85,6 +85,13 @@ class UnderlyingNetworkMonitor(
         return Snapshot(if (selected != null) setOf(selected) else emptySet())
     }
 
+    fun selectedNetwork(): Network? {
+        return synchronized(lock) {
+            refreshSelectionLocked()
+            selectedKey?.let { networks[it] }
+        }
+    }
+
     @SuppressLint("MissingPermission")
     private fun consider(
         network: Network,

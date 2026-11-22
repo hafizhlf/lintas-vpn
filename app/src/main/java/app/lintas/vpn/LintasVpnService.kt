@@ -133,6 +133,20 @@ class LintasVpnService : VpnService() {
         }
     }
 
+    private fun openTunnelSocket(): DatagramSocket? {
+        val socket = runCatching { DatagramSocket() }.getOrNull() ?: return null
+        if (!protect(socket)) {
+            socket.close()
+            return null
+        }
+        networkMonitor?.selectedNetwork()?.let { network ->
+            if (runCatching { network.bindSocket(socket) }.isFailure) {
+                Log.w(TAG, "bindSocket failed; falling back to default network")
+            }
+        }
+        return socket
+    }
+
     @Synchronized
     private fun startWireGuard(identity: WarpIdentity) {
         if (!tunnelRequested) return
@@ -145,9 +159,8 @@ class LintasVpnService : VpnService() {
         }
         val address = addresses.firstOrNull { it is Inet4Address } ?: addresses.first()
 
-        val socket = runCatching { DatagramSocket() }.getOrNull()
-        if (socket == null || !protect(socket)) {
-            socket?.close()
+        val socket = openTunnelSocket()
+        if (socket == null) {
             failAndStop("Gagal menyiapkan socket WARP")
             return
         }
@@ -228,9 +241,8 @@ class LintasVpnService : VpnService() {
         }
         val address = addresses.firstOrNull { it is Inet4Address } ?: addresses.first()
 
-        val socket = runCatching { DatagramSocket() }.getOrNull()
-        if (socket == null || !protect(socket)) {
-            socket?.close()
+        val socket = openTunnelSocket()
+        if (socket == null) {
             failAndStop("Gagal menyiapkan socket MASQUE")
             return
         }

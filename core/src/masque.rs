@@ -12,6 +12,9 @@ use crate::Stats;
 
 const MAX_DATAGRAM_SIZE: usize = 1350;
 const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(15);
+const KEEPALIVE_INTERVAL: Duration = Duration::from_secs(15);
+const LIVENESS_TIMEOUT: Duration = Duration::from_secs(45);
+const IDLE_TIMEOUT_MS: u64 = 30_000;
 const TUN_BUFFER: usize = 2048;
 const UDP_BUFFER: usize = 65_535;
 
@@ -39,7 +42,7 @@ pub fn run(config: MasqueConfig, stop: Arc<AtomicBool>, stats: Arc<Stats>) -> Re
     quic_config
         .load_priv_key_from_pem_file(&config.key_path)
         .map_err(|e| anyhow::anyhow!("load key: {e}"))?;
-    quic_config.set_max_idle_timeout(0);
+    quic_config.set_max_idle_timeout(IDLE_TIMEOUT_MS);
     quic_config.set_max_recv_udp_payload_size(MAX_DATAGRAM_SIZE);
     quic_config.set_max_send_udp_payload_size(MAX_DATAGRAM_SIZE);
     quic_config.set_initial_max_data(10_000_000);
@@ -192,6 +195,9 @@ pub fn run(config: MasqueConfig, stop: Arc<AtomicBool>, stats: Arc<Stats>) -> Re
     }
     flow_prefix.push(0);
 
+    let mut last_rx = Instant::now();
+    let mut last_keepalive = Instant::now();
+
     let mut poll_fds = [
         libc::pollfd {
             fd: config.tun_fd,
@@ -265,7 +271,9 @@ pub fn run(config: MasqueConfig, stop: Arc<AtomicBool>, stats: Arc<Stats>) -> Re
                         to: config.local,
                         from: config.peer,
                     };
-                    let _ = conn.recv(&mut in_buf[..n], recv_info);
+                    if conn.recv(&mut in_buf[..n], recv_info).is_ok() {
+                        last_rx = Instant::now();
+                    }
                 }
             }
         }
@@ -293,11 +301,21 @@ pub fn run(config: MasqueConfig, stop: Arc<AtomicBool>, stats: Arc<Stats>) -> Re
             }
         }
 
-        flush(&mut conn, config.udp_fd, config.peer, &mut out)?;
+        if last_keepalive.elapsed() >= KEEPALIVE_INTERVAL {
+            last_keepalive = Instant::now();
+            let _ = conn.send_ack_eliciting();
+        }
         conn.on_timeout();
+        flush(&mut conn, config.udp_fd, config.peer, &mut out)?;
 
         if conn.is_closed() {
             break;
+        }
+        if last_rx.elapsed() > LIVENESS_TIMEOUT {
+            bail!(
+                "MASQUE path stalled: no response for {}s",
+                LIVENESS_TIMEOUT.as_secs()
+            );
         }
     }
 

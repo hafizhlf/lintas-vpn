@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.3 - 2026-11-22
+
+- Keep the MASQUE QUIC path alive with a PING every 15 seconds while idle.
+- Set a 30-second QUIC idle timeout and reconnect automatically when the
+  transport stops receiving responses for 45 seconds.
+- Bind the tunnel UDP socket to the selected underlying network so it follows
+  Wi-Fi/cellular handovers.
+
 ## 1.0.2 - 2026-11-22
 
 - Keep the TUN/VPN interface open during a network handover and restart only
