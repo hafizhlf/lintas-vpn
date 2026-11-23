@@ -1,7 +1,7 @@
 # Lintas — Pembaruan aplikasi sendiri
 
 Tanggal: 2026-11-23
-Status: diimplementasikan; verifikasi perangkat tertunda (Task 9)
+Status: diimplementasikan; verifikasi perangkat lulus (debug 1.0.7 → 1.0.8)
 Target rilis: 1.0.7 (versionCode 17)
 
 ## Tujuan
@@ -467,37 +467,38 @@ Diubah:
 - `lintDebug`, `testDebugUnitTest`, `assembleRelease`.
 - `apksigner verify` dan `zipalign -c` pada APK rilis.
 
-### Perangkat (Poco 2602BPC18G, Android 16)
+### Perangkat (Poco 2602BPC18G, Android 16) — lulus
 
-1. Pasang debug 1.0.7 di atas debug 1.0.6 (kunci debug sama, data WARP tetap).
-2. Buat rilis GitHub sementara `v1.0.8` berisi APK **debug** 1.0.8
-   (`versionCode 18`) dan `SHA256SUMS`.
-3. Buka Setelan → Pembaruan → Cek. Harus muncul "Versi 1.0.8 tersedia".
-4. Unduh; pastikan progres berjalan dan checksum/tanda tangan lolos. Tekan
-   Home sebentar lalu kembali; unduhan harus tetap berjalan atau, bila proses
-   dihentikan, menunjukkan error yang jelas dan bisa diulang.
-5. Setelah `READY`, paksa hentikan proses Lintas
-   (`adb shell am force-stop app.lintas`), buka lagi. Status harus kembali
-   `READY` dan file tidak diunduh ulang.
-6. Tekan **Pasang**, lalu **Batal** di installer, kembali ke Lintas. Status
-   harus tetap `READY`; tekan **Pasang** lagi harus membuka installer tanpa
-   mengunduh ulang.
-7. Konfirmasi installer pada percobaan kedua; aplikasi harus terpasang sebagai
-   1.0.8 dan data tetap ada. Buka lagi; baris Pembaruan harus menampilkan
-   "Diperbarui ke 1.0.8".
-8. Uji **Hapus unduhan**: setelah mengunduh rilis uji berikutnya, tekan
-   **Hapus unduhan**; status harus kembali `AVAILABLE` dan file hilang.
-9. Uji penolakan tanda tangan: rilis sementara `v1.0.9` berisi APK kecil
-   `app.lintas` versi 1.0.9 (`versionCode 19`) yang ditandatangani kunci debug
-   lain. Aplikasi harus mengunduh, menolak sebelum installer dibuka, dan
-   menampilkan pesan kunci berbeda.
-10. Uji rate limit/offline dengan mode pesawat; pesan error harus jelas dan
-    aplikasi tidak crash.
-11. Hapus rilis sementara beserta tag-nya (`gh release delete --cleanup-tag`)
-    dan APK uji.
-12. Kembalikan perangkat ke build yang diinginkan. Jika ingin APK rilis 1.0.7,
-    uninstall debug build lebih dulu; identitas WARP lokal akan hilang dan perlu
-    registrasi ulang.
+- Debug 1.0.7 dipasang di atas debug 1.0.6 dengan kunci debug yang sama;
+  `versionCode 17`, data WARP tetap.
+- Repo dijadikan publik. `GET /releases/latest` mengembalikan HTTP 200 dan
+  rilis `v1.0.5` sebelum rilis uji dibuat.
+- Rilis sementara `v1.0.8` berisi debug build 1.0.8 (`versionCode 18`).
+  Pemeriksaan menemukan "Versi 1.0.8 tersedia".
+- Unduhan 69,8 MB selesai dan lolos verifikasi. Saat aplikasi dipindahkan ke
+  background selama beberapa detik, unduhan berhenti dengan pesan
+  "Unduhan gagal. Coba lagi."; pengulangan dengan aplikasi tetap terbuka
+  berhasil. Ini sesuai batasan yang didokumentasikan (tanpa service unduhan).
+- `READY` bertahan setelah `am force-stop` dan aplikasi dibuka lagi; file
+  tidak diunduh ulang.
+- Installer dibatalkan sekali; status tetap `READY` dan percobaan kedua
+  berhasil memasang 1.0.8 tanpa unduh ulang.
+- Setelah pembaruan, data tetap ada dan baris Pembaruan menampilkan
+  "Diperbarui ke 1.0.8"; cache APK dibersihkan.
+- **Hapus unduhan** mengembalikan status ke `AVAILABLE` dan menghapus file.
+- Rilis sementara `v1.0.9` dengan tag lebih baru tetapi `versionCode 16`
+  ditolak setelah unduhan: "APK bukan versi yang lebih baru."
+- Rilis sementara `v1.0.10` berisi APK `app.lintas` `versionCode 20` yang
+  ditandatangani kunci lain ditolak sebelum installer: "APK ditandatangani
+  dengan kunci berbeda. Pembaruan ditolak."
+- Mode pesawat menghasilkan "Tidak bisa menghubungi GitHub. Periksa koneksi
+  internet."; tidak ada crash.
+- Play Protect di perangkat meminta "Install without scanning" sekali saat
+  memasang APK debug; ini perilaku perangkat, bukan aplikasi.
+- Semua rilis sementara dan file uji dihapus. Rilis publik yang tersisa:
+  `v1.0.5`. Perangkat ditinggalkan di debug 1.0.8 dengan preferensi pembaruan
+  dibersihkan; identitas WARP tetap ada. Peralihan ke APK rilis 1.0.7 tetap
+  membutuhkan uninstall dan registrasi WARP ulang.
 
 ### Rilis
 

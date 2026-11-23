@@ -10,8 +10,8 @@
 
 **Spec:** `docs/superpowers/specs/2026-11-23-lintas-self-update-design.md`
 
-**Execution status (2026-11-23):** Tasks 1–8 implemented on `feat/self-update`;
-Task 9 device verification and Task 10 release pending.
+**Execution status (2026-11-23):** Tasks 1–9 complete on `feat/self-update`;
+Task 10 release pending.
 
 ## Global Constraints
 
@@ -755,7 +755,15 @@ git commit -m "docs: describe in-app updates"
 
 ---
 
-### Task 9: Device Verification
+### Task 9: Device Verification (PASSED — 2026-11-23)
+
+**Result:** passed on the Poco 2602BPC18G (Android 16). Debug 1.0.7 updated to
+1.0.8 through the in-app flow; `READY` survived force-stop and installer
+cancellation; `Hapus unduhan` returned to `AVAILABLE`; the downgrade and
+different-signature releases were rejected; the offline error was clear.
+Temporary releases `v1.0.8`, `v1.0.9`, and `v1.0.10` were deleted. The device
+is left on debug 1.0.8 with update preferences cleared and the WARP identity
+intact. See the design's Verification section for the detailed results.
 
 **Files:**
 - Modify: `docs/superpowers/specs/2026-11-23-lintas-self-update-design.md`
