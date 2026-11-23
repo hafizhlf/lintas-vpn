@@ -353,14 +353,18 @@ Pesan yang ditampilkan:
 - Rilis tidak ada / 404: "Belum ada rilis publik."
 - Tag tidak valid: "Format versi rilis tidak dikenal."
 - Tanpa APK: "Rilis terbaru tidak menyertakan APK."
-- Ruang kurang: "Ruang penyimpanan tidak cukup. Butuh sekitar 56 MB."
+- Ruang kurang: "Ruang penyimpanan tidak cukup. Butuh sekitar <ukuran APK>."
 - Unduhan terputus: "Unduhan gagal. Coba lagi."
-- Ukuran/checksum: "Unduhan tidak lengkap atau rusak."
-- Package/versi: "APK bukan pembaruan yang cocok untuk Lintas."
+- File/APK: "File APK tidak ditemukan." atau "APK tidak bisa dibaca."
+- Ukuran/checksum: "Ukuran APK tidak cocok." atau "Checksum APK tidak cocok."
+- Penyimpanan: "Gagal menyimpan APK."
+- Package/versi: "APK bukan untuk aplikasi ini.", "APK bukan versi yang lebih
+  baru.", atau "Versi APK tidak cocok dengan rilis."
 - Tanda tangan: "APK ditandatangani dengan kunci berbeda. Pembaruan ditolak."
 - Izin: "Izinkan Lintas memasang aplikasi, lalu coba lagi."
 - Installer tidak tersedia: "Tidak ada aplikasi installer yang bisa membuka
   APK ini."
+- Installer gagal: "Tidak bisa membuka installer: <pesan>."
 
 Semua kegagalan penting dicatat ke `DiagnosticLog` dengan kategori `UPDATE`.
 Tidak ada URL yang memuat token, jadi aman dicatat. Path file boleh dicatat.

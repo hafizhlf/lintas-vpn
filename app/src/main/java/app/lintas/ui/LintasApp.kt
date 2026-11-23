@@ -1,6 +1,7 @@
 package app.lintas.ui
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -223,7 +224,8 @@ fun LintasApp(
                         UpdateController.clearJustUpdated()
                         if (
                             update.status == UpdateStatus.IDLE ||
-                            update.status == UpdateStatus.UP_TO_DATE
+                            update.status == UpdateStatus.UP_TO_DATE ||
+                            update.status == UpdateStatus.ERROR
                         ) {
                             UpdateController.check(context, manual = true)
                         }
@@ -256,6 +258,13 @@ fun LintasApp(
                             Intent(Intent.ACTION_VIEW, url.toUri())
                                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                         )
+                    }.onFailure { error ->
+                        DiagnosticLog.log("UPDATE", "release link failed: ${error.message}")
+                        Toast.makeText(
+                            context,
+                            "Tidak bisa membuka tautan rilis.",
+                            Toast.LENGTH_SHORT,
+                        ).show()
                     }
                 }
             },

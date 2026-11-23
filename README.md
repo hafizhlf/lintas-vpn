@@ -55,8 +55,9 @@ Cloudflare without a relay or account server.
   Changes apply on the next disconnect and reconnect.
 - **WARP+** license activation, account status refresh, and expiry display when
   available.
-- **In-app updates** from GitHub Releases, with SHA-256, package, version, and
-  signing-certificate verification before the Android installer opens.
+- **In-app updates** from GitHub Releases, with SHA-256 (when provided),
+  package, version, and signing-certificate verification before the Android
+  installer opens.
 - **Encrypted identity** storage using Android Keystore.
 - **Optional local diagnostic log** for transport and reconnect issues.
 - No account, billing, telemetry, or backend in the data path.
@@ -97,8 +98,9 @@ sha256sum lintas-1.0.7.apk
 
 Lintas checks GitHub Releases at most once every 24 hours and on demand from
 **Setelan → Pembaruan**. It downloads the APK inside the app, verifies the
-SHA-256, package name, version, and signing certificate, then opens the Android
-installer. A verified download survives process death and installer
+SHA-256 (when GitHub provides a digest), package name, version, and signing
+certificate, then opens the Android installer. A verified download survives
+process death and installer
 cancellation; you can discard it from the dialog.
 
 Downloads run only while the app is open. Installing an update disconnects the

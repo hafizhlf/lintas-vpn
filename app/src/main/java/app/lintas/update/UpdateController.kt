@@ -102,6 +102,7 @@ object UpdateController {
                                     release = result.release.info,
                                     error = null,
                                     progress = 0,
+                                    justUpdatedTo = null,
                                 )
                             }
                         }
@@ -349,6 +350,7 @@ object UpdateController {
         if (_state.value.status != UpdateStatus.READY) return
         val file = UpdateStore.readyFile(app)?.let(::File)
         if (file == null || !file.isFile) {
+            DiagnosticLog.log("UPDATE", "installer file missing")
             _state.update {
                 it.copy(
                     status = UpdateStatus.ERROR,
@@ -368,6 +370,7 @@ object UpdateController {
                 "installer launched version=${_state.value.release?.versionName}",
             )
         } catch (error: ActivityNotFoundException) {
+            DiagnosticLog.log("UPDATE", "installer activity not found")
             _state.update {
                 it.copy(
                     status = UpdateStatus.ERROR,
@@ -375,6 +378,7 @@ object UpdateController {
                 )
             }
         } catch (error: Exception) {
+            DiagnosticLog.log("UPDATE", "installer launch failed: ${error.message}")
             _state.update {
                 it.copy(
                     status = UpdateStatus.ERROR,

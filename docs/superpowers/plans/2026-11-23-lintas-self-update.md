@@ -655,7 +655,7 @@ Implement `updateSubtitle` and `updateAction` in `UpdateDialog.kt`:
 
 | Status | Subtitle | Action |
 |---|---|---|
-| `justUpdatedTo != null` | `"Diperbarui ke <version>"` | `"Cek"` |
+| `justUpdatedTo != null` (IDLE/UP_TO_DATE) | `"Diperbarui ke <version>"` | `"Cek"` |
 | `IDLE` | `"Belum diperiksa"` | `"Cek"` |
 | `CHECKING` | `"Memeriksa..."` | `"Lihat"` |
 | `UP_TO_DATE` | `"Versi <current> adalah yang terbaru"` | `"Cek"` |
@@ -701,7 +701,7 @@ Install flow inside the dialog:
 - Call `UpdateController.initialize(context)` in the existing `LaunchedEffect(Unit)` after `DiagnosticLog.initialize` and `WarpController.initialize`.
 - Add `var showUpdateDialog by rememberSaveable { mutableStateOf(false) }`.
 - `updateAvailable = status in { AVAILABLE, DOWNLOADING, READY }`; pass it to `LintasNavBar` and wrap the Setelan icon in `BadgedBox(badge = { Badge() })` only when true and `index == 3`.
-- `onOpenUpdate`: set `showUpdateDialog = true`; if status is `IDLE` or `UP_TO_DATE`, call `UpdateController.check(context, manual = true)`; if status is `ERROR` and `update.release == null`, also check. If `ERROR` and a release is present, do **not** re-check; let the dialog's **Coba lagi** retry the download. Clear `justUpdatedTo` when opening.
+- `onOpenUpdate`: set `showUpdateDialog = true`; if status is `IDLE`, `UP_TO_DATE`, or `ERROR`, call `UpdateController.check(context, manual = true)`. The row's **Coba lagi** and the dialog's **Coba lagi** both re-check; a successful check sets `AVAILABLE`, and **Unduh** starts a fresh download. Clear `justUpdatedTo` when opening.
 - Render `UpdateDialog` when `showUpdateDialog`. `onOpenRelease` opens the URL only when it starts with `https://github.com/hafizhlf/lintas-vpn/releases/`, using `Intent.ACTION_VIEW`; otherwise ignore.
 
 - [ ] **Step 5: Build and lint**

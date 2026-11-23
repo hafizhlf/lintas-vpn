@@ -34,8 +34,12 @@ import app.lintas.update.UpdateStatus
 import app.lintas.update.formatUpdateSize
 
 internal fun updateSubtitle(state: UpdateState): String {
-    if (state.justUpdatedTo != null) {
-        return "Diperbarui ke ${state.justUpdatedTo}"
+    val updated = state.justUpdatedTo
+    if (
+        updated != null &&
+        (state.status == UpdateStatus.IDLE || state.status == UpdateStatus.UP_TO_DATE)
+    ) {
+        return "Diperbarui ke $updated"
     }
     return when (state.status) {
         UpdateStatus.IDLE -> "Belum diperiksa"
@@ -49,10 +53,11 @@ internal fun updateSubtitle(state: UpdateState): String {
 }
 
 internal fun updateAction(state: UpdateState): String = when (state.status) {
-    UpdateStatus.IDLE, UpdateStatus.UP_TO_DATE, UpdateStatus.ERROR -> "Cek"
+    UpdateStatus.IDLE, UpdateStatus.UP_TO_DATE -> "Cek"
     UpdateStatus.CHECKING, UpdateStatus.DOWNLOADING -> "Lihat"
     UpdateStatus.AVAILABLE -> "Unduh"
     UpdateStatus.READY -> "Pasang"
+    UpdateStatus.ERROR -> "Coba lagi"
 }
 
 @Composable

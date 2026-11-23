@@ -13,6 +13,50 @@ data class VerifiedApk(
     val versionName: String,
 )
 
+internal data class ApkIdentity(
+    val packageName: String,
+    val versionCode: Long,
+    val versionName: String?,
+    val signerDigests: Set<String>,
+)
+
+internal fun fileVerificationError(
+    actualSize: Long,
+    expectedSize: Long,
+    actualSha256: String?,
+    expectedSha256: String?,
+): String? {
+    if (actualSize != expectedSize) return "Ukuran APK tidak cocok."
+    if (expectedSha256 != null && !actualSha256.equals(expectedSha256, ignoreCase = true)) {
+        return "Checksum APK tidak cocok."
+    }
+    return null
+}
+
+internal fun apkVerificationError(
+    installed: ApkIdentity,
+    archive: ApkIdentity,
+    expectedVersionName: String,
+): String? {
+    if (archive.packageName != installed.packageName) {
+        return "APK bukan untuk aplikasi ini."
+    }
+    if (archive.versionCode <= installed.versionCode) {
+        return "APK bukan versi yang lebih baru."
+    }
+    if (archive.versionName != expectedVersionName) {
+        return "Versi APK tidak cocok dengan rilis."
+    }
+    if (
+        installed.signerDigests.isEmpty() ||
+        archive.signerDigests.isEmpty() ||
+        installed.signerDigests != archive.signerDigests
+    ) {
+        return "APK ditandatangani dengan kunci berbeda. Pembaruan ditolak."
+    }
+    return null
+}
+
 object UpdateVerifier {
     private const val HEX = "0123456789abcdef"
 
@@ -26,33 +70,43 @@ object UpdateVerifier {
         if (!apk.isFile) {
             throw UpdateException.Verification("File APK tidak ditemukan.")
         }
-        if (apk.length() != expectedSize) {
-            throw UpdateException.Verification("Ukuran APK tidak cocok.")
+
+        val actualSha256 = if (expectedSha256 != null && apk.length() == expectedSize) {
+            sha256(apk)
+        } else {
+            null
         }
-        if (expectedSha256 != null && !sha256(apk).equals(expectedSha256, ignoreCase = true)) {
-            throw UpdateException.Verification("Checksum APK tidak cocok.")
+        fileVerificationError(
+            actualSize = apk.length(),
+            expectedSize = expectedSize,
+            actualSha256 = actualSha256,
+            expectedSha256 = expectedSha256,
+        )?.let { message ->
+            throw UpdateException.Verification(message)
         }
 
         val packageManager = context.packageManager
         val archive = getArchiveInfo(packageManager, apk)
             ?: throw UpdateException.Verification("APK tidak bisa dibaca.")
-        if (archive.packageName != context.packageName) {
-            throw UpdateException.Verification("APK bukan untuk aplikasi ini.")
-        }
         val installed = getInstalledInfo(packageManager, context.packageName)
-        if (archive.longVersionCode <= installed.longVersionCode) {
-            throw UpdateException.Verification("APK bukan versi yang lebih baru.")
-        }
-        if (archive.versionName != expectedVersionName) {
-            throw UpdateException.Verification("Versi APK tidak cocok dengan rilis.")
-        }
-
-        val installedSigners = signerDigests(installed)
-        val archiveSigners = signerDigests(archive)
-        if (installedSigners.isEmpty() || archiveSigners.isEmpty() || installedSigners != archiveSigners) {
-            throw UpdateException.Verification(
-                "APK ditandatangani dengan kunci berbeda. Pembaruan ditolak.",
-            )
+        val installedIdentity = ApkIdentity(
+            packageName = context.packageName,
+            versionCode = installed.longVersionCode,
+            versionName = installed.versionName,
+            signerDigests = signerDigests(installed),
+        )
+        val archiveIdentity = ApkIdentity(
+            packageName = archive.packageName,
+            versionCode = archive.longVersionCode,
+            versionName = archive.versionName,
+            signerDigests = signerDigests(archive),
+        )
+        apkVerificationError(
+            installed = installedIdentity,
+            archive = archiveIdentity,
+            expectedVersionName = expectedVersionName,
+        )?.let { message ->
+            throw UpdateException.Verification(message)
         }
 
         return VerifiedApk(

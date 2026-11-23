@@ -3,6 +3,7 @@ package app.lintas.update
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -66,5 +67,29 @@ class UpdateApiTest {
     @Test fun ignoresNonUploadedAssets() {
         val result = UpdateApi.parseRelease(releaseJson(assetState = "new"), "1.0.7")
         assertTrue(result is ReleaseParseResult.Invalid)
+    }
+
+    @Test fun mapsPrimaryRateLimit() {
+        assertEquals(
+            RateLimitInfo(1234L),
+            rateLimitInfo(403, "0", null, "1234", 100),
+        )
+    }
+
+    @Test fun mapsSecondaryRateLimitWithRetryAfter() {
+        assertEquals(
+            RateLimitInfo(130L),
+            rateLimitInfo(429, null, "30", null, 100),
+        )
+    }
+
+    @Test fun maps429WithoutHeaders() {
+        assertEquals(RateLimitInfo(null), rateLimitInfo(429, null, null, null, 100))
+    }
+
+    @Test fun ignoresNonRateLimitResponses() {
+        assertNull(rateLimitInfo(200, null, null, null, 100))
+        assertNull(rateLimitInfo(404, null, null, null, 100))
+        assertNull(rateLimitInfo(403, "12", null, "1234", 100))
     }
 }

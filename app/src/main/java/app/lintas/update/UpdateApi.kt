@@ -19,6 +19,27 @@ sealed interface ReleaseParseResult {
     data class Invalid(val message: String) : ReleaseParseResult
 }
 
+internal data class RateLimitInfo(val resetAtEpochSeconds: Long?)
+
+internal fun rateLimitInfo(
+    code: Int,
+    remaining: String?,
+    retryAfter: String?,
+    resetAt: String?,
+    nowEpochSeconds: Long,
+): RateLimitInfo? {
+    val limited = code == 429 ||
+        (code == 403 && remaining == "0") ||
+        (code == 403 && !retryAfter.isNullOrBlank())
+    if (!limited) return null
+    val reset = retryAfter
+        ?.trim()
+        ?.toLongOrNull()
+        ?.let { nowEpochSeconds + it }
+        ?: resetAt?.trim()?.toLongOrNull()
+    return RateLimitInfo(reset)
+}
+
 sealed class UpdateException(message: String) : Exception(message) {
     data object NotFound : UpdateException("Belum ada rilis publik.")
     data class RateLimited(val resetAtEpochSeconds: Long?) :
@@ -94,10 +115,17 @@ object UpdateApi {
             .build()
         try {
             httpClient.newCall(request).execute().use { response ->
+                val rateLimit = rateLimitInfo(
+                    code = response.code,
+                    remaining = response.header("X-RateLimit-Remaining"),
+                    retryAfter = response.header("Retry-After"),
+                    resetAt = response.header("X-RateLimit-Reset"),
+                    nowEpochSeconds = System.currentTimeMillis() / 1000,
+                )
                 when {
+                    rateLimit != null ->
+                        throw UpdateException.RateLimited(rateLimit.resetAtEpochSeconds)
                     response.code == 404 -> throw UpdateException.NotFound
-                    response.code == 403 && response.header("X-RateLimit-Remaining") == "0" ->
-                        throw UpdateException.RateLimited(response.header("X-RateLimit-Reset")?.toLongOrNull())
                     !response.isSuccessful -> throw UpdateException.Http(response.code)
                     else -> parseRelease(
                         response.body?.string() ?: throw UpdateException.Network("Respons GitHub kosong."),
