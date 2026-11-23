@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.5 - 2026-11-23
+
+- Add an optional persistent diagnostic log, including native transport errors,
+  network changes, reconnect reasons, handshakes, probe results, and periodic
+  traffic statistics.
+- Add a Cloudflare account status check and show the WARP+ expiry when the API
+  provides it.
+- Fix WARP+ detection: use `account_type` instead of the misleading
+  `warp_plus` field, which Cloudflare also returns for free accounts.
+- Allow replacing a license key while WARP+ is displayed as active.
+- Add `warp_account_check.py` for repeatable registration and entitlement checks.
+
 ## 1.0.4 - 2026-11-22
 
 - Count inbound and outbound traffic in the `Data` counter.

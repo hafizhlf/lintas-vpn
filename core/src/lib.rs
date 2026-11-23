@@ -1,12 +1,12 @@
 use std::net::{IpAddr, SocketAddr};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::thread::{self, JoinHandle};
 
 use boringtun::noise::{Tunn, TunnResult};
 use boringtun::x25519::{PublicKey, StaticSecret};
 use jni::objects::{JByteArray, JClass, JString};
-use jni::sys::{jboolean, jint, jlong, jlongArray};
+use jni::sys::{jboolean, jint, jlong, jlongArray, jstring};
 use jni::JNIEnv;
 
 mod masque;
@@ -23,6 +23,7 @@ struct Handle {
     stop: Arc<AtomicBool>,
     stats: Arc<Stats>,
     alive: Arc<AtomicBool>,
+    last_error: Arc<Mutex<Option<String>>>,
     thread: Option<JoinHandle<()>>,
 }
 
@@ -338,6 +339,7 @@ pub extern "system" fn Java_app_lintas_core_NativeCore_start(
             stop,
             stats,
             alive,
+            last_error: Arc::new(Mutex::new(None)),
             thread: Some(thread),
         })) as jlong,
         Err(_) => 0,
@@ -429,6 +431,7 @@ pub extern "system" fn Java_app_lintas_core_NativeCore_startWireGuard(
             stop,
             stats,
             alive,
+            last_error: Arc::new(Mutex::new(None)),
             thread: Some(thread),
         })) as jlong,
         Err(_) => 0,
@@ -504,14 +507,20 @@ pub extern "system" fn Java_app_lintas_core_NativeCore_startMasque(
     });
 
     let alive = Arc::new(AtomicBool::new(true));
+    let last_error = Arc::new(Mutex::new(None));
     let thread_stop = stop.clone();
     let thread_stats = stats.clone();
     let thread_alive = alive.clone();
+    let thread_error = last_error.clone();
     let spawned = thread::Builder::new()
         .name("lintas-masque".to_string())
         .spawn(move || {
             if let Err(error) = masque::run(config, thread_stop, thread_stats) {
-                logcat(&format!("masque: {error:?}"));
+                let message = format!("{error:?}");
+                logcat(&format!("masque: {message}"));
+                if let Ok(mut slot) = thread_error.lock() {
+                    *slot = Some(message);
+                }
             }
             thread_alive.store(false, Ordering::Relaxed);
         });
@@ -521,6 +530,7 @@ pub extern "system" fn Java_app_lintas_core_NativeCore_startMasque(
             stop,
             stats,
             alive,
+            last_error,
             thread: Some(thread),
         })) as jlong,
         Err(_) => 0,
@@ -561,6 +571,28 @@ pub extern "system" fn Java_app_lintas_core_NativeCore_isRunning(
     } else {
         0
     }
+}
+
+#[no_mangle]
+pub extern "system" fn Java_app_lintas_core_NativeCore_lastError(
+    env: JNIEnv,
+    _class: JClass,
+    handle: jlong,
+) -> jstring {
+    let message = if handle == 0 {
+        String::new()
+    } else {
+        let state = unsafe { &*(handle as *const Handle) };
+        state
+            .last_error
+            .lock()
+            .ok()
+            .and_then(|error| error.clone())
+            .unwrap_or_default()
+    };
+    env.new_string(message)
+        .map(|value| value.into_raw())
+        .unwrap_or(std::ptr::null_mut())
 }
 
 #[no_mangle]

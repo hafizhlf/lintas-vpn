@@ -18,6 +18,7 @@ data class WarpIdentity(
     val registeredAt: Long,
     val warpPlus: Boolean = false,
     val licenseKey: String = "",
+    val plusExpiresAt: String? = null,
     val activeTunnelType: String = "",
     val masqueCertificatePem: String? = null,
     val masquePrivateKeyPem: String? = null,
@@ -58,6 +59,7 @@ data class WarpIdentity(
         put("registeredAt", registeredAt)
         put("warpPlus", warpPlus)
         put("licenseKey", licenseKey)
+        put("plusExpiresAt", plusExpiresAt ?: JSONObject.NULL)
         put("activeTunnelType", activeTunnelType)
         put("masqueCertificatePem", masqueCertificatePem ?: JSONObject.NULL)
         put("masquePrivateKeyPem", masquePrivateKeyPem ?: JSONObject.NULL)
@@ -86,6 +88,7 @@ data class WarpIdentity(
                 registeredAt = json.optLong("registeredAt", 0L),
                 warpPlus = json.optBoolean("warpPlus", false),
                 licenseKey = json.optString("licenseKey"),
+                plusExpiresAt = if (json.isNull("plusExpiresAt")) null else json.optString("plusExpiresAt").takeIf { it.isNotBlank() },
                 activeTunnelType = json.optString("activeTunnelType"),
                 masqueCertificatePem = if (json.isNull("masqueCertificatePem")) null else json.optString("masqueCertificatePem").takeIf { it.isNotBlank() },
                 masquePrivateKeyPem = if (json.isNull("masquePrivateKeyPem")) null else json.optString("masquePrivateKeyPem").takeIf { it.isNotBlank() },

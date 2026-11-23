@@ -11,7 +11,9 @@ both WireGuard and MASQUE (HTTP/3 / CONNECT-IP) from a single WARP identity.
 - MASQUE transport over QUIC / HTTP/3 with CONNECT-IP.
 - One WARP consumer identity shared by both transports.
 - Protocol selector in Settings; the Home connect button follows it.
-- WARP+ license activation with a license key.
+- WARP+ license activation with a license key, account status refresh, and
+  expiry display when available.
+- Optional persistent diagnostic logging for transport and reconnect issues.
 - Automatic transport restart when the active Wi-Fi or cellular path changes.
 - The VPN interface stays up during a handover; existing TCP sessions are not torn down.
 - Encrypted identity storage using Android Keystore.

@@ -62,6 +62,7 @@ object WarpApiClient {
 
         val parsed = parseConfig(config)
         val account = registration.optJSONObject("account")
+        val accountType = account?.optString("account_type").orEmpty()
         WarpIdentity(
             deviceId = deviceId,
             accessToken = accessToken,
@@ -73,10 +74,12 @@ object WarpApiClient {
             ipv6 = parsed.ipv6,
             endpointHost = parsed.endpointHost,
             endpointPort = if (parsed.endpointPort > 0) parsed.endpointPort else 2408,
-            accountType = account?.optString("account_type").orEmpty(),
+            accountType = accountType,
             organization = account?.optString("organization").orEmpty(),
             registeredAt = System.currentTimeMillis(),
-            warpPlus = account?.optBoolean("warp_plus", false) == true,
+            warpPlus = isWarpPlusAccountType(accountType),
+            plusExpiresAt = account?.optString("plus_expires_at")
+                ?.takeIf { it.isNotBlank() && it != "null" },
             activeTunnelType = "wireguard",
         )
     }
@@ -140,26 +143,47 @@ object WarpApiClient {
             if (normalized.isBlank()) {
                 throw IOException("License key kosong")
             }
-            val response = request(
+            request(
                 "PUT",
                 "/$API_VERSION/reg/${identity.deviceId}/account",
                 JSONObject().put("license", normalized),
                 identity.accessToken,
             )
-            val account = response.optJSONObject("account") ?: response
-            val accountType = account.optString("account_type").ifBlank { identity.accountType }
-            val warpPlus = account.optBoolean("warp_plus", false) ||
-                accountType == "warp_plus" ||
-                accountType == "unlimited"
-            if (!warpPlus) {
+            val updated = fetchAccount(identity)
+            if (!updated.warpPlus) {
                 throw IOException("License WARP+ tidak diterima")
             }
-            identity.copy(
-                accountType = accountType,
-                warpPlus = true,
-                licenseKey = normalized,
-            )
+            updated.copy(licenseKey = normalized)
         }
+
+    suspend fun fetchAccount(identity: WarpIdentity): WarpIdentity =
+        withContext(Dispatchers.IO) {
+            val response = get(
+                "/$API_VERSION/reg/${identity.deviceId}/account",
+                identity.accessToken,
+            )
+            applyAccount(identity, response)
+        }
+
+    private fun applyAccount(identity: WarpIdentity, response: JSONObject): WarpIdentity {
+        val account = response.optJSONObject("account") ?: response
+        val accountType = account.optString("account_type").ifBlank { identity.accountType }
+        val warpPlus = isWarpPlusAccountType(accountType)
+        val expiresAt = account.optString("plus_expires_at")
+            .takeIf { it.isNotBlank() && it != "null" }
+        return identity.copy(
+            accountType = accountType,
+            warpPlus = warpPlus,
+            plusExpiresAt = if (warpPlus) expiresAt ?: identity.plusExpiresAt else null,
+        )
+    }
+
+    private fun isWarpPlusAccountType(accountType: String): Boolean {
+        return when (accountType.lowercase(Locale.US)) {
+            "unlimited", "warp_plus" -> true
+            else -> false
+        }
+    }
 
     private suspend fun configureWireGuard(identity: WarpIdentity): WarpIdentity {
         if (identity.wireGuardPublicKey.isBlank() || identity.wireGuardPrivateKey.isBlank()) {
@@ -186,6 +210,34 @@ object WarpApiClient {
             endpointPort = if (parsed.endpointPort > 0) parsed.endpointPort else identity.endpointPort,
             activeTunnelType = "wireguard",
         )
+    }
+
+    private fun get(path: String, token: String): JSONObject {
+        val request = Request.Builder()
+            .url(BASE_URL + path)
+            .header("User-Agent", USER_AGENT)
+            .header("CF-Client-Version", CLIENT_VERSION)
+            .header("Accept", "application/json")
+            .header("Authorization", "Bearer $token")
+            .get()
+            .build()
+
+        client.newCall(request).execute().use { response ->
+            val text = response.body?.string().orEmpty()
+            if (!response.isSuccessful) {
+                val message = runCatching {
+                    JSONObject(text)
+                        .optJSONArray("errors")
+                        ?.optJSONObject(0)
+                        ?.optString("message")
+                        .orEmpty()
+                }.getOrDefault("")
+                throw IOException(
+                    "WARP HTTP ${response.code}" + if (message.isNotBlank()) ": $message" else "",
+                )
+            }
+            return if (text.isBlank()) JSONObject() else JSONObject(text)
+        }
     }
 
     private fun request(

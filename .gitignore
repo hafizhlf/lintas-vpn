@@ -17,3 +17,6 @@ oblivion/
 release.properties
 .env
 *.log
+
+__pycache__/
+*.pyc

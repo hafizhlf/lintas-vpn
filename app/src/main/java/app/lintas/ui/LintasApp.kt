@@ -52,6 +52,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -79,6 +80,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.lintas.core.NativeCore
 import app.lintas.ui.theme.LintasTheme
+import app.lintas.vpn.DiagnosticLog
 import app.lintas.vpn.ProbeState
 import app.lintas.vpn.ProbeStatus
 import app.lintas.vpn.TunnelState
@@ -88,6 +90,7 @@ import app.lintas.vpn.TunnelTransport
 import app.lintas.vpn.TunnelStatus
 import app.lintas.vpn.VpnController
 import app.lintas.warp.WarpController
+import app.lintas.warp.WarpCheckState
 import app.lintas.warp.WarpIdentity
 import app.lintas.warp.WarpPlusState
 import app.lintas.warp.WarpState
@@ -106,14 +109,19 @@ fun LintasApp(
     val probe by VpnController.probeState.collectAsStateWithLifecycle()
     val warp by WarpController.state.collectAsStateWithLifecycle()
     val warpPlusState by WarpController.warpPlus.collectAsStateWithLifecycle()
+    val warpCheck by WarpController.check.collectAsStateWithLifecycle()
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var protocolName by rememberSaveable {
         mutableStateOf(VpnPreferences.loadProtocol(context).name)
+    }
+    var diagnosticsEnabled by rememberSaveable {
+        mutableStateOf(DiagnosticLog.isEnabled(context))
     }
     val protocol = runCatching { VpnProtocol.valueOf(protocolName) }
         .getOrDefault(VpnProtocol.WIREGUARD)
 
     LaunchedEffect(Unit) {
+        DiagnosticLog.initialize(context)
         WarpController.initialize(context)
     }
 
@@ -164,6 +172,14 @@ fun LintasApp(
                     warpPlus = warpPlusState,
                     onActivateWarpPlus = { WarpController.activateWarpPlus(context, it) },
                     onClearWarpPlus = { WarpController.clearWarpPlusFeedback() },
+                    warpCheck = warpCheck,
+                    onWarpCheck = { WarpController.checkStatus(context) },
+                    diagnosticsEnabled = diagnosticsEnabled,
+                    diagnosticsPath = DiagnosticLog.path(context),
+                    onDiagnosticsToggle = { enabled ->
+                        DiagnosticLog.setEnabled(context, enabled)
+                        diagnosticsEnabled = enabled
+                    },
                 )
             }
         }
@@ -1008,6 +1024,11 @@ private fun SettingsScreen(
     warpPlus: WarpPlusState,
     onActivateWarpPlus: (String) -> Unit,
     onClearWarpPlus: () -> Unit,
+    warpCheck: WarpCheckState,
+    onWarpCheck: () -> Unit,
+    diagnosticsEnabled: Boolean,
+    diagnosticsPath: String,
+    onDiagnosticsToggle: (Boolean) -> Unit,
 ) {
     var showWarpPlusDialog by rememberSaveable { mutableStateOf(false) }
     var licenseInput by rememberSaveable { mutableStateOf("") }
@@ -1022,6 +1043,7 @@ private fun SettingsScreen(
 
     if (showWarpPlusDialog) {
         WarpPlusDialog(
+            active = warp.identity?.warpPlus == true,
             license = licenseInput,
             onLicenseChange = { licenseInput = it },
             busy = warpPlus.busy,
@@ -1065,6 +1087,8 @@ private fun SettingsScreen(
         Spacer(Modifier.height(4.dp))
         WarpPlusPanel(
             identity = warp.identity,
+            check = warpCheck,
+            onCheck = onWarpCheck,
             onOpen = {
                 onClearWarpPlus()
                 showWarpPlusDialog = true
@@ -1101,8 +1125,35 @@ private fun SettingsScreen(
             )
         }
         Spacer(Modifier.height(16.dp))
+        SettingsGroup(title = "Diagnostik") {
+            SwitchSettingRow(
+                title = "Log diagnostik",
+                subtitle = if (diagnosticsEnabled) {
+                    "Aktif · event koneksi dan error transport dicatat."
+                } else {
+                    "Nonaktif · aktifkan sebelum mereproduksi masalah."
+                },
+                checked = diagnosticsEnabled,
+                onCheckedChange = onDiagnosticsToggle,
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "File: $diagnosticsPath",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "Log teknis tidak memuat kunci WARP atau lisensi.",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Spacer(Modifier.height(16.dp))
         SettingsGroup(title = "Aplikasi") {
-            ValueSettingRow("Versi", "1.0.4", "Open source · GPL-3.0")
+            ValueSettingRow("Versi", "1.0.5", "Open source · GPL-3.0")
             SettingDivider()
             ValueSettingRow("Mesin", "Rust + Kotlin", "Android 16")
             SettingDivider()
@@ -1247,7 +1298,12 @@ private fun WarpPanel(
 }
 
 @Composable
-private fun WarpPlusPanel(identity: WarpIdentity?, onOpen: () -> Unit) {
+private fun WarpPlusPanel(
+    identity: WarpIdentity?,
+    check: WarpCheckState,
+    onCheck: () -> Unit,
+    onOpen: () -> Unit,
+) {
     val active = identity?.warpPlus == true
     Panel {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1289,14 +1345,50 @@ private fun WarpPlusPanel(identity: WarpIdentity?, onOpen: () -> Unit) {
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        if (identity != null && !active) {
+        if (active && identity?.plusExpiresAt != null) {
+            Spacer(Modifier.height(5.dp))
+            Text(
+                "Berakhir: ${identity.plusExpiresAt}",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (identity != null) {
             Spacer(Modifier.height(12.dp))
+            OutlinedButton(
+                onClick = onCheck,
+                enabled = !check.checking,
+                modifier = Modifier.fillMaxWidth().height(40.dp),
+                shape = RoundedCornerShape(11.dp),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            ) {
+                Text(
+                    if (check.checking) "Memeriksa status…" else "Cek status lisensi",
+                    style = MaterialTheme.typography.labelLarge,
+                )
+            }
+            if (check.error != null) {
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    check.error,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            } else if (check.checkedAt != null) {
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "Status diperbarui dari Cloudflare.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.secondary,
+                )
+            }
+            Spacer(Modifier.height(8.dp))
             Button(
                 onClick = onOpen,
                 modifier = Modifier.fillMaxWidth().height(44.dp),
                 shape = RoundedCornerShape(11.dp),
             ) {
-                Text("Aktifkan WARP+")
+                Text(if (active) "Ganti license key" else "Aktifkan WARP+")
             }
         }
     }
@@ -1304,6 +1396,7 @@ private fun WarpPlusPanel(identity: WarpIdentity?, onOpen: () -> Unit) {
 
 @Composable
 private fun WarpPlusDialog(
+    active: Boolean,
     license: String,
     onLicenseChange: (String) -> Unit,
     busy: Boolean,
@@ -1313,11 +1406,15 @@ private fun WarpPlusDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Aktifkan WARP+") },
+        title = { Text(if (active) "Ganti license key" else "Aktifkan WARP+") },
         text = {
             Column {
                 Text(
-                    "Masukkan license key WARP+ yang terhubung dengan akun Cloudflare Anda.",
+                    if (active) {
+                        "Masukkan license key WARP+ baru untuk menggantikan key yang tersimpan."
+                    } else {
+                        "Masukkan license key WARP+ yang terhubung dengan akun Cloudflare Anda."
+                    },
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Spacer(Modifier.height(12.dp))
@@ -1345,7 +1442,14 @@ private fun WarpPlusDialog(
                 onClick = onConfirm,
                 enabled = !busy && license.isNotBlank(),
             ) {
-                Text(if (busy) "Mengaktifkan…" else "Aktifkan")
+                Text(
+                    when {
+                        busy && active -> "Mengganti…"
+                        busy -> "Mengaktifkan…"
+                        active -> "Ganti"
+                        else -> "Aktifkan"
+                    },
+                )
             }
         },
         dismissButton = {
@@ -1365,6 +1469,36 @@ private fun SettingsGroup(title: String, content: @Composable ColumnScope.() -> 
     )
     Spacer(Modifier.height(4.dp))
     Column(content = content)
+}
+
+@Composable
+private fun SwitchSettingRow(
+    title: String,
+    subtitle: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCheckedChange(!checked) }
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                title,
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+            )
+            Text(
+                subtitle,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Spacer(Modifier.width(12.dp))
+        Switch(checked = checked, onCheckedChange = null)
+    }
 }
 
 @Composable

@@ -31,12 +31,20 @@ data class WarpPlusState(
     val success: Boolean = false,
 )
 
+data class WarpCheckState(
+    val checking: Boolean = false,
+    val error: String? = null,
+    val checkedAt: Long? = null,
+)
+
 object WarpController {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _state = MutableStateFlow(WarpState())
     val state: StateFlow<WarpState> = _state.asStateFlow()
     private val _warpPlus = MutableStateFlow(WarpPlusState())
     val warpPlus: StateFlow<WarpPlusState> = _warpPlus.asStateFlow()
+    private val _check = MutableStateFlow(WarpCheckState())
+    val check: StateFlow<WarpCheckState> = _check.asStateFlow()
 
     fun initialize(context: Context) {
         val appContext = context.applicationContext
@@ -44,6 +52,7 @@ object WarpController {
             runCatching { WarpIdentityStore.clearLegacyMasque(appContext) }
             val identity = runCatching { WarpIdentityStore.load(appContext) }.getOrNull()
             _state.value = stateFor(identity)
+            if (identity != null) checkStatus(appContext)
         }
     }
 
@@ -176,10 +185,40 @@ object WarpController {
         _warpPlus.value = WarpPlusState()
     }
 
+    fun checkStatus(context: Context) {
+        val identity = _state.value.identity ?: return
+        if (_check.value.checking) return
+        val appContext = context.applicationContext
+        _check.value = WarpCheckState(checking = true)
+        scope.launch {
+            runCatching { WarpApiClient.fetchAccount(identity) }
+                .onSuccess { updated ->
+                    if (_state.value.identity?.deviceId != identity.deviceId) return@onSuccess
+                    runCatching { WarpIdentityStore.save(appContext, updated) }
+                        .onSuccess {
+                            _state.value = stateFor(updated)
+                            _check.value = WarpCheckState(checkedAt = System.currentTimeMillis())
+                        }
+                        .onFailure { error ->
+                            _check.value = WarpCheckState(
+                                error = "Gagal menyimpan status: ${error.message}",
+                            )
+                        }
+                }
+                .onFailure { error ->
+                    if (_state.value.identity?.deviceId != identity.deviceId) return@onFailure
+                    _check.value = WarpCheckState(
+                        error = error.message ?: "Gagal memeriksa status WARP+",
+                    )
+                }
+        }
+    }
+
     fun reset(context: Context) {
         val appContext = context.applicationContext
         scope.launch {
             runCatching { WarpIdentityStore.clear(appContext) }
+            _check.value = WarpCheckState()
             _state.value = WarpState()
         }
     }

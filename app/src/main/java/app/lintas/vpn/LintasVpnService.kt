@@ -55,12 +55,16 @@ class LintasVpnService : VpnService() {
 
     override fun onCreate() {
         super.onCreate()
+        DiagnosticLog.initialize(this)
+        DiagnosticLog.log("APP", DiagnosticLog.appHeader(this))
+        DiagnosticLog.log("SERVICE", "created")
         createNotificationChannel()
         networkMonitor = UnderlyingNetworkMonitor(this) { onUnderlyingNetworksChanged() }
             .also { it.start() }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        DiagnosticLog.log("CMD", "action=${intent?.action}")
         when (intent?.action) {
             ACTION_START -> startTunnel(VpnProtocol.WIREGUARD)
             ACTION_START_MASQUE -> startTunnel(VpnProtocol.MASQUE)
@@ -77,6 +81,7 @@ class LintasVpnService : VpnService() {
         initialConnect = true
         currentProtocol = protocol
         lastNetworkSnapshot = networkMonitor?.snapshot()
+        DiagnosticLog.log("SESSION", "start protocol=${protocol.wireValue}")
         VpnController.connecting()
         startForegroundNotification()
 
@@ -136,13 +141,18 @@ class LintasVpnService : VpnService() {
     private fun openTunnelSocket(): DatagramSocket? {
         val socket = runCatching { DatagramSocket() }.getOrNull() ?: return null
         if (!protect(socket)) {
+            DiagnosticLog.log("SOCKET", "protect failed")
             socket.close()
             return null
         }
-        networkMonitor?.selectedNetwork()?.let { network ->
-            if (runCatching { network.bindSocket(socket) }.isFailure) {
-                Log.w(TAG, "bindSocket failed; falling back to default network")
-            }
+        val network = networkMonitor?.selectedNetwork()
+        if (network == null) {
+            DiagnosticLog.log("SOCKET", "no selected network; using default")
+        } else if (runCatching { network.bindSocket(socket) }.isFailure) {
+            DiagnosticLog.log("SOCKET", "bind failed network=$network; using default")
+            Log.w(TAG, "bindSocket failed; falling back to default network")
+        } else {
+            DiagnosticLog.log("SOCKET", "bound network=$network local=${socket.localAddress.hostAddress}:${socket.localPort}")
         }
         return socket
     }
@@ -158,6 +168,7 @@ class LintasVpnService : VpnService() {
             return
         }
         val address = addresses.firstOrNull { it is Inet4Address } ?: addresses.first()
+        DiagnosticLog.log("TRANSPORT", "wireguard endpoint=${address.hostAddress}:${identity.effectiveEndpointPort}")
 
         val socket = openTunnelSocket()
         if (socket == null) {
@@ -240,6 +251,7 @@ class LintasVpnService : VpnService() {
             return
         }
         val address = addresses.firstOrNull { it is Inet4Address } ?: addresses.first()
+        DiagnosticLog.log("TRANSPORT", "masque endpoint=${address.hostAddress}:${identity.effectiveMasquePort}")
 
         val socket = openTunnelSocket()
         if (socket == null) {
@@ -320,6 +332,7 @@ class LintasVpnService : VpnService() {
         val previous = lastNetworkSnapshot
         val networkChanged = previous?.hasNetwork == true && previous != snapshot
         lastNetworkSnapshot = snapshot
+        DiagnosticLog.log("TRANSPORT", "started transport=$transport network=${snapshotLabel(snapshot)}")
         startStatsLoop(watchHandshake = true, transport = transport)
         scope.launch {
             delay(1200L)
@@ -340,6 +353,7 @@ class LintasVpnService : VpnService() {
         }
         if (snapshot == lastNetworkSnapshot) return
         Log.i(TAG, "network changed ${snapshotLabel(lastNetworkSnapshot)} -> ${snapshotLabel(snapshot)}")
+        DiagnosticLog.log("NET", "changed ${snapshotLabel(lastNetworkSnapshot)} -> ${snapshotLabel(snapshot)}")
         scheduleReconnect("network-changed")
     }
 
@@ -352,6 +366,7 @@ class LintasVpnService : VpnService() {
     private fun scheduleReconnect(reason: String, immediate: Boolean = false) {
         if (!tunnelRequested) return
         Log.i(TAG, "schedule reconnect reason=$reason immediate=$immediate")
+        DiagnosticLog.log("RECONNECT", "reason=$reason immediate=$immediate network=${snapshotLabel(lastNetworkSnapshot)}")
         reconnectJob?.cancel()
         reconnectJob = scope.launch {
             if (!immediate) delay(RECONNECT_DEBOUNCE_MS)
@@ -428,6 +443,10 @@ class LintasVpnService : VpnService() {
             while (isActive) {
                 val sample = sampleNative() ?: break
                 if (!sample.running) {
+                    DiagnosticLog.log(
+                        "TRANSPORT",
+                        "native stopped error=${sample.error.orEmpty().ifBlank { "unknown" }}",
+                    )
                     if (networkChangedSinceStart()) {
                         scheduleReconnect("native-stopped-network", immediate = true)
                     } else if (watchHandshake && !handshakeDone) {
@@ -444,15 +463,24 @@ class LintasVpnService : VpnService() {
                     VpnController.updateStats(stats[0], stats[1], rxBytes, netRx)
                     if (watchHandshake && !handshakeDone && netRx > 0L) {
                         handshakeDone = true
+                        DiagnosticLog.log("TRANSPORT", "handshake complete transport=$transport")
                         VpnController.connected(transport)
                     }
                     if (watchHandshake && !handshakeDone && ticks >= 20) {
+                        DiagnosticLog.log("TRANSPORT", "handshake timeout transport=$transport")
                         if (networkChangedSinceStart()) {
                             scheduleReconnect("handshake-timeout-network", immediate = true)
                         } else {
                             failAndStop("Handshake WARP gagal; periksa jaringan atau daftar ulang.")
                         }
                         break
+                    }
+                    if (DiagnosticLog.isActive && ticks % 30 == 0) {
+                        DiagnosticLog.log(
+                            "STATS",
+                            "transport=$transport packets=${stats[0]} tx=${stats.getOrElse(1) { 0L }} " +
+                                "rx=${stats.getOrElse(4) { 0L }} netRx=${stats.getOrElse(2) { 0L }}",
+                        )
                     }
                 }
                 ticks += 1
@@ -466,9 +494,11 @@ class LintasVpnService : VpnService() {
         if (handle == 0L) {
             null
         } else {
+            val running = runCatching { NativeCore.isRunning(handle) }.getOrDefault(false)
             NativeSample(
-                running = runCatching { NativeCore.isRunning(handle) }.getOrDefault(false),
+                running = running,
                 stats = runCatching { NativeCore.stats(handle) }.getOrNull(),
+                error = if (running) null else runCatching { NativeCore.lastError(handle) }.getOrNull(),
             )
         }
     }
@@ -490,6 +520,7 @@ class LintasVpnService : VpnService() {
             runCatching { probeDns() }
                 .onSuccess {
                     val latency = (System.nanoTime() - started) / 1_000_000L
+                    DiagnosticLog.log("PROBE", "success latencyMs=$latency")
                     VpnController.probeSuccess(latency)
                 }
                 .onFailure { error ->
@@ -499,6 +530,7 @@ class LintasVpnService : VpnService() {
                     } else {
                         error.message ?: "Tidak ada balasan dari 1.1.1.1"
                     }
+                    DiagnosticLog.log("PROBE", "failure message=$message")
                     VpnController.probeFailure(message)
                 }
         }
@@ -586,6 +618,7 @@ class LintasVpnService : VpnService() {
     }
 
     private fun stopTunnel() {
+        DiagnosticLog.log("SESSION", "stop")
         tunnelRequested = false
         initialConnect = false
         connectJob?.cancel()
@@ -599,6 +632,7 @@ class LintasVpnService : VpnService() {
     }
 
     private fun failAndStop(message: String) {
+        DiagnosticLog.log("SESSION", "failed message=$message")
         tunnelRequested = false
         initialConnect = false
         reconnectJob?.cancel()
@@ -662,6 +696,7 @@ class LintasVpnService : VpnService() {
     }
 
     override fun onDestroy() {
+        DiagnosticLog.log("SERVICE", "destroy")
         tunnelRequested = false
         initialConnect = false
         connectJob?.cancel()
@@ -677,7 +712,11 @@ class LintasVpnService : VpnService() {
         return snapshot?.path?.joinToString(prefix = "{", postfix = "}") { it.toString() } ?: "null"
     }
 
-    private data class NativeSample(val running: Boolean, val stats: LongArray?)
+    private data class NativeSample(
+        val running: Boolean,
+        val stats: LongArray?,
+        val error: String?,
+    )
 
     companion object {
         const val ACTION_START = "app.lintas.action.START"

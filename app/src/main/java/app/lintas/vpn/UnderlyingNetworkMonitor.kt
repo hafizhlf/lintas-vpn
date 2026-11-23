@@ -43,6 +43,7 @@ class UnderlyingNetworkMonitor(
     private val callback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
             Log.i(TAG, "available $network")
+            DiagnosticLog.log("NET", "available $network")
             consider(network)
         }
 
@@ -75,6 +76,7 @@ class UnderlyingNetworkMonitor(
             networks.clear()
             selectedKey = null
         }
+        DiagnosticLog.log("NET", "monitor stopped")
     }
 
     fun snapshot(): Snapshot {
@@ -107,6 +109,7 @@ class UnderlyingNetworkMonitor(
         }
         if (changed) {
             Log.i(TAG, "selected ${selectedKey ?: "none"}")
+            DiagnosticLog.log("NET", "selected ${selectedKey ?: "none"}")
             onChanged()
         }
     }
@@ -120,6 +123,7 @@ class UnderlyingNetworkMonitor(
             before != selectedKey
         }
         Log.i(TAG, "lost $key changed=$changed")
+        DiagnosticLog.log("NET", "lost $key changed=$changed")
         if (changed) onChanged()
     }
 

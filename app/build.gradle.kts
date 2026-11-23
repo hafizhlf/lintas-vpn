@@ -12,8 +12,8 @@ android {
         applicationId = "app.lintas"
         minSdk = 29
         targetSdk = 36
-        versionCode = 14
-        versionName = "1.0.4"
+        versionCode = 15
+        versionName = "1.0.5"
 
         ndk {
             abiFilters += listOf("arm64-v8a", "x86_64")
