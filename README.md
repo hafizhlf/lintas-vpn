@@ -91,7 +91,7 @@ optional.
 Verify the download with the `SHA256SUMS` asset from the same release:
 
 ```bash
-sha256sum lintas-1.0.7.apk
+sha256sum lintas-1.0.8.apk
 ```
 
 ### In-app updates

@@ -519,6 +519,11 @@ Hasil 2026-11-23: rilis `v1.0.7` diterbitkan. APK `lintas-1.0.7.apk`
 sertifikat rilis `0fa1eb301523054e861ea58e2a6dd681539a904163f28d61ceff0f110bc411d5`.
 `GET /releases/latest` mengembalikan `v1.0.7` dengan aset dan digest tersebut.
 
+Tindak lanjut 2026-11-23: seluruh minor review diperbaiki (label error,
+logging installer, rate limit 429, wording SHA-256, tabel error, test aturan
+verifier/UI, kegagalan tautan rilis, dan notice `Diperbarui ke`). Perbaikan
+dirilis sebagai `1.0.8` (`versionCode 18`).
+
 ## Risiko
 
 - **Updater rusak pada rilis pertama.** 1.0.7 adalah rilis pertama dengan

@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.8 - 2026-11-23
+
+- Fix the update row's error action: **Coba lagi** now triggers a fresh check.
+- Log installer launch failures to the diagnostic log.
+- Handle GitHub 429 and secondary rate limits, including `Retry-After`.
+- Clear the "Diperbarui ke" notice when a newer release is available.
+- Show feedback when the release link cannot be opened.
+- Add unit tests for the APK verification rules and update UI labels.
+- Clarify README and spec wording for optional SHA-256 and error messages.
+
 ## 1.0.7 - 2026-11-23
 
 - Add in-app updates from GitHub Releases. The app checks automatically at most
