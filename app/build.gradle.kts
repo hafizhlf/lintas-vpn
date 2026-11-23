@@ -12,8 +12,8 @@ android {
         applicationId = "app.lintas"
         minSdk = 29
         targetSdk = 36
-        versionCode = 16
-        versionName = "1.0.6"
+        versionCode = (project.findProperty("lintasVersionCode") as String?)?.toInt() ?: 17
+        versionName = project.findProperty("lintasVersionName") as String? ?: "1.0.7"
 
         ndk {
             abiFilters += listOf("arm64-v8a", "x86_64")
@@ -41,6 +41,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {
@@ -60,6 +61,7 @@ dependencies {
     implementation("org.bouncycastle:bcpkix-jdk18on:1.80")
 
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20240303")
 
     implementation(platform("androidx.compose:compose-bom:2025.05.01"))
     implementation("androidx.compose.ui:ui")
