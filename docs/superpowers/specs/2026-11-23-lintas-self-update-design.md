@@ -486,6 +486,9 @@ Diubah:
 - Setelah pembaruan, data tetap ada dan baris Pembaruan menampilkan
   "Diperbarui ke 1.0.8"; cache APK dibersihkan.
 - **Hapus unduhan** mengembalikan status ke `AVAILABLE` dan menghapus file.
+- Setelah perbaikan race, unduhan 140 MB dibatalkan lalu langsung diulang:
+  percobaan baru memakai file `.part` dengan token berbeda, sempat mencapai
+  11%, lalu dibatalkan lagi; status kembali `AVAILABLE` dan cache kosong.
 - Rilis sementara `v1.0.9` dengan tag lebih baru tetapi `versionCode 16`
   ditolak setelah unduhan: "APK bukan versi yang lebih baru."
 - Rilis sementara `v1.0.10` berisi APK `app.lintas` `versionCode 20` yang
