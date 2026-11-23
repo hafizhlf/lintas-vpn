@@ -23,6 +23,11 @@ class SplitTunnelTest {
             visibleSplitTunnelApps(apps, emptySet(), "example.chat", includeSystem = false)
                 .map { it.packageName },
         )
+        assertEquals(
+            listOf("com.example.browser"),
+            visibleSplitTunnelApps(apps, emptySet(), "  bRoWsEr  ", includeSystem = false)
+                .map { it.packageName },
+        )
     }
 
     @Test
@@ -62,11 +67,16 @@ class SplitTunnelTest {
     }
 
     @Test
-    fun `applies valid packages and skips missing ones and itself`() {
+    fun `applies valid packages and keeps going after a missing one`() {
         val added = mutableListOf<String>()
         val skipped = mutableListOf<String>()
         val applied = applySplitTunnelPackages(
-            packages = setOf("com.example.browser", "com.example.gone", "app.lintas"),
+            packages = setOf(
+                "com.example.browser",
+                "com.example.gone",
+                "com.example.chat",
+                "app.lintas",
+            ),
             ownPackage = "app.lintas",
             add = { pkg ->
                 if (pkg == "com.example.gone") error("missing")
@@ -75,8 +85,21 @@ class SplitTunnelTest {
             onSkipped = { pkg, _ -> skipped += pkg },
         )
 
-        assertEquals(1, applied)
-        assertEquals(listOf("com.example.browser"), added)
+        assertEquals(2, applied)
+        assertEquals(listOf("com.example.browser", "com.example.chat"), added)
         assertEquals(listOf("com.example.gone"), skipped)
+    }
+
+    @Test
+    fun `does not call the builder for an empty selection`() {
+        val added = mutableListOf<String>()
+        val applied = applySplitTunnelPackages(
+            packages = emptySet(),
+            ownPackage = "app.lintas",
+            add = { pkg -> added += pkg },
+        )
+
+        assertEquals(0, applied)
+        assertEquals(emptyList<String>(), added)
     }
 }

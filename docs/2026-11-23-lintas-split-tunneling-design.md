@@ -1,7 +1,7 @@
 # Lintas — Split tunneling per aplikasi
 
 Tanggal: 2026-11-23
-Status: diimplementasikan
+Status: diimplementasikan; verifikasi perangkat tertunda
 Target rilis: 1.0.6 (versionCode 16)
 
 ## Tujuan
@@ -59,8 +59,10 @@ Objek baru `SplitTunnelApps`:
 - Deduplikasi berdasarkan package name, buang package Lintas sendiri.
 - Ambil label dari `ApplicationInfo`; tandai `FLAG_SYSTEM`.
 - Urutkan berdasarkan label secara case-insensitive.
-- Jika ada package tersimpan yang tidak lagi punya launcher tetapi masih
-  terpasang, tetap tampilkan agar bisa dihapus dari daftar.
+- Package tersimpan hanya bisa ditampilkan jika masih terlihat lewat query
+  launcher. Dengan batasan tanpa `QUERY_ALL_PACKAGES`, package terpasang yang
+  kehilangan launcher tidak bisa dibedakan dari package yang sudah di-uninstall;
+  package seperti itu dianggap tidak tersedia dan dihapus dari preferensi.
 - Package tersimpan yang sudah tidak terpasang dihapus dari preferensi saat
   halaman dibuka.
 - Ikon dimuat lazy di background dengan cache LRU kecil; bukan dimuat saat
@@ -108,6 +110,9 @@ berubah sampai pengguna memutuskan dan menyambung ulang.
 
 - Package dikecualikan lalu di-uninstall: dilewati saat connect; tunnel tetap
   hidup.
+- Package terpasang yang kehilangan ikon launcher: Android 11+ menyaring
+  `getApplicationInfo`, sehingga package dianggap tidak tersedia dan dihapus
+  dari preferensi. Ini konsekuensi dari tidak memakai `QUERY_ALL_PACKAGES`.
 - Dua package berbagi UID: Android memperlakukan keduanya sebagai satu UID;
   perilaku ini mengikuti sistem dan tidak ditangani khusus.
 - Aplikasi Lintas sendiri tidak pernah ditampilkan atau ditambahkan.
@@ -119,11 +124,12 @@ berubah sampai pengguna memutuskan dan menyambung ulang.
 - `lintDebug` dan `assembleRelease` lolos.
 - Unit test murni untuk filter/pencarian daftar aplikasi dan pruning package
   tersimpan (tanpa Android runtime).
-- Uji perangkat: pilih satu aplikasi, putuskan dan sambung ulang, lalu
-  bandingkan `https://www.cloudflare.com/cdn-cgi/trace` di aplikasi tersebut
-  (`warp=off`) dan di aplikasi lain (`warp=on`).
-- Uji package yang di-uninstall saat terpilih: reconnect tetap berhasil dan log
-  diagnostik mencatat package yang dilewati.
+- Uji perangkat: **tertunda** — perangkat tidak terhubung saat build 1.0.6.
+  Rencananya: pilih satu aplikasi, putuskan dan sambung ulang, lalu bandingkan
+  `https://www.cloudflare.com/cdn-cgi/trace` di aplikasi tersebut (`warp=off`)
+  dan di aplikasi lain (`warp=on`).
+- Uji package yang di-uninstall saat terpilih: **tertunda** — reconnect tetap
+  berhasil dan log diagnostik mencatat package yang dilewati.
 - `apksigner verify` pada APK rilis.
 
 ## Rilis

@@ -39,6 +39,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -76,24 +77,26 @@ fun SplitTunnelScreen(
     var catalog by remember { mutableStateOf<SplitTunnelAppCatalog?>(null) }
     var loadFailed by remember { mutableStateOf(false) }
     var reload by remember { mutableIntStateOf(0) }
+    val latestExcluded by rememberUpdatedState(excluded)
 
     LaunchedEffect(reload) {
         catalog = null
         loadFailed = false
         val loaded = withContext(Dispatchers.IO) {
-            runCatching { SplitTunnelApps.load(context, excluded) }.getOrNull()
+            runCatching { SplitTunnelApps.load(context, latestExcluded) }.getOrNull()
         }
         if (loaded == null) {
             loadFailed = true
             return@LaunchedEffect
         }
         catalog = loaded
+        val current = latestExcluded
         val pruned = pruneExcludedPackages(
-            excluded = excluded,
+            excluded = current,
             installedPackages = loaded.installedPackages,
             ownPackage = context.packageName,
         )
-        if (pruned != excluded) onExcludedChange(pruned)
+        if (pruned != current) onExcludedChange(pruned)
     }
 
     Column(

@@ -10,6 +10,8 @@
 
 **Spec:** `docs/2026-11-23-lintas-split-tunneling-design.md`
 
+**Execution status (2026-11-23):** Tasks 1–5 implemented on `feat/split-tunneling`. Task 5 Step 6 (device verification) is pending because no adb device was attached.
+
 ## Global Constraints
 
 - `minSdk 29`, `targetSdk 36`, `compileSdk 36`.
@@ -140,6 +142,8 @@ class SplitTunnelTest {
     }
 }
 ```
+
+> Execution note: the committed test also adds `com.android.camera` so the system-app case proves that user apps and the excluded system app stay visible while other system apps remain hidden. It also adds a whitespace search case and a success after the missing package, proving the loop continues. This follows the Task 1 ruling and the final review in the execution ledger.
 
 - [ ] **Step 3: Run the tests to verify they fail**
 
@@ -476,7 +480,7 @@ git add app/build.gradle.kts CHANGELOG.md README.md \
 git commit -m "Lintas v1.0.6: per-app split tunneling"
 ```
 
-- [ ] **Step 6: Device verification (when the Poco is connected)**
+- [ ] **Step 6: Device verification (PENDING — no device attached on 2026-11-23)**
 
 Install the signed APK, connect, select one app, disconnect and reconnect, then compare `https://www.cloudflare.com/cdn-cgi/trace`:
 
@@ -486,3 +490,5 @@ Install the signed APK, connect, select one app, disconnect and reconnect, then 
 Also uninstall a selected app, reconnect, and confirm the tunnel still establishes and `lintas-diagnostics.log` contains `[SPLIT] skip package=...`.
 
 If the device is not connected, report this step as pending instead of claiming it passed.
+
+Status 2026-11-23: pending. `adb devices` returned no attached device; the signed APK and checksum are ready for installation when the Poco is available.

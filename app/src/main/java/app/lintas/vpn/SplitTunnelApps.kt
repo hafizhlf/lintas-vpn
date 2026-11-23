@@ -20,6 +20,9 @@ object SplitTunnelApps {
             }
         }
 
+        // Without QUERY_ALL_PACKAGES an installed package is visible only while
+        // it still matches the launcher query. A saved package that loses its
+        // launcher entry cannot be resolved and is treated as unavailable.
         val candidates = LinkedHashSet(launchable)
         candidates.addAll(excludedPackages)
 
