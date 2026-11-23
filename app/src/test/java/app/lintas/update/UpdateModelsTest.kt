@@ -67,4 +67,25 @@ class UpdateModelsTest {
         assertEquals("1.0 KB", formatUpdateSize(1024L))
         assertEquals("1.0 MB", formatUpdateSize(1024L * 1024L))
     }
+
+    @Test fun generationGateInvalidatesOlderTokens() {
+        val gate = GenerationGate()
+        val first = gate.next()
+        assertTrue(gate.isCurrent(first))
+        gate.invalidate()
+        assertFalse(gate.isCurrent(first))
+        val second = gate.next()
+        assertTrue(gate.isCurrent(second))
+        assertFalse(gate.isCurrent(first))
+    }
+
+    @Test fun checkResultRequiresCurrentTokenAndCheckingStatus() {
+        val gate = GenerationGate()
+        val token = gate.next()
+        assertTrue(canApplyCheckResult(token, gate, UpdateStatus.CHECKING))
+        assertFalse(canApplyCheckResult(token, gate, UpdateStatus.READY))
+        assertFalse(canApplyCheckResult(token, gate, UpdateStatus.DOWNLOADING))
+        gate.invalidate()
+        assertFalse(canApplyCheckResult(token, gate, UpdateStatus.CHECKING))
+    }
 }

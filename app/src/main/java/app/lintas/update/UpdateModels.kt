@@ -98,3 +98,29 @@ fun formatUpdateSize(bytes: Long): String = when {
     bytes >= 1024L -> String.format(Locale.US, "%.1f KB", bytes / 1024.0)
     else -> "$bytes B"
 }
+
+internal class GenerationGate {
+    private var value = 0L
+    private val lock = Any()
+
+    fun next(): Long = synchronized(lock) {
+        value += 1
+        value
+    }
+
+    fun invalidate() {
+        synchronized(lock) {
+            value += 1
+        }
+    }
+
+    fun isCurrent(token: Long): Boolean = synchronized(lock) {
+        token == value
+    }
+}
+
+internal fun canApplyCheckResult(
+    token: Long,
+    gate: GenerationGate,
+    status: UpdateStatus,
+): Boolean = gate.isCurrent(token) && status == UpdateStatus.CHECKING
