@@ -429,7 +429,26 @@ class LintasVpnService : VpnService() {
             builder.addRoute("::", 0)
             builder.addDnsServer("2606:4700:4700::1111")
         }
+        applySplitTunnel(builder)
         return builder.establish()
+    }
+
+    private fun applySplitTunnel(builder: Builder) {
+        val excluded = VpnPreferences.loadExcludedApps(this)
+        if (excluded.isEmpty()) return
+
+        val applied = applySplitTunnelPackages(
+            packages = excluded,
+            ownPackage = packageName,
+            add = { pkg -> builder.addDisallowedApplication(pkg) },
+            onSkipped = { pkg, error ->
+                DiagnosticLog.log(
+                    "SPLIT",
+                    "skip package=$pkg error=${error.javaClass.simpleName}",
+                )
+            },
+        )
+        DiagnosticLog.log("SPLIT", "excluded=$applied requested=${excluded.size}")
     }
 
     private fun startStatsLoop(watchHandshake: Boolean, transport: TunnelTransport) {
