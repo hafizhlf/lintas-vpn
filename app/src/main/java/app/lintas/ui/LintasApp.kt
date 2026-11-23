@@ -1,5 +1,6 @@
 package app.lintas.ui
 
+import android.content.Intent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -39,6 +40,8 @@ import androidx.compose.material.icons.outlined.MonitorHeart
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -79,9 +82,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.lintas.BuildConfig
 import app.lintas.core.NativeCore
 import app.lintas.ui.theme.LintasTheme
+import app.lintas.update.UpdateController
+import app.lintas.update.UpdateState
+import app.lintas.update.UpdateStatus
 import app.lintas.vpn.DiagnosticLog
 import app.lintas.vpn.ProbeState
 import app.lintas.vpn.ProbeStatus
@@ -112,6 +120,7 @@ fun LintasApp(
     val warp by WarpController.state.collectAsStateWithLifecycle()
     val warpPlusState by WarpController.warpPlus.collectAsStateWithLifecycle()
     val warpCheck by WarpController.check.collectAsStateWithLifecycle()
+    val update by UpdateController.state.collectAsStateWithLifecycle()
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var protocolName by rememberSaveable {
         mutableStateOf(VpnPreferences.loadProtocol(context).name)
@@ -125,9 +134,14 @@ fun LintasApp(
     LaunchedEffect(Unit) {
         DiagnosticLog.initialize(context)
         WarpController.initialize(context)
+        UpdateController.initialize(context)
     }
 
     var showSplitTunnel by rememberSaveable { mutableStateOf(false) }
+    var showUpdateDialog by rememberSaveable { mutableStateOf(false) }
+    val updateAvailable = update.status == UpdateStatus.AVAILABLE ||
+        update.status == UpdateStatus.DOWNLOADING ||
+        update.status == UpdateStatus.READY
     var excludedApps by remember {
         mutableStateOf(VpnPreferences.loadExcludedApps(context))
     }
@@ -149,7 +163,11 @@ fun LintasApp(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            LintasNavBar(selected = tab, onTab = { tab = it })
+            LintasNavBar(
+                selected = tab,
+                onTab = { tab = it },
+                updateAvailable = updateAvailable,
+            )
         },
     ) { innerPadding ->
         Box(
@@ -199,6 +217,17 @@ fun LintasApp(
                     splitTunnelActive = tunnel.status == TunnelStatus.CONNECTED ||
                         tunnel.status == TunnelStatus.CONNECTING,
                     onOpenSplitTunnel = { showSplitTunnel = true },
+                    update = update,
+                    onOpenUpdate = {
+                        showUpdateDialog = true
+                        UpdateController.clearJustUpdated()
+                        if (
+                            update.status == UpdateStatus.IDLE ||
+                            update.status == UpdateStatus.UP_TO_DATE
+                        ) {
+                            UpdateController.check(context, manual = true)
+                        }
+                    },
                     diagnosticsEnabled = diagnosticsEnabled,
                     diagnosticsPath = DiagnosticLog.path(context),
                     onDiagnosticsToggle = { enabled ->
@@ -209,10 +238,38 @@ fun LintasApp(
             }
         }
     }
+
+    if (showUpdateDialog) {
+        UpdateDialog(
+            state = update,
+            tunnelActive = tunnel.status == TunnelStatus.CONNECTED ||
+                tunnel.status == TunnelStatus.CONNECTING,
+            onCheck = { UpdateController.check(context, manual = true) },
+            onDownload = { UpdateController.download(context) },
+            onCancelDownload = { UpdateController.cancelDownload(context) },
+            onInstall = { UpdateController.launchInstaller(context) },
+            onDiscard = { UpdateController.discardReady(context) },
+            onOpenRelease = { url ->
+                if (url.startsWith("https://github.com/hafizhlf/lintas-vpn/releases/")) {
+                    runCatching {
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, url.toUri())
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                        )
+                    }
+                }
+            },
+            onDismiss = { showUpdateDialog = false },
+        )
+    }
 }
 
 @Composable
-private fun LintasNavBar(selected: Int, onTab: (Int) -> Unit) {
+private fun LintasNavBar(
+    selected: Int,
+    onTab: (Int) -> Unit,
+    updateAvailable: Boolean,
+) {
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp,
@@ -228,10 +285,19 @@ private fun LintasNavBar(selected: Int, onTab: (Int) -> Unit) {
                 selected = selected == index,
                 onClick = { onTab(index) },
                 icon = {
-                    Icon(
-                        imageVector = if (selected == index) filled else outlined,
-                        contentDescription = null,
-                    )
+                    if (index == 3 && updateAvailable) {
+                        BadgedBox(badge = { Badge() }) {
+                            Icon(
+                                imageVector = if (selected == index) filled else outlined,
+                                contentDescription = null,
+                            )
+                        }
+                    } else {
+                        Icon(
+                            imageVector = if (selected == index) filled else outlined,
+                            contentDescription = null,
+                        )
+                    }
                 },
                 label = {
                     Text(label, style = MaterialTheme.typography.labelSmall)
@@ -1054,6 +1120,8 @@ private fun SettingsScreen(
     splitTunnelCount: Int,
     splitTunnelActive: Boolean,
     onOpenSplitTunnel: () -> Unit,
+    update: UpdateState,
+    onOpenUpdate: () -> Unit,
     diagnosticsEnabled: Boolean,
     diagnosticsPath: String,
     onDiagnosticsToggle: (Boolean) -> Unit,
@@ -1189,7 +1257,9 @@ private fun SettingsScreen(
         }
         Spacer(Modifier.height(16.dp))
         SettingsGroup(title = "Aplikasi") {
-            ValueSettingRow("Versi", "1.0.6", "Open source · GPL-3.0")
+            ValueSettingRow("Versi", BuildConfig.VERSION_NAME, "Open source · GPL-3.0")
+            SettingDivider()
+            UpdateSettingRow(update = update, onClick = onOpenUpdate)
             SettingDivider()
             ValueSettingRow("Mesin", "Rust + Kotlin", "Android 16")
             SettingDivider()
@@ -1582,6 +1652,37 @@ internal fun SwitchSettingRow(
         }
         Spacer(Modifier.width(12.dp))
         Switch(checked = checked, onCheckedChange = null)
+    }
+}
+
+@Composable
+private fun UpdateSettingRow(update: UpdateState, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 11.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                "Pembaruan",
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+            )
+            Text(
+                updateSubtitle(update),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        Spacer(Modifier.width(12.dp))
+        Text(
+            updateAction(update),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary,
+        )
     }
 }
 
