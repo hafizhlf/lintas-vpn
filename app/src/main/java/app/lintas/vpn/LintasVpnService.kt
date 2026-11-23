@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.net.VpnService
 import android.os.Build
@@ -440,7 +441,10 @@ class LintasVpnService : VpnService() {
         val applied = applySplitTunnelPackages(
             packages = excluded,
             ownPackage = packageName,
-            add = { pkg -> builder.addDisallowedApplication(pkg) },
+            add = { pkg ->
+                requireVisiblePackage(pkg)
+                builder.addDisallowedApplication(pkg)
+            },
             onSkipped = { pkg, error ->
                 DiagnosticLog.log(
                     "SPLIT",
@@ -449,6 +453,21 @@ class LintasVpnService : VpnService() {
             },
         )
         DiagnosticLog.log("SPLIT", "excluded=$applied requested=${excluded.size}")
+    }
+
+    private fun requireVisiblePackage(packageName: String) {
+        // Android 16 accepts a missing package in addDisallowedApplication
+        // without throwing. Resolve first so stale selections are skipped and
+        // logged instead of silently becoming a no-op.
+        if (Build.VERSION.SDK_INT >= 33) {
+            packageManager.getApplicationInfo(
+                packageName,
+                PackageManager.ApplicationInfoFlags.of(0),
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            packageManager.getApplicationInfo(packageName, 0)
+        }
     }
 
     private fun startStatsLoop(watchHandshake: Boolean, transport: TunnelTransport) {

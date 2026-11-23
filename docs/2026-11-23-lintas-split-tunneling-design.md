@@ -1,7 +1,7 @@
 # Lintas — Split tunneling per aplikasi
 
 Tanggal: 2026-11-23
-Status: diimplementasikan; verifikasi perangkat tertunda
+Status: diimplementasikan; verifikasi perangkat lulus (debug build 1.0.6)
 Target rilis: 1.0.6 (versionCode 16)
 
 ## Tujuan
@@ -108,8 +108,10 @@ berubah sampai pengguna memutuskan dan menyambung ulang.
 
 ### Edge case
 
-- Package dikecualikan lalu di-uninstall: dilewati saat connect; tunnel tetap
-  hidup.
+- Package dikecualikan lalu di-uninstall: service memeriksa visibilitas package
+  secara eksplisit sebelum `addDisallowedApplication`. Android 16 ternyata
+  menerima package yang hilang tanpa melempar error, jadi pengecekan ini yang
+  memastikan package dilewati dan dicatat di log; tunnel tetap hidup.
 - Package terpasang yang kehilangan ikon launcher: Android 11+ menyaring
   `getApplicationInfo`, sehingga package dianggap tidak tersedia dan dihapus
   dari preferensi. Ini konsekuensi dari tidak memakai `QUERY_ALL_PACKAGES`.
@@ -124,12 +126,17 @@ berubah sampai pengguna memutuskan dan menyambung ulang.
 - `lintDebug` dan `assembleRelease` lolos.
 - Unit test murni untuk filter/pencarian daftar aplikasi dan pruning package
   tersimpan (tanpa Android runtime).
-- Uji perangkat: **tertunda** — perangkat tidak terhubung saat build 1.0.6.
-  Rencananya: pilih satu aplikasi, putuskan dan sambung ulang, lalu bandingkan
-  `https://www.cloudflare.com/cdn-cgi/trace` di aplikasi tersebut (`warp=off`)
-  dan di aplikasi lain (`warp=on`).
-- Uji package yang di-uninstall saat terpilih: **tertunda** — reconnect tetap
-  berhasil dan log diagnostik mencatat package yang dilewati.
+- Uji perangkat: **lulus** (2026-11-23, Poco 2602BPC18G, Android 16, debug build
+  1.0.6). Chrome dikecualikan menghasilkan `warp=off` dengan IP publik; Brave
+  yang tidak dikecualikan menghasilkan `warp=on` dengan IP WARP.
+- Uji package yang di-uninstall saat terpilih: **lulus**. Setelah package uji
+  di-uninstall dan tunnel disambung ulang, log mencatat
+  `[SPLIT] skip package=app.lintas.splittest error=NameNotFoundException` dan
+  `[SPLIT] excluded=1 requested=2`; Chrome tetap `warp=off` dan Brave tetap
+  `warp=on`.
+- Catatan: verifikasi perangkat memakai debug build 1.0.6 karena build lama yang
+  terpasang ditandatangani debug. APK rilis 1.0.6 ditandatangani dan diverifikasi
+  terpisah dengan keystore rilis.
 - `apksigner verify` pada APK rilis.
 
 ## Rilis

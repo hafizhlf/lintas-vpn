@@ -10,7 +10,7 @@
 
 **Spec:** `docs/2026-11-23-lintas-split-tunneling-design.md`
 
-**Execution status (2026-11-23):** Tasks 1–5 implemented on `feat/split-tunneling`. Task 5 Step 6 (device verification) is pending because no adb device was attached.
+**Execution status (2026-11-23):** Tasks 1–5 implemented and merged to `main`. Device verification passed on a Poco 2602BPC18G (Android 16) using the debug build; the release APK is signed and verified separately.
 
 ## Global Constraints
 
@@ -296,6 +296,8 @@ private fun applySplitTunnel(builder: Builder) {
 
 Import `app.lintas.warp.VpnPreferences` is already in the same package (`app.lintas.vpn`), so no import is needed.
 
+> Execution note: device testing found that Android 16 accepts a missing package in `addDisallowedApplication` without throwing. `applySplitTunnel` now calls `requireVisiblePackage()` before the builder call, so a stale selection produces `[SPLIT] skip package=...` and the tunnel still establishes. This is the behavior verified on the Poco.
+
 - [ ] **Step 2: Verify compilation and existing tests**
 
 ```bash
@@ -480,7 +482,7 @@ git add app/build.gradle.kts CHANGELOG.md README.md \
 git commit -m "Lintas v1.0.6: per-app split tunneling"
 ```
 
-- [ ] **Step 6: Device verification (PENDING — no device attached on 2026-11-23)**
+- [x] **Step 6: Device verification (PASSED — 2026-11-23)**
 
 Install the signed APK, connect, select one app, disconnect and reconnect, then compare `https://www.cloudflare.com/cdn-cgi/trace`:
 
@@ -491,4 +493,4 @@ Also uninstall a selected app, reconnect, and confirm the tunnel still establish
 
 If the device is not connected, report this step as pending instead of claiming it passed.
 
-Status 2026-11-23: pending. `adb devices` returned no attached device; the signed APK and checksum are ready for installation when the Poco is available.
+Status 2026-11-23: passed on a Poco 2602BPC18G (Android 16), debug build 1.0.6. Chrome was excluded and reported `warp=off`; Brave was not excluded and reported `warp=on`. After a test package was uninstalled and the tunnel reconnected, the log contained `[SPLIT] skip package=app.lintas.splittest error=NameNotFoundException` and `[SPLIT] excluded=1 requested=2`; Chrome remained `warp=off` and Brave remained `warp=on`. The release APK is signed and verified separately because the pre-existing device build was debug-signed.

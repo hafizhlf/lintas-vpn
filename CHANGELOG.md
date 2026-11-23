@@ -6,8 +6,8 @@
   while all other apps stay protected.
 - Apply selection changes on the next full disconnect and reconnect; the active
   tunnel is not interrupted automatically.
-- Prune uninstalled packages from the saved selection and skip them safely when
-  establishing the tunnel.
+- Resolve saved packages before applying exclusions; uninstalled or invisible
+  packages are skipped and recorded in the diagnostic log.
 
 ## 1.0.5 - 2026-11-23
 
