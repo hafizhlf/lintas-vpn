@@ -1,7 +1,7 @@
 # Lintas — Pembaruan aplikasi sendiri
 
 Tanggal: 2026-11-23
-Status: diimplementasikan; verifikasi perangkat lulus (debug 1.0.7 → 1.0.8)
+Status: diimplementasikan; verifikasi perangkat lulus; dirilis sebagai 1.0.7
 Target rilis: 1.0.7 (versionCode 17)
 
 ## Tujuan
@@ -508,6 +508,12 @@ Diubah:
 - Repo publik, rilis `v1.0.7` berisi APK rilis dan `SHA256SUMS`.
 - `curl` publik mengembalikan rilis dan `digest` yang benar.
 - SHA-256 APK dicatat di body rilis dan dijawab ke pengguna.
+
+Hasil 2026-11-23: rilis `v1.0.7` diterbitkan. APK `lintas-1.0.7.apk`
+(56.396.763 byte), SHA-256
+`e3768e87d874e985f22d3ea4e96c178fc8913c8bd1d3205e99177e1b9b162612`,
+sertifikat rilis `0fa1eb301523054e861ea58e2a6dd681539a904163f28d61ceff0f110bc411d5`.
+`GET /releases/latest` mengembalikan `v1.0.7` dengan aset dan digest tersebut.
 
 ## Risiko
 

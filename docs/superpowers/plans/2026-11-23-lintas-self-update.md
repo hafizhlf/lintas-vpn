@@ -10,8 +10,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-11-23-lintas-self-update-design.md`
 
-**Execution status (2026-11-23):** Tasks 1–9 complete on `feat/self-update`;
-Task 10 release pending.
+**Execution status (2026-11-23):** Tasks 1–10 complete; `v1.0.7` released.
 
 ## Global Constraints
 
