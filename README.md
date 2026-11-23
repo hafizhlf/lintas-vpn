@@ -13,6 +13,8 @@ both WireGuard and MASQUE (HTTP/3 / CONNECT-IP) from a single WARP identity.
 - Protocol selector in Settings; the Home connect button follows it.
 - WARP+ license activation with a license key, account status refresh, and
   expiry display when available.
+- Per-app split tunneling: selected launcher apps bypass the tunnel. Changes
+  apply on the next disconnect and reconnect.
 - Optional persistent diagnostic logging for transport and reconnect issues.
 - Automatic transport restart when the active Wi-Fi or cellular path changes.
 - The VPN interface stays up during a handover; existing TCP sessions are not torn down.
@@ -23,8 +25,8 @@ both WireGuard and MASQUE (HTTP/3 / CONNECT-IP) from a single WARP identity.
 
 WireGuard and MASQUE have been tested on a Poco X8 Pro Max (Android 16).
 The transport reconnects automatically after active-path changes without
-tearing down the VPN interface. Split tunneling and kill switch are not part
-of this release yet.
+tearing down the VPN interface. Split tunneling is available in Settings;
+kill switch is not part of this release yet.
 
 ## Requirements
 

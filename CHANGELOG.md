@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.6 - 2026-11-23
+
+- Add per-app split tunneling: selected launcher apps bypass the WARP tunnel
+  while all other apps stay protected.
+- Apply selection changes on the next full disconnect and reconnect; the active
+  tunnel is not interrupted automatically.
+- Prune uninstalled packages from the saved selection and skip them safely when
+  establishing the tunnel.
+
 ## 1.0.5 - 2026-11-23
 
 - Add an optional persistent diagnostic log, including native transport errors,
