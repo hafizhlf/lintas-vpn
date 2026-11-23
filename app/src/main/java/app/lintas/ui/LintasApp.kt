@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.AltRoute
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MonitorHeart
@@ -61,6 +62,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -125,6 +127,25 @@ fun LintasApp(
         WarpController.initialize(context)
     }
 
+    var showSplitTunnel by rememberSaveable { mutableStateOf(false) }
+    var excludedApps by remember {
+        mutableStateOf(VpnPreferences.loadExcludedApps(context))
+    }
+
+    if (showSplitTunnel) {
+        SplitTunnelScreen(
+            excluded = excludedApps,
+            tunnelActive = tunnel.status == TunnelStatus.CONNECTED ||
+                tunnel.status == TunnelStatus.CONNECTING,
+            onExcludedChange = { next ->
+                excludedApps = next
+                VpnPreferences.saveExcludedApps(context, next)
+            },
+            onBack = { showSplitTunnel = false },
+        )
+        return
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
@@ -174,6 +195,10 @@ fun LintasApp(
                     onClearWarpPlus = { WarpController.clearWarpPlusFeedback() },
                     warpCheck = warpCheck,
                     onWarpCheck = { WarpController.checkStatus(context) },
+                    splitTunnelCount = excludedApps.size,
+                    splitTunnelActive = tunnel.status == TunnelStatus.CONNECTED ||
+                        tunnel.status == TunnelStatus.CONNECTING,
+                    onOpenSplitTunnel = { showSplitTunnel = true },
                     diagnosticsEnabled = diagnosticsEnabled,
                     diagnosticsPath = DiagnosticLog.path(context),
                     onDiagnosticsToggle = { enabled ->
@@ -1026,6 +1051,9 @@ private fun SettingsScreen(
     onClearWarpPlus: () -> Unit,
     warpCheck: WarpCheckState,
     onWarpCheck: () -> Unit,
+    splitTunnelCount: Int,
+    splitTunnelActive: Boolean,
+    onOpenSplitTunnel: () -> Unit,
     diagnosticsEnabled: Boolean,
     diagnosticsPath: String,
     onDiagnosticsToggle: (Boolean) -> Unit,
@@ -1125,6 +1153,14 @@ private fun SettingsScreen(
             )
         }
         Spacer(Modifier.height(16.dp))
+        SettingsGroup(title = "Lalu lintas") {
+            SplitTunnelSettingRow(
+                count = splitTunnelCount,
+                active = splitTunnelActive,
+                onClick = onOpenSplitTunnel,
+            )
+        }
+        Spacer(Modifier.height(16.dp))
         SettingsGroup(title = "Diagnostik") {
             SwitchSettingRow(
                 title = "Log diagnostik",
@@ -1192,6 +1228,54 @@ private fun ProtocolRow(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+    }
+}
+
+@Composable
+private fun SplitTunnelSettingRow(
+    count: Int,
+    active: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 9.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                "Split tunnel",
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+            )
+            Text(
+                buildString {
+                    append(
+                        if (count == 0) {
+                            "Semua aplikasi melewati tunnel"
+                        } else {
+                            "$count aplikasi dikecualikan"
+                        },
+                    )
+                    if (active) append(" · sambung ulang untuk menerapkan")
+                },
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Text(
+            "Kelola",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.width(4.dp))
+        Icon(
+            Icons.Outlined.ChevronRight,
+            contentDescription = null,
+            modifier = Modifier.size(16.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
@@ -1472,7 +1556,7 @@ private fun SettingsGroup(title: String, content: @Composable ColumnScope.() -> 
 }
 
 @Composable
-private fun SwitchSettingRow(
+internal fun SwitchSettingRow(
     title: String,
     subtitle: String,
     checked: Boolean,
@@ -1527,15 +1611,25 @@ private fun SettingDivider() {
 }
 
 @Composable
-private fun ScreenHeader(
+internal fun ScreenHeader(
     title: String,
     subtitle: String,
+    onBack: (() -> Unit)? = null,
     action: (@Composable () -> Unit)? = null,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        if (onBack != null) {
+            IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Kembali",
+                )
+            }
+            Spacer(Modifier.width(4.dp))
+        }
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 title,
