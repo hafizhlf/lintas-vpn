@@ -10,6 +10,9 @@
 
 **Spec:** `docs/superpowers/specs/2026-11-23-lintas-self-update-design.md`
 
+**Execution status (2026-11-23):** Tasks 1–8 implemented on `feat/self-update`;
+Task 9 device verification and Task 10 release pending.
+
 ## Global Constraints
 
 - `minSdk 29`, `targetSdk 36`, `compileSdk 36`, JDK 21, build tools 36.0.0.

@@ -1,7 +1,7 @@
 # Lintas — Pembaruan aplikasi sendiri
 
 Tanggal: 2026-11-23
-Status: disetujui 2026-11-23; implementasi belum dimulai
+Status: diimplementasikan; verifikasi perangkat tertunda (Task 9)
 Target rilis: 1.0.7 (versionCode 17)
 
 ## Tujuan

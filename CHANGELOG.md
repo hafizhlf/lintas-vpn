@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.7 - 2026-11-23
+
+- Add in-app updates from GitHub Releases. The app checks automatically at most
+  once per 24 hours and can be checked manually from Settings.
+- Download the APK in-app, verify its SHA-256 (when provided), package name,
+  version, and signing certificate, then open the Android installer.
+- Keep a verified download across process death and installer cancellation;
+  discard it from the update dialog.
+- Known limitation: downloads run only while Lintas is open. Installing an
+  update disconnects the VPN and does not reconnect automatically.
+
 ## 1.0.6 - 2026-11-23
 
 - Add per-app split tunneling: selected launcher apps bypass the WARP tunnel

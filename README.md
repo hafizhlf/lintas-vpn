@@ -15,6 +15,8 @@ both WireGuard and MASQUE (HTTP/3 / CONNECT-IP) from a single WARP identity.
   expiry display when available.
 - Per-app split tunneling: selected launcher apps bypass the tunnel. Changes
   apply on the next disconnect and reconnect.
+- In-app updates from GitHub Releases, with SHA-256, package, version, and
+  signing-certificate verification before the Android installer opens.
 - Optional persistent diagnostic logging for transport and reconnect issues.
 - Automatic transport restart when the active Wi-Fi or cellular path changes.
 - The VPN interface stays up during a handover; existing TCP sessions are not torn down.
@@ -27,6 +29,12 @@ WireGuard and MASQUE have been tested on a Poco X8 Pro Max (Android 16).
 The transport reconnects automatically after active-path changes without
 tearing down the VPN interface. Split tunneling is available in Settings;
 kill switch is not part of this release yet.
+
+Releases are published on GitHub. Lintas checks for updates automatically
+and also offers a manual check in Settings. Update downloads run only while
+the app is open, and the first update asks for the Android "Install unknown
+apps" permission for Lintas. Installing an update disconnects the VPN; it
+does not reconnect automatically.
 
 ## Requirements
 
