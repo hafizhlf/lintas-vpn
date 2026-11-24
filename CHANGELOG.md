@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.0.9 - 2026-11-24
+
+- Redesign the interface as **Buku Lintas**: paper and passport visual language,
+  serif/mono typography, booklet navigation, and paper-style dialogs.
+- Rename **Aktivitas** to **Sesi** and **Setelan** to **Dokumen**; reorganize
+  the four pages around the current journey.
+- Show the current download speed from tunnel receive bytes. Packet counters and
+  session history are no longer shown.
+- Add a confirmation sheet for ending a session, a speed seal on Sesi, and a
+  matching WARP+ sheet.
+- Restyle split tunneling, diagnostics, and update dialogs to match the new
+  book. The light paper theme now extends through the status and navigation bars.
+
 ## 1.0.8 - 2026-11-23
 
 - Fix the update row's error action: **Coba lagi** now triggers a fresh check.
