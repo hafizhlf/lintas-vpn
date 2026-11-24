@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.11 - 2026-11-24
+
+- Remove in-app APK download and installation. **Dokumen → Pembaruan** now
+  opens the GitHub release page for a manual install.
+- Remove the `REQUEST_INSTALL_PACKAGES` permission and the update
+  `FileProvider`. This removes the self-updater pattern that Play Protect may
+  flag as harmful.
+
 ## 1.0.10 - 2026-11-24
 
 - Report the VPN network as unmetered. Android no longer treats the tunnel as

@@ -55,9 +55,8 @@ Cloudflare without a relay or account server.
   Changes apply on the next disconnect and reconnect.
 - **WARP+** license activation, account status refresh, and expiry display when
   available.
-- **In-app updates** from GitHub Releases, with SHA-256 (when provided),
-  package, version, and signing-certificate verification before the Android
-  installer opens.
+- **Update checks** from GitHub Releases. Lintas opens the release page in
+  your browser; download and install updates manually.
 - **Encrypted identity** storage using Android Keystore.
 - **Optional local diagnostic log** for transport and reconnect issues.
 - No account, billing, telemetry, or backend in the data path.
@@ -82,7 +81,7 @@ interface. WARP registration and WARP+ activation go directly to Cloudflare.
 1. Download the latest `lintas-<version>.apk` from
    [Releases](https://github.com/hafizhlf/lintas-vpn/releases/latest).
 2. Android 10 (API 29) or newer is required.
-3. Allow your browser or Lintas to install unknown apps the first time.
+3. Allow your browser to install unknown apps the first time.
 4. Open Lintas, register a free WARP identity in **Dokumen**, then connect.
 
 A WARP+ license key is optional.
@@ -90,20 +89,18 @@ A WARP+ license key is optional.
 Verify the download with the `SHA256SUMS` asset from the same release:
 
 ```bash
-sha256sum lintas-1.0.10.apk
+sha256sum lintas-1.0.11.apk
 ```
 
-### In-app updates
+### Update checks
 
 Lintas checks GitHub Releases at most once every 24 hours and on demand from
-**Dokumen → Pembaruan**. It downloads the APK inside the app, verifies the
-SHA-256 (when GitHub provides a digest), package name, version, and signing
-certificate, then opens the Android installer. A verified download survives
-process death and installer
-cancellation; you can discard it from the dialog.
+**Dokumen → Pembaruan**. When a newer release is available, the dialog shows the
+version and a button to open the release page in your browser. Download the APK
+from there and install it manually; Lintas no longer downloads or installs APKs
+on its own.
 
-Downloads run only while the app is open. Installing an update disconnects the
-VPN; reconnect afterwards.
+Installing an update disconnects the VPN; reconnect afterwards.
 
 Lintas reports its VPN network as unmetered, so Android apps do not treat the
 tunnel as limited data even when the underlying Wi-Fi is unmetered.
@@ -145,7 +142,7 @@ APK; sign it with your own release keystore before distributing it.
 ```text
 app/        Kotlin, Jetpack Compose, VpnService, WARP control plane
 core/       Rust data plane, JNI, WireGuard and MASQUE transports
-docs/       System design, update design, and README screenshots
+docs/       System design, release plans, and README screenshots
 mockups/    UI design reference
 ```
 
@@ -153,20 +150,20 @@ mockups/    UI design reference
 
 Tested on a Poco X8 Pro Max (Android 16) with both WireGuard and MASQUE. The
 transport reconnects after active-path changes without tearing down the VPN
-interface. Split tunneling and in-app updates are available in Dokumen.
-Kill switch is not part of this release yet. The app UI is in Indonesian.
+interface. Split tunneling is available in Dokumen; update checks open the
+GitHub release page. Kill switch is not part of this release yet. The app UI is
+in Indonesian.
 
-Releases are published on GitHub. Update downloads run only while the app is
-open, and the first update asks for the Android "Install unknown apps"
-permission for Lintas. Installing an update disconnects the VPN; it does not
+Releases are published on GitHub. Download and install updates from the release
+page with your browser. Installing an update disconnects the VPN; it does not
 reconnect automatically.
 
 ## Privacy
 
 WARP registration and WARP+ activation talk directly to Cloudflare. Runtime
 traffic goes through the WARP tunnel or directly to Cloudflare for
-registration and activation; the only non-Cloudflare calls are the update
-check and APK download from GitHub. Lintas does not run a relay or backend.
+registration and activation; the only non-Cloudflare call is the update check
+from GitHub. Lintas does not run a relay or backend.
 WARP identity and license
 data are stored encrypted on the device. The WARP+ license key is never stored
 in plaintext. There is no analytics, telemetry, or crash reporting. The
