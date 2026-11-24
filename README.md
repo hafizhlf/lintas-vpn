@@ -90,7 +90,7 @@ A WARP+ license key is optional.
 Verify the download with the `SHA256SUMS` asset from the same release:
 
 ```bash
-sha256sum lintas-1.0.9.apk
+sha256sum lintas-1.0.10.apk
 ```
 
 ### In-app updates
@@ -104,6 +104,9 @@ cancellation; you can discard it from the dialog.
 
 Downloads run only while the app is open. Installing an update disconnects the
 VPN; reconnect afterwards.
+
+Lintas reports its VPN network as unmetered, so Android apps do not treat the
+tunnel as limited data even when the underlying Wi-Fi is unmetered.
 
 ## Build
 

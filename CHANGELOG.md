@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.10 - 2026-11-24
+
+- Report the VPN network as unmetered. Android no longer treats the tunnel as
+  limited data, so apps can use Wi-Fi normally while connected.
+- Match WireGuard Android's behavior: the tunnel is reported unmetered even
+  when the underlying network is cellular.
+
 ## 1.0.9 - 2026-11-24
 
 - Redesign the interface as **Buku Lintas**: paper and passport visual language,
