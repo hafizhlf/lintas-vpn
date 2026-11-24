@@ -425,6 +425,10 @@ class LintasVpnService : VpnService() {
             .addRoute("0.0.0.0", 0)
             .addDnsServer("1.1.1.1")
             .setBlocking(true)
+            // Android marks VPNs from Q+ targets as metered by default, which
+            // makes apps defer large transfers even on unmetered Wi-Fi. Match
+            // WireGuard Android and report the tunnel as unmetered.
+            .setMetered(false)
         if (ipv6.isNotBlank()) {
             builder.addAddress(ipv6, 128)
             builder.addRoute("::", 0)
