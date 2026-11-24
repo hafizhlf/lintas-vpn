@@ -1,0 +1,1526 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lintas · Tiga arah desain</title>
+<style>
+  :root{
+    --sans:"Roboto","Noto Sans","Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+    --serif:"Georgia","Noto Serif","Iowan Old Style",serif;
+    --mono:"Roboto Mono","Noto Sans Mono","DejaVu Sans Mono",ui-monospace,monospace;
+    --cond:"Roboto Condensed","Arial Narrow","Noto Sans",sans-serif;
+    --fg:var(--foreground,#12292B);
+    --muted:var(--muted-foreground,#5B726F);
+    --border:var(--border,#C6D2C3);
+    --page-orange:#B83F18;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:transparent}
+  body{
+    color:var(--fg);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  button{font:inherit}
+  .ico{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+  .page{
+    max-width:1160px;
+    margin:0 auto;
+    padding:34px 28px 46px;
+  }
+
+  /* ---------------- page masthead ---------------- */
+
+  .masthead{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 300px;
+    gap:22px 40px;
+    padding-bottom:30px;
+    border-bottom:1px solid var(--border);
+  }
+  .topline{
+    grid-column:1/-1;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .brand{
+    font-family:var(--serif);
+    font-size:26px;
+    line-height:1;
+    letter-spacing:-.03em;
+    color:var(--fg);
+  }
+  .tag{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    height:27px;
+    padding:0 11px;
+    border:1px solid var(--border);
+    border-radius:999px;
+    color:var(--muted);
+    font-size:10px;
+    font-weight:600;
+    white-space:nowrap;
+  }
+  .tag i{
+    width:6px;height:6px;border-radius:50%;
+    background:#2F6B4F;
+    box-shadow:0 0 0 3px rgba(47,107,79,.13);
+  }
+  .masthead h1{
+    grid-column:1/-1;
+    margin:26px 0 0;
+    max-width:850px;
+    font-size:clamp(44px,6vw,66px);
+    line-height:1.01;
+    letter-spacing:-.052em;
+    font-weight:800;
+    color:var(--fg);
+    text-wrap:balance;
+  }
+  .intro{
+    grid-column:1;
+    max-width:600px;
+    margin:0;
+    color:var(--muted);
+    font-size:13.5px;
+    line-height:1.7;
+    text-wrap:pretty;
+  }
+  .side-note{
+    grid-column:2;
+    margin:0;
+    padding-top:16px;
+    border-top:1px solid var(--border);
+    color:var(--muted);
+    font-size:10.5px;
+    line-height:1.65;
+  }
+  .side-note b{
+    display:block;
+    margin-bottom:3px;
+    color:var(--fg);
+    font-weight:650;
+  }
+
+  /* ---------------- concept layout ---------------- */
+
+  .directions{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    align-items:flex-start;
+    gap:36px;
+    margin-top:40px;
+  }
+  .concept{
+    width:330px;
+    max-width:100%;
+    flex:0 1 330px;
+  }
+  .frame{
+    position:relative;
+    width:330px;
+    max-width:100%;
+    height:700px;
+    overflow:hidden;
+    box-shadow:0 34px 64px -34px rgba(8,20,24,.55);
+  }
+
+  .concept-copy{margin-top:16px}
+  .concept-head{
+    display:flex;
+    align-items:center;
+    gap:9px;
+  }
+  .concept-letter{
+    display:grid;
+    place-items:center;
+    width:22px;height:22px;
+    border:1px solid var(--border);
+    border-radius:50%;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:9px;
+    font-weight:700;
+  }
+  .concept h2{
+    margin:0;
+    font-size:19px;
+    line-height:1.2;
+    letter-spacing:-.02em;
+    font-weight:750;
+    color:var(--fg);
+  }
+  .concept-desc{
+    margin:8px 0 0;
+    color:var(--muted);
+    font-size:11px;
+    line-height:1.6;
+    min-height:52px;
+  }
+  .spec{
+    margin-top:12px;
+    padding-top:9px;
+    border-top:1px solid var(--border);
+    display:grid;
+    gap:5px;
+  }
+  .spec div{
+    display:grid;
+    grid-template-columns:66px minmax(0,1fr);
+    gap:8px;
+    font-size:9px;
+    line-height:1.4;
+  }
+  .spec span{color:var(--muted)}
+  .spec b{font-weight:600;color:var(--fg)}
+
+  /* =========================================================
+     A. BUKU LINTAS
+     ========================================================= */
+
+  .frame-a{
+    border:1px solid #CDBEA8;
+    border-radius:6px;
+    background:#F2EBDD;
+  }
+  .a-screen{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    height:100%;
+    padding:0 18px 10px;
+    color:#1E2B24;
+    background-color:#F2EBDD;
+    background-image:radial-gradient(rgba(30,43,36,.055) .55px, transparent .7px);
+    background-size:4px 4px;
+    overflow:hidden;
+    font-family:var(--sans);
+  }
+  .a-screen::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:linear-gradient(115deg, rgba(255,255,255,.20), transparent 35%, transparent 70%, rgba(30,43,36,.035));
+    mix-blend-mode:multiply;
+  }
+  .a-status{
+    position:relative;
+    z-index:1;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    height:27px;
+    padding-top:7px;
+    color:#6D7A6E;
+    font-family:var(--mono);
+    font-size:7px;
+    letter-spacing:.06em;
+  }
+  .a-status .right{display:flex;align-items:center;gap:5px}
+  .a-status .right i{width:4px;height:4px;border-radius:50%;background:#2E6A4E}
+  .a-head{
+    position:relative;
+    z-index:1;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-top:5px;
+  }
+  .a-wordmark{
+    font-family:var(--serif);
+    font-size:23px;
+    line-height:1;
+    letter-spacing:-.035em;
+  }
+  .a-sub{
+    margin-top:4px;
+    color:#6D7A6E;
+    font-family:var(--mono);
+    font-size:6px;
+    letter-spacing:.14em;
+  }
+  .a-serial{
+    text-align:right;
+    color:#6D7A6E;
+    font-family:var(--mono);
+    font-size:6px;
+    line-height:1.6;
+    letter-spacing:.08em;
+  }
+  .a-rule{
+    position:relative;
+    z-index:1;
+    margin-top:9px;
+    height:5px;
+    border-top:1px solid #1E2B24;
+    border-bottom:1px solid #1E2B24;
+  }
+  .a-hero{
+    position:relative;
+    z-index:1;
+    margin-top:17px;
+  }
+  .a-kicker{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    color:#5D6B60;
+    font-family:var(--mono);
+    font-size:6.5px;
+    letter-spacing:.12em;
+  }
+  .a-kicker i{
+    width:5px;height:5px;border-radius:50%;
+    background:#2E6A4E;
+    box-shadow:0 0 0 2px rgba(46,106,78,.12);
+  }
+  .a-title{
+    margin:8px 0 0;
+    font-family:var(--serif);
+    font-size:42px;
+    line-height:.95;
+    letter-spacing:-.052em;
+    font-weight:400;
+    color:#1E2B24;
+  }
+  .a-lead{
+    margin:7px 0 0;
+    max-width:225px;
+    color:#5D6B60;
+    font-size:10px;
+    line-height:1.5;
+  }
+
+  .a-visa{
+    position:relative;
+    z-index:1;
+    margin-top:17px;
+    padding:11px 12px 10px;
+    border:1px solid #1E2B24;
+    background:#FAF4E8;
+    box-shadow:3px 3px 0 rgba(30,43,36,.13);
+  }
+  .a-visa-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .a-visa-label{
+    color:#6D7A6E;
+    font-family:var(--mono);
+    font-size:6px;
+    letter-spacing:.15em;
+  }
+  .a-stamp{
+    width:46px;height:46px;
+    display:grid;
+    place-content:center;
+    gap:1px;
+    border:1.5px double #C8502C;
+    border-radius:50%;
+    color:#C8502C;
+    text-align:center;
+    transform:rotate(8deg) translateY(-4px);
+    font-family:var(--mono);
+    line-height:1.15;
+  }
+  .a-stamp b{font-size:5.5px;letter-spacing:.08em}
+  .a-stamp span{font-size:4.4px;letter-spacing:.12em}
+  .a-route{
+    display:grid;
+    grid-template-columns:1fr 38px 1fr;
+    align-items:end;
+    gap:4px;
+    margin-top:2px;
+  }
+  .a-route .side{min-width:0}
+  .a-route .side.to{text-align:right}
+  .a-route .k{
+    display:block;
+    color:#7A867B;
+    font-family:var(--mono);
+    font-size:5.5px;
+    letter-spacing:.12em;
+  }
+  .a-route .n{
+    display:block;
+    margin-top:2px;
+    font-family:var(--serif);
+    font-size:19px;
+    line-height:1.1;
+    letter-spacing:-.03em;
+  }
+  .a-route .s{
+    display:block;
+    margin-top:2px;
+    color:#6D7A6E;
+    font-size:6.5px;
+  }
+  .a-line{
+    position:relative;
+    height:1px;
+    margin-bottom:11px;
+    border-top:1px dashed #8C988D;
+  }
+  .a-line i{
+    position:absolute;
+    top:-2.5px;
+    width:5px;height:5px;
+    border-radius:50%;
+    background:#C8502C;
+  }
+  .a-line i:first-child{left:0}
+  .a-line i:last-child{right:0;background:#2E6A4E}
+  .a-barcode{
+    height:13px;
+    margin-top:12px;
+    opacity:.72;
+    background:repeating-linear-gradient(90deg,#1E2B24 0 1px,transparent 1px 3px,#1E2B24 3px 4px,transparent 4px 7px);
+  }
+  .a-visa-foot{
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    margin-top:4px;
+    color:#6D7A6E;
+    font-family:var(--mono);
+    font-size:5.5px;
+    letter-spacing:.1em;
+  }
+
+  .a-stats{
+    position:relative;
+    z-index:1;
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    margin-top:12px;
+    border-top:1px solid #1E2B24;
+    border-bottom:1px solid #1E2B24;
+  }
+  .a-stats div{padding:7px 8px 6px;border-left:1px solid rgba(30,43,36,.22)}
+  .a-stats div:first-child{border-left:0;padding-left:0}
+  .a-stats span{
+    display:block;
+    color:#7A867B;
+    font-family:var(--mono);
+    font-size:5.5px;
+    letter-spacing:.1em;
+  }
+  .a-stats b{
+    display:block;
+    margin-top:2px;
+    font-family:var(--mono);
+    font-size:10.5px;
+    font-weight:600;
+    letter-spacing:-.02em;
+    font-variant-numeric:tabular-nums;
+  }
+
+  .a-action{
+    position:relative;
+    z-index:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    width:100%;
+    height:40px;
+    margin-top:12px;
+    border:1.5px solid #C8502C;
+    border-radius:2px;
+    background:transparent;
+    color:#C8502C;
+    font-family:var(--mono);
+    font-size:8px;
+    font-weight:700;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition:background .18s ease,color .18s ease;
+  }
+  .a-action:hover{background:#C8502C;color:#FAF4E8}
+  .a-action .ico{width:12px;height:12px;stroke-width:2}
+  .a-note{
+    position:relative;
+    z-index:1;
+    margin:6px 0 0;
+    color:#7A867B;
+    text-align:center;
+    font-family:var(--mono);
+    font-size:5.5px;
+    letter-spacing:.1em;
+  }
+
+  .a-journal{
+    position:relative;
+    z-index:1;
+    display:flex;
+    align-items:center;
+    gap:9px;
+    margin-top:18px;
+    padding-top:11px;
+    border-top:1px solid rgba(30,43,36,.24);
+  }
+  .a-journal-copy{flex:1;min-width:0}
+  .a-journal-copy span{
+    display:block;
+    color:#7A867B;
+    font-family:var(--mono);
+    font-size:5.5px;
+    letter-spacing:.13em;
+  }
+  .a-journal-copy p{
+    margin:5px 0 0;
+    color:#1E2B24;
+    font-family:var(--serif);
+    font-size:9.5px;
+    line-height:1.45;
+    letter-spacing:-.01em;
+  }
+  .a-journal-copy small{
+    display:block;
+    margin-top:4px;
+    color:#6D7A6E;
+    font-family:var(--mono);
+    font-size:5.5px;
+    letter-spacing:.06em;
+  }
+  .a-seal{
+    width:94px;height:94px;
+    flex:none;
+    display:grid;
+    place-content:center;
+    gap:2px;
+    border:1.5px double #C8502C;
+    border-radius:50%;
+    color:#C8502C;
+    text-align:center;
+    transform:rotate(-7deg);
+    margin-right:2px;
+  }
+  .a-seal span{font-family:var(--mono);font-size:5px;letter-spacing:.13em}
+  .a-seal b{font-family:var(--mono);font-size:6.5px;letter-spacing:.05em}
+  .a-seal small{font-family:var(--mono);font-size:4.8px;letter-spacing:.09em}
+
+  .a-nav{
+    position:relative;
+    z-index:1;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:0;
+    margin-top:auto;
+    border-top:1px solid #1E2B24;
+  }
+  .a-nav a{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:2px;
+    padding:7px 0 5px;
+    border-top:2px solid transparent;
+    color:#7A867B;
+    text-decoration:none;
+    font-family:var(--mono);
+    font-size:5.5px;
+    letter-spacing:.06em;
+    line-height:1;
+  }
+  .a-nav a span{font-size:5px;opacity:.8}
+  .a-nav a.active{
+    border-top-color:#C8502C;
+    color:#1E2B24;
+    font-weight:700;
+  }
+  .a-nav a.active span{color:#C8502C;opacity:1}
+
+  /* =========================================================
+     B. RUANG KONTROL
+     ========================================================= */
+
+  .frame-b{
+    border:1px solid #26332C;
+    border-radius:10px;
+    background:#080B0A;
+  }
+  .b-screen{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    height:100%;
+    padding:0 14px 0;
+    color:#E7E5DA;
+    background-color:#080B0A;
+    background-image:
+      linear-gradient(rgba(182,240,108,.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(182,240,108,.035) 1px, transparent 1px);
+    background-size:24px 24px;
+    font-family:var(--mono);
+    overflow:hidden;
+  }
+  .b-screen::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:repeating-linear-gradient(180deg, rgba(255,255,255,.02) 0 1px, transparent 1px 3px);
+    opacity:.5;
+  }
+  .b-status{
+    position:relative;
+    z-index:1;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    height:25px;
+    padding-top:6px;
+    color:#738177;
+    font-size:7px;
+    letter-spacing:.08em;
+  }
+  .b-status .green{color:#B6F06C}
+  .b-head{
+    position:relative;
+    z-index:1;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-top:5px;
+  }
+  .b-wordmark{
+    font-family:var(--cond);
+    font-size:20px;
+    font-weight:800;
+    line-height:1;
+    letter-spacing:.12em;
+    color:#E7E5DA;
+  }
+  .b-sub{
+    margin-top:4px;
+    color:#6F7D73;
+    font-size:5.5px;
+    letter-spacing:.2em;
+  }
+  .b-session{
+    text-align:right;
+    color:#6F7D73;
+    font-size:5.5px;
+    line-height:1.6;
+    letter-spacing:.12em;
+  }
+  .b-session b{color:#B6F06C;font-weight:500}
+  .b-blink{
+    display:inline-block;
+    width:5px;height:7px;
+    margin-left:3px;
+    background:#B6F06C;
+    vertical-align:-1px;
+    animation:blink 1.2s steps(2,end) infinite;
+  }
+  @keyframes blink{50%{opacity:0}}
+  .b-rule{
+    position:relative;
+    z-index:1;
+    height:1px;
+    margin-top:7px;
+    background:#223029;
+  }
+  .b-topline{
+    position:relative;
+    z-index:1;
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    padding:5px 0 7px;
+    color:#6F7D73;
+    font-size:5.5px;
+    letter-spacing:.06em;
+    border-bottom:1px solid #1A241F;
+  }
+  .b-topline b{color:#B6F06C;font-weight:500}
+
+  .b-panel{
+    position:relative;
+    z-index:1;
+    margin-top:8px;
+    height:252px;
+    border:1px solid #223029;
+    background:#0B100D;
+    box-shadow:inset 0 0 0 1px rgba(182,240,108,.025);
+  }
+  .b-panel-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    height:19px;
+    padding:0 8px;
+    border-bottom:1px solid #1A241F;
+    color:#6F7D73;
+    font-size:5.5px;
+    letter-spacing:.12em;
+  }
+  .b-panel-head .on{color:#B6F06C}
+  .b-gauge{
+    position:absolute;
+    left:9px;
+    top:29px;
+    width:168px;
+    height:168px;
+    border:1px solid #2A3A31;
+    border-radius:50%;
+  }
+  .b-gauge::before{
+    content:"";
+    position:absolute;
+    inset:17px;
+    border:1px dashed #24342B;
+    border-radius:50%;
+  }
+  .b-gauge::after{
+    content:"";
+    position:absolute;
+    inset:33px;
+    border:1px solid #1D2A23;
+    border-radius:50%;
+    background:radial-gradient(circle at 50% 50%, rgba(182,240,108,.06), transparent 65%);
+  }
+  .b-cross{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+  }
+  .b-cross::before,.b-cross::after{
+    content:"";
+    position:absolute;
+    background:#1D2A23;
+  }
+  .b-cross::before{left:50%;top:9px;bottom:9px;width:1px}
+  .b-cross::after{top:50%;left:9px;right:9px;height:1px}
+  .b-sweep{
+    position:absolute;
+    left:50%;top:50%;
+    width:78px;height:1px;
+    background:linear-gradient(90deg, rgba(182,240,108,.85), rgba(182,240,108,0));
+    transform-origin:left center;
+    animation:spin 7s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .b-gauge-core{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    z-index:1;
+    text-align:center;
+  }
+  .b-gauge-core strong{
+    font-family:var(--cond);
+    font-size:37px;
+    line-height:.9;
+    font-weight:800;
+    letter-spacing:.02em;
+    color:#B6F06C;
+    text-shadow:0 0 18px rgba(182,240,108,.25);
+  }
+  .b-gauge-core span{
+    margin-top:4px;
+    color:#9BA99F;
+    font-size:5.5px;
+    letter-spacing:.2em;
+  }
+  .b-gauge-core small{
+    margin-top:2px;
+    color:#5E6D63;
+    font-size:5px;
+    letter-spacing:.16em;
+  }
+  .b-tele{
+    position:absolute;
+    right:8px;
+    top:29px;
+    width:78px;
+  }
+  .b-tele div{
+    padding:5px 0 4px;
+    border-bottom:1px dotted #223029;
+  }
+  .b-tele span{
+    display:block;
+    color:#6F7D73;
+    font-size:5.5px;
+    letter-spacing:.14em;
+  }
+  .b-tele b{
+    display:block;
+    margin-top:2px;
+    color:#E7E5DA;
+    font-size:7.5px;
+    font-weight:500;
+    letter-spacing:.02em;
+    font-variant-numeric:tabular-nums;
+  }
+  .b-tele b.green{color:#B6F06C}
+  .b-toggle{
+    position:absolute;
+    left:0;right:0;bottom:0;
+    height:37px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:0 8px;
+    border-top:1px solid #223029;
+    background:#0A0F0C;
+  }
+  .b-toggle .label{
+    flex:1;
+    color:#7E8C82;
+    font-size:5.5px;
+    letter-spacing:.12em;
+    line-height:1.3;
+  }
+  .b-toggle .label b{display:block;color:#E7E5DA;font-size:7px;font-weight:500;letter-spacing:.08em}
+  .b-switch{
+    position:relative;
+    width:46px;height:22px;
+    border:1px solid #B6F06C;
+    background:rgba(182,240,108,.1);
+    cursor:pointer;
+  }
+  .b-switch::after{
+    content:"";
+    position:absolute;
+    top:2px;right:2px;
+    width:16px;height:16px;
+    background:#B6F06C;
+    box-shadow:0 0 10px rgba(182,240,108,.35);
+  }
+  .b-switch-label{
+    color:#B6F06C;
+    font-size:5px;
+    letter-spacing:.08em;
+  }
+
+  .b-strip{
+    position:relative;
+    z-index:1;
+    margin-top:10px;
+    border-top:1px solid #223029;
+    border-bottom:1px solid #223029;
+  }
+  .b-strip-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    min-height:24px;
+    border-bottom:1px dotted #1A241F;
+    font-size:5.5px;
+    letter-spacing:.06em;
+  }
+  .b-strip-row:last-child{border-bottom:0}
+  .b-strip-row span{color:#6F7D73}
+  .b-strip-row b{color:#C7CEC7;font-weight:500;text-align:right}
+  .b-strip-row b.green{color:#B6F06C}
+
+  .b-wave{
+    position:relative;
+    z-index:1;
+    margin-top:9px;
+    height:45px;
+    border:1px solid #1A241F;
+    background:#0A0F0C;
+    overflow:hidden;
+  }
+  .b-wave svg{display:block;width:100%;height:100%}
+  .b-wave-label{
+    position:absolute;
+    top:4px;left:6px;
+    color:#6F7D73;
+    font-size:5px;
+    letter-spacing:.12em;
+  }
+  .b-footerline{
+    position:relative;
+    z-index:1;
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    margin-top:6px;
+    color:#5E6D63;
+    font-size:5px;
+    letter-spacing:.1em;
+  }
+  .b-nav{
+    position:relative;
+    z-index:1;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    margin-top:auto;
+    border-top:1px solid #223029;
+  }
+  .b-nav a{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:2px;
+    min-height:40px;
+    padding:5px 4px;
+    border-right:1px solid #1A241F;
+    color:#6F7D73;
+    text-decoration:none;
+    font-size:5.5px;
+    letter-spacing:.06em;
+    line-height:1.2;
+  }
+  .b-nav a:last-child{border-right:0}
+  .b-nav a span{font-size:5px;opacity:.7}
+  .b-nav a.active{background:#B6F06C;color:#080B0A;font-weight:700}
+  .b-nav a.active span{opacity:1}
+
+  /* =========================================================
+     C. TENANG
+     ========================================================= */
+
+  .frame-c{
+    border:1px solid rgba(27,58,49,.14);
+    border-radius:30px;
+    background:#E8EFE8;
+  }
+  .c-screen{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    height:100%;
+    padding:0 22px 14px;
+    color:#1B3A31;
+    background:linear-gradient(180deg,#E8EFE8 0%,#F1E9DB 58%,#F1DCC6 100%);
+    overflow:hidden;
+  }
+  .c-screen::before{
+    content:"";
+    position:absolute;
+    left:0;right:0;
+    top:61%;
+    height:1px;
+    background:rgba(27,58,49,.10);
+  }
+  .c-screen::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background-image:radial-gradient(rgba(27,58,49,.05) .55px, transparent .7px);
+    background-size:4px 4px;
+    opacity:.7;
+  }
+  .c-status{
+    position:relative;
+    z-index:1;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    height:28px;
+    padding-top:7px;
+    color:rgba(27,58,49,.55);
+    font-family:var(--mono);
+    font-size:6.5px;
+    letter-spacing:.08em;
+  }
+  .c-top{
+    position:relative;
+    z-index:1;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    height:32px;
+  }
+  .c-wordmark{
+    font-family:var(--serif);
+    font-size:19px;
+    line-height:1;
+    letter-spacing:-.035em;
+  }
+  .c-mode{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    color:rgba(27,58,49,.58);
+    font-family:var(--mono);
+    font-size:6px;
+    letter-spacing:.12em;
+  }
+  .c-mode i{width:4px;height:4px;border-radius:50%;background:#2F6B4F}
+  .c-main{
+    position:relative;
+    z-index:1;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding-bottom:6px;
+  }
+  .c-kicker{
+    color:rgba(27,58,49,.55);
+    font-family:var(--mono);
+    font-size:6.5px;
+    letter-spacing:.16em;
+  }
+  .c-orb{
+    position:relative;
+    width:198px;
+    height:198px;
+    margin-top:18px;
+    display:grid;
+    place-items:center;
+    border:1px solid #1B3A31;
+    border-radius:50%;
+    background:#E98A5E;
+    box-shadow:
+      0 0 0 10px rgba(233,138,94,.10),
+      0 30px 60px rgba(27,58,49,.15);
+    cursor:pointer;
+  }
+  .c-orb::before{
+    content:"";
+    position:absolute;
+    inset:13px;
+    border:1px solid rgba(243,233,219,.28);
+    border-radius:50%;
+  }
+  .c-orb::after{
+    content:"";
+    position:absolute;
+    inset:-19px;
+    border:1px solid rgba(27,58,49,.08);
+    border-radius:50%;
+    animation:orb-breathe 5s ease-in-out infinite;
+  }
+  @keyframes orb-breathe{0%,100%{transform:scale(.98);opacity:.6}50%{transform:scale(1.03);opacity:1}}
+  .c-orb .ico{
+    width:22px;height:22px;
+    color:#1B3A31;
+    stroke-width:1.6;
+    position:relative;
+    z-index:1;
+  }
+  .c-title{
+    margin:27px 0 0;
+    font-family:var(--sans);
+    font-size:45px;
+    line-height:.98;
+    font-weight:300;
+    letter-spacing:-.055em;
+    color:#1B3A31;
+  }
+  .c-lead{
+    margin:8px 0 0;
+    max-width:240px;
+    text-align:center;
+    color:rgba(27,58,49,.62);
+    font-size:10.5px;
+    line-height:1.5;
+  }
+  .c-hint{
+    margin:7px 0 0;
+    color:rgba(27,58,49,.42);
+    font-family:var(--mono);
+    font-size:5.5px;
+    letter-spacing:.12em;
+  }
+  .c-route{
+    display:grid;
+    grid-template-columns:1fr 72px 1fr;
+    align-items:center;
+    gap:7px;
+    width:100%;
+    margin-top:29px;
+  }
+  .c-route .side{min-width:0}
+  .c-route .side.to{text-align:right}
+  .c-route .k{
+    display:block;
+    color:rgba(27,58,49,.48);
+    font-family:var(--mono);
+    font-size:5.5px;
+    letter-spacing:.12em;
+  }
+  .c-route .n{
+    display:block;
+    margin-top:2px;
+    font-family:var(--mono);
+    font-size:7px;
+    font-weight:500;
+    letter-spacing:.02em;
+    color:#1B3A31;
+    font-variant-numeric:tabular-nums;
+    white-space:nowrap;
+  }
+  .c-line{
+    position:relative;
+    height:1px;
+    background:rgba(27,58,49,.28);
+  }
+  .c-line::before,.c-line::after{
+    content:"";
+    position:absolute;
+    top:-2px;
+    width:5px;height:5px;
+    border-radius:50%;
+    background:#1B3A31;
+  }
+  .c-line::before{left:0}
+  .c-line::after{right:0;background:#E98A5E}
+  .c-line i{
+    position:absolute;
+    left:50%;top:-2px;
+    width:5px;height:5px;
+    border-radius:50%;
+    background:#E98A5E;
+    transform:translateX(-50%);
+  }
+  .c-stats{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:13px;
+    margin-top:12px;
+    color:rgba(27,58,49,.55);
+    font-family:var(--mono);
+    font-size:6px;
+    letter-spacing:.08em;
+  }
+  .c-stats b{color:#1B3A31;font-weight:500}
+  .c-stats i{width:1px;height:8px;background:rgba(27,58,49,.18)}
+  .c-sheet{
+    position:relative;
+    z-index:1;
+    margin-top:auto;
+    padding-top:8px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+  }
+  .c-handle{
+    width:34px;height:3px;
+    border-radius:999px;
+    background:rgba(27,58,49,.22);
+  }
+  .c-sheet-links{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    color:rgba(27,58,49,.55);
+    font-family:var(--mono);
+    font-size:6px;
+    letter-spacing:.1em;
+  }
+  .c-sheet-links b{color:#1B3A31;font-weight:600}
+  .c-sheet-links i{width:2px;height:2px;border-radius:50%;background:rgba(27,58,49,.3)}
+
+  /* ---------------- recommendation / footer ---------------- */
+
+  .recommendation{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:40px;
+    margin-top:52px;
+    padding-top:26px;
+    border-top:1px solid var(--border);
+  }
+  .rec-kicker{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    color:var(--muted);
+    font-size:9.5px;
+    font-weight:600;
+    letter-spacing:.01em;
+  }
+  .rec-kicker i{width:6px;height:6px;border-radius:50%;background:var(--page-orange)}
+  .recommendation h2{
+    margin:10px 0 0;
+    max-width:420px;
+    font-size:30px;
+    line-height:1.12;
+    letter-spacing:-.04em;
+    font-weight:800;
+    color:var(--fg);
+  }
+  .recommendation p{
+    max-width:470px;
+    margin:12px 0 0;
+    color:var(--muted);
+    font-size:11.5px;
+    line-height:1.65;
+  }
+  .reasons{
+    display:grid;
+    gap:12px;
+    align-content:start;
+    padding-top:6px;
+  }
+  .reason{
+    display:grid;
+    grid-template-columns:18px minmax(0,1fr);
+    gap:9px;
+    align-items:start;
+  }
+  .reason i{
+    width:7px;height:7px;
+    margin-top:5px;
+    border-radius:50%;
+    border:1px solid var(--page-orange);
+    background:rgba(184,63,24,.08);
+  }
+  .reason b{
+    display:block;
+    color:var(--fg);
+    font-size:10.5px;
+    font-weight:700;
+    line-height:1.4;
+  }
+  .reason span{
+    display:block;
+    margin-top:2px;
+    color:var(--muted);
+    font-size:10px;
+    line-height:1.55;
+  }
+  .footer{
+    display:flex;
+    justify-content:space-between;
+    gap:20px;
+    flex-wrap:wrap;
+    margin-top:34px;
+    padding-top:14px;
+    border-top:1px solid var(--border);
+    color:var(--muted);
+    font-size:9.5px;
+    line-height:1.5;
+  }
+  .footer b{color:var(--fg);font-weight:600}
+
+  @media (max-width:1040px){
+    .page{padding:30px 24px 40px}
+    .masthead{grid-template-columns:1fr}
+    .side-note{grid-column:1;max-width:100%;padding-top:14px}
+    .directions{gap:30px}
+  }
+  @media (max-width:760px){
+    .page{padding:24px 18px 36px}
+    .masthead h1{font-size:42px;margin-top:24px}
+    .intro{font-size:12.5px}
+    .directions{margin-top:30px;gap:38px}
+    .concept{flex-basis:100%}
+    .frame{width:100%;max-width:330px;margin:0 auto}
+    .concept-copy{max-width:330px;margin-left:auto;margin-right:auto}
+    .recommendation{grid-template-columns:1fr;gap:18px;margin-top:38px}
+    .recommendation h2{font-size:27px}
+  }
+  @media (max-width:360px){
+    .page{padding:20px 14px 30px}
+    .frame-a,.frame-b,.frame-c{zoom:.94}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+<main class="page">
+
+  <header class="masthead">
+    <div class="topline">
+      <span class="brand">Lintas</span>
+      <span class="tag"><i></i>Eksplorasi arah</span>
+    </div>
+    <h1>Tiga arah,<br>bukan tiga tema.</h1>
+    <p class="intro">Kali ini saya tinggalkan struktur dashboard yang sama. Tiap konsep mengganti metafora, hierarki, navigasi, dan bahasa visualnya. Bukan sekadar memindahkan komponen ke bentuk baru.</p>
+    <p class="side-note"><b>Yang berubah</b>Metafora, susunan layar, cara berpindah, tipografi, dan rasa produk. Pilih satu; saya bangun empat layarnya secara penuh.</p>
+  </header>
+
+  <section class="directions" aria-label="Tiga arah desain">
+
+    <!-- ================= A ================= -->
+    <article class="concept">
+      <div class="frame frame-a">
+        <div class="a-screen">
+          <div class="a-status">
+            <span>9:41</span>
+            <span class="right"><i></i>VPN · 5G</span>
+          </div>
+
+          <div class="a-head">
+            <div>
+              <div class="a-wordmark">Lintas</div>
+              <div class="a-sub">PASPOR KONEKSI</div>
+            </div>
+            <div class="a-serial">NO. 0042<br>23 NOV 2026</div>
+          </div>
+          <div class="a-rule"></div>
+
+          <div class="a-hero">
+            <div class="a-kicker"><i></i>SESI WARP AKTIF</div>
+            <h2 class="a-title">Terlindungi</h2>
+            <p class="a-lead">Trafik Anda menyeberang lewat Cloudflare.</p>
+          </div>
+
+          <div class="a-visa">
+            <div class="a-visa-head">
+              <div>
+                <div class="a-visa-label">IZIN MELINTAS</div>
+                <div style="margin-top:5px;font-family:var(--mono);font-size:5.5px;letter-spacing:.08em;color:#6D7A6E">BERLAKU · 23 NOV 2026</div>
+              </div>
+              <div class="a-stamp"><b>WARP</b><span>MASQUE</span><span>SIN</span></div>
+            </div>
+
+            <div class="a-route">
+              <div class="side">
+                <span class="k">DARI</span>
+                <span class="n">Anda</span>
+                <span class="s">Perangkat ini</span>
+              </div>
+              <div class="a-line"><i></i><i></i></div>
+              <div class="side to">
+                <span class="k">KE</span>
+                <span class="n">Cloudflare</span>
+                <span class="s">Rute otomatis</span>
+              </div>
+            </div>
+
+            <div class="a-barcode"></div>
+            <div class="a-visa-foot"><span>LINTAS · 0042</span><span>WARP / MASQUE</span></div>
+          </div>
+
+          <div class="a-stats">
+            <div><span>DURASI</span><b>00:17</b></div>
+            <div><span>PAKET</span><b>204</b></div>
+            <div><span>DATA</span><b>97.4 KB</b></div>
+          </div>
+
+          <button class="a-action" type="button">
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4"/></svg>
+            Tutup sesi
+          </button>
+          <p class="a-note">TEKAN UNTUK MENGAKHIRI PERJALANAN</p>
+
+          <div class="a-journal">
+            <div class="a-journal-copy">
+              <span>CATATAN PERJALANAN</span>
+              <p>Berangkat 09:41 dari Jakarta.<br>Melintas Cloudflare SIN.</p>
+              <small>17 DETIK · 97.4 KB · 23 NOV</small>
+            </div>
+            <div class="a-seal">
+              <span>TERLINDUNGI</span>
+              <b>CLOUDFLARE</b>
+              <small>23 NOV 2026</small>
+            </div>
+          </div>
+
+          <nav class="a-nav" aria-label="Halaman">
+            <a class="active" href="#"><span>01</span>Beranda</a>
+            <a href="#"><span>02</span>Rute</a>
+            <a href="#"><span>03</span>Log</a>
+            <a href="#"><span>04</span>Dokumen</a>
+          </nav>
+        </div>
+      </div>
+
+      <div class="concept-copy">
+        <div class="concept-head"><span class="concept-letter">A</span><h2>Buku Lintas</h2></div>
+        <p class="concept-desc">Koneksi sebagai perjalanan. Setiap sesi mendapat cap, izin melintas, dan catatan di buku. Terasa seperti dokumen, bukan panel kontrol.</p>
+        <div class="spec">
+          <div><span>Metafora</span><b>Paspor &amp; buku perjalanan</b></div>
+          <div><span>Palet</span><b>Kertas, tinta, cap oranye</b></div>
+          <div><span>Navigasi</span><b>Halaman buku 01–04</b></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ================= B ================= -->
+    <article class="concept">
+      <div class="frame frame-b">
+        <div class="b-screen">
+          <div class="b-status">
+            <span>SYS 09:41 / <span class="green">ONLINE</span></span>
+            <span>VPN · 5G</span>
+          </div>
+
+          <div class="b-head">
+            <div>
+              <div class="b-wordmark">LINTAS</div>
+              <div class="b-sub">KONTROL JARINGAN</div>
+            </div>
+            <div class="b-session">SESI 0042<br><b>WARP / MASQUE</b><i class="b-blink"></i></div>
+          </div>
+          <div class="b-rule"></div>
+
+          <div class="b-topline">
+            <span>UPTIME <b>00:17:42</b></span>
+            <span>LAT <b>24MS</b></span>
+            <span>DNS <b>1.1.1.1</b></span>
+          </div>
+
+          <div class="b-panel">
+            <div class="b-panel-head">
+              <span>KANAL 01 / CLOUDFLARE</span>
+              <span class="on">● AKTIF</span>
+            </div>
+
+            <div class="b-gauge">
+              <div class="b-cross"></div>
+              <div class="b-sweep"></div>
+              <div class="b-gauge-core">
+                <strong>AMAN</strong>
+                <span>TERLINDUNGI</span>
+                <small>SESI 0042</small>
+              </div>
+            </div>
+
+            <div class="b-tele">
+              <div><span>LATENSI</span><b class="green">24 ms</b></div>
+              <div><span>PAKET</span><b>204</b></div>
+              <div><span>DATA</span><b>97.4 KB</b></div>
+              <div><span>ENDPOINT</span><b>162.159.198.2</b></div>
+            </div>
+
+            <div class="b-toggle">
+              <div class="label">SAKELAR TUNNEL<b>SESI BERJALAN</b></div>
+              <span class="b-switch-label">PUTUSKAN</span>
+              <button class="b-switch" type="button" aria-label="Putuskan sesi"></button>
+            </div>
+          </div>
+
+          <div class="b-strip">
+            <div class="b-strip-row"><span>RUTE</span><b>CLOUDFLARE · SIN</b></div>
+            <div class="b-strip-row"><span>TRANSPORT</span><b class="green">MASQUE</b></div>
+            <div class="b-strip-row"><span>ALAMAT WARP</span><b>172.16.0.2</b></div>
+            <div class="b-strip-row"><span>HANDSHAKE</span><b>00:17:42</b></div>
+          </div>
+
+          <div class="b-wave">
+            <span class="b-wave-label">TRAFIK / 00:17</span>
+            <svg viewBox="0 0 300 44" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M0 34h26l10-13 12 19 14-29 13 24 16-9 14 7 16-16 14 13 16-6 14 9 16-20 14 11 16-4 14 7 16-17 14 10" fill="none" stroke="#B6F06C" stroke-opacity=".58" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M0 34h26l10-13 12 19 14-29 13 24 16-9 14 7 16-16 14 13 16-6 14 9 16-20 14 11 16-4 14 7 16-17 14 10" fill="none" stroke="#B6F06C" stroke-opacity=".08" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+
+          <div class="b-footerline"><span>CORE RUST / KOTLIN</span><span>BUILD 1.0.7</span></div>
+
+          <nav class="b-nav" aria-label="Kontrol">
+            <a class="active" href="#"><span>F1</span>BERANDA</a>
+            <a href="#"><span>F2</span>RUTE</a>
+            <a href="#"><span>F3</span>LOG</a>
+            <a href="#"><span>F4</span>SETELAN</a>
+          </nav>
+        </div>
+      </div>
+
+      <div class="concept-copy">
+        <div class="concept-head"><span class="concept-letter">B</span><h2>Ruang Kontrol</h2></div>
+        <p class="concept-desc">Koneksi sebagai instrumen. Radar, telemetri, dan sakelar fisik. Untuk orang yang ingin melihat jaringan bekerja, bukan sekadar percaya.</p>
+        <div class="spec">
+          <div><span>Metafora</span><b>Panel kontrol / radar</b></div>
+          <div><span>Palet</span><b>Grafit, fosfor, amber</b></div>
+          <div><span>Navigasi</span><b>Command bar F1–F4</b></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ================= C ================= -->
+    <article class="concept">
+      <div class="frame frame-c">
+        <div class="c-screen">
+          <div class="c-status">
+            <span>9:41</span>
+            <span>VPN</span>
+          </div>
+
+          <div class="c-top">
+            <span class="c-wordmark">Lintas</span>
+            <span class="c-mode"><i></i>WARP · MASQUE</span>
+          </div>
+
+          <div class="c-main">
+            <div class="c-kicker">SESI WARP AKTIF</div>
+            <button class="c-orb" type="button" aria-label="Putuskan koneksi">
+              <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3v8"/><path d="M7 6.2a7 7 0 1 0 10 0"/>
+              </svg>
+            </button>
+            <h2 class="c-title">Terlindungi</h2>
+            <p class="c-lead">Trafik melintas tenang lewat Cloudflare.</p>
+            <p class="c-hint">KETUK ORB UNTUK MEMUTUS</p>
+
+            <div class="c-route">
+              <div class="side">
+                <span class="k">ANDA</span>
+                <span class="n">172.16.0.2</span>
+              </div>
+              <div class="c-line"><i></i></div>
+              <div class="side to">
+                <span class="k">CLOUDFLARE</span>
+                <span class="n">MASQUE</span>
+              </div>
+            </div>
+            <div class="c-stats">
+              <span><b>00:17</b> durasi</span><i></i><span><b>204</b> paket</span><i></i><span><b>97.4 KB</b> data</span>
+            </div>
+          </div>
+
+          <div class="c-sheet">
+            <span class="c-handle"></span>
+            <div class="c-sheet-links"><b>Rute</b><i></i><span>Aktivitas</span><i></i><span>Setelan</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="concept-copy">
+        <div class="concept-head"><span class="concept-letter">C</span><h2>Tenang</h2></div>
+        <p class="concept-desc">Koneksi sebagai suasana. Satu orb, satu gestur, tanpa dashboard. Detail disimpan di lembar bawah, bukan di depan mata.</p>
+        <div class="spec">
+          <div><span>Metafora</span><b>Horizon / cuaca pagi</b></div>
+          <div><span>Palet</span><b>Kabut, pinus, matahari</b></div>
+          <div><span>Navigasi</span><b>Bottom sheet, tanpa tab</b></div>
+        </div>
+      </div>
+    </article>
+
+  </section>
+
+  <section class="recommendation">
+    <div>
+      <div class="rec-kicker"><i></i>Rekomendasi</div>
+      <h2>Mulai dari Buku Lintas.</h2>
+      <p>Ini arah yang paling spesifik untuk nama Lintas. Setiap koneksi adalah penyeberangan, dan antarmuka terasa seperti dokumen yang mencatatnya. Detail teknis tetap ada, tapi tidak mendikte seluruh layar.</p>
+    </div>
+    <div class="reasons">
+      <div class="reason"><i></i><div><b>Bahasa yang tidak bisa ditukar</b><span>Paspor, cap, dan izin melintas membuat Lintas berbeda dari aplikasi VPN lain yang semuanya berbentuk dashboard gelap.</span></div></div>
+      <div class="reason"><i></i><div><b>Tetap memuat teknologi</b><span>Endpoint, transport, dan alamat WARP bisa dicetak seperti catatan perjalanan tanpa mengganggu status utama.</span></div></div>
+      <div class="reason"><i></i><div><b>Bisa hidup di light theme</b><span>Kertas dan tinta memberi istirahat visual, sementara oranye tetap menjadi sinyal aksi yang kuat.</span></div></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <span><b>Belum diimplementasikan.</b> Tiga konsep, satu layar utama masing-masing.</span>
+    <span>Tiga arah · satu layar utama · November 2026</span>
+  </footer>
+
+</main>
+</body>
+</html>

@@ -29,6 +29,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -52,6 +53,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import app.lintas.ui.theme.PaperInk
+import app.lintas.ui.theme.PaperLight
+import app.lintas.ui.theme.PaperLine
+import app.lintas.ui.theme.PaperLineStrong
+import app.lintas.ui.theme.PaperMuted
 import androidx.core.graphics.drawable.toBitmap
 import app.lintas.vpn.SplitTunnelApp
 import app.lintas.vpn.SplitTunnelAppCatalog
@@ -99,113 +106,132 @@ fun SplitTunnelScreen(
         if (pruned != current) onExcludedChange(pruned)
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .safeDrawingPadding()
-            .padding(horizontal = 20.dp, vertical = 8.dp),
-    ) {
-        ScreenHeader(
-            title = "Split tunnel",
-            subtitle = if (excluded.isEmpty()) {
-                "Semua aplikasi melewati tunnel"
-            } else {
-                "${excluded.size} aplikasi tidak melewati tunnel"
-            },
-            onBack = onBack,
-            action = {
-                if (excluded.isNotEmpty()) {
-                    TextButton(onClick = { onExcludedChange(emptySet()) }) {
-                        Text("Bersihkan")
-                    }
-                }
-            },
-        )
-        Spacer(Modifier.height(12.dp))
-        OutlinedTextField(
-            value = query,
-            onValueChange = { query = it },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            shape = RoundedCornerShape(12.dp),
-            placeholder = { Text("Cari aplikasi") },
-            leadingIcon = {
-                Icon(Icons.Outlined.Search, contentDescription = null)
-            },
-        )
-        SwitchSettingRow(
-            title = "Tampilkan aplikasi sistem",
-            subtitle = if (includeSystem) {
-                "Aplikasi sistem ikut ditampilkan."
-            } else {
-                "Aplikasi yang sudah dikecualikan tetap terlihat."
-            },
-            checked = includeSystem,
-            onCheckedChange = { includeSystem = it },
-        )
-        if (tunnelActive) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        PaperBackdrop(modifier = Modifier.fillMaxSize())
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .safeDrawingPadding()
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+        ) {
             Text(
-                "Perubahan berlaku setelah putus dan sambung ulang.",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
+                "DOKUMEN · SPLIT TUNNEL",
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = 8.sp,
+                    letterSpacing = 1.2.sp,
+                ),
+                color = PaperMuted,
+                modifier = Modifier.padding(bottom = 4.dp),
             )
-        }
-        Spacer(Modifier.height(8.dp))
+            ScreenHeader(
+                title = "Split tunnel",
+                subtitle = if (excluded.isEmpty()) {
+                    "Semua aplikasi melewati tunnel"
+                } else {
+                    "${excluded.size} aplikasi tidak melewati tunnel"
+                },
+                onBack = onBack,
+                action = {
+                    if (excluded.isNotEmpty()) {
+                        TextButton(onClick = { onExcludedChange(emptySet()) }) {
+                            Text("Bersihkan")
+                        }
+                    }
+                },
+            )
+            Spacer(Modifier.height(12.dp))
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                shape = RoundedCornerShape(2.dp),
+                placeholder = { Text("Cari aplikasi") },
+                leadingIcon = {
+                    Icon(Icons.Outlined.Search, contentDescription = null)
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = PaperInk,
+                    unfocusedBorderColor = PaperLineStrong,
+                    focusedContainerColor = PaperLight.copy(alpha = 0.55f),
+                    unfocusedContainerColor = PaperLight.copy(alpha = 0.55f),
+                    cursorColor = MaterialTheme.colorScheme.primary,
+                ),
+            )
+            SwitchSettingRow(
+                title = "Tampilkan aplikasi sistem",
+                subtitle = if (includeSystem) {
+                    "Aplikasi sistem ikut ditampilkan."
+                } else {
+                    "Aplikasi yang sudah dikecualikan tetap terlihat."
+                },
+                checked = includeSystem,
+                onCheckedChange = { includeSystem = it },
+            )
+            if (tunnelActive) {
+                Text(
+                    "Perubahan berlaku setelah putus dan sambung ulang.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+            Spacer(Modifier.height(8.dp))
 
-        val currentCatalog = catalog
-        when {
-            loadFailed -> {
-                CenteredMessage(
-                    modifier = Modifier.fillMaxWidth().weight(1f),
-                    message = "Daftar aplikasi tidak bisa dimuat.",
-                    actionLabel = "Coba lagi",
-                    onAction = { reload += 1 },
-                )
-            }
-            currentCatalog == null -> {
-                Box(
-                    modifier = Modifier.fillMaxWidth().weight(1f),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-            else -> {
-                val visible = visibleSplitTunnelApps(
-                    apps = currentCatalog.apps,
-                    excluded = excluded,
-                    query = query,
-                    includeSystem = includeSystem,
-                )
-                if (visible.isEmpty()) {
+            val currentCatalog = catalog
+            when {
+                loadFailed -> {
                     CenteredMessage(
                         modifier = Modifier.fillMaxWidth().weight(1f),
-                        message = if (query.isBlank()) {
-                            "Tidak ada aplikasi."
-                        } else {
-                            "Tidak ada aplikasi yang cocok."
-                        },
+                        message = "Daftar aplikasi tidak bisa dimuat.",
+                        actionLabel = "Coba lagi",
+                        onAction = { reload += 1 },
                     )
-                } else {
-                    LazyColumn(
+                }
+                currentCatalog == null -> {
+                    Box(
                         modifier = Modifier.fillMaxWidth().weight(1f),
-                        contentPadding = PaddingValues(bottom = 16.dp),
+                        contentAlignment = Alignment.Center,
                     ) {
-                        items(visible, key = { it.packageName }) { app ->
-                            SplitTunnelAppRow(
-                                app = app,
-                                selected = app.packageName in excluded,
-                                icons = icons,
-                                onToggle = {
-                                    onExcludedChange(
-                                        if (app.packageName in excluded) {
-                                            excluded - app.packageName
-                                        } else {
-                                            excluded + app.packageName
-                                        },
-                                    )
-                                },
-                            )
+                        CircularProgressIndicator()
+                    }
+                }
+                else -> {
+                    val visible = visibleSplitTunnelApps(
+                        apps = currentCatalog.apps,
+                        excluded = excluded,
+                        query = query,
+                        includeSystem = includeSystem,
+                    )
+                    if (visible.isEmpty()) {
+                        CenteredMessage(
+                            modifier = Modifier.fillMaxWidth().weight(1f),
+                            message = if (query.isBlank()) {
+                                "Tidak ada aplikasi."
+                            } else {
+                                "Tidak ada aplikasi yang cocok."
+                            },
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxWidth().weight(1f),
+                            contentPadding = PaddingValues(bottom = 16.dp),
+                        ) {
+                            items(visible, key = { it.packageName }) { app ->
+                                SplitTunnelAppRow(
+                                    app = app,
+                                    selected = app.packageName in excluded,
+                                    icons = icons,
+                                    onToggle = {
+                                        onExcludedChange(
+                                            if (app.packageName in excluded) {
+                                                excluded - app.packageName
+                                            } else {
+                                                excluded + app.packageName
+                                            },
+                                        )
+                                    },
+                                )
+                            }
                         }
                     }
                 }
@@ -248,7 +274,7 @@ private fun SplitTunnelAppRow(
         Spacer(Modifier.width(12.dp))
         Switch(checked = selected, onCheckedChange = null)
     }
-    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f))
+    HorizontalDivider(color = PaperLine.copy(alpha = 0.7f), thickness = 1.dp)
 }
 
 @Composable
@@ -267,8 +293,8 @@ private fun AppIcon(packageName: String, icons: AppIconCache) {
     Box(
         modifier = Modifier
             .size(38.dp)
-            .clip(RoundedCornerShape(9.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant),
+            .clip(RoundedCornerShape(6.dp))
+            .background(PaperLight),
         contentAlignment = Alignment.Center,
     ) {
         if (bitmap != null) {

@@ -1,0 +1,1680 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lintas · Material 3 Expressive</title>
+<style>
+  :root {
+    --ink: #0B171B;
+    --panel: #102127;
+    --high: #142A31;
+    --line: #2E4A4F;
+    --text: #F2EFE4;
+    --muted: #8FA5A4;
+    --orange: #FF6A3D;
+    --orange-soft: #FF9470;
+    --mint: #8BD6B2;
+    --font-ui: "Roboto", "Noto Sans", "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-brand: "Georgia", "Noto Serif", "Times New Roman", serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: transparent; }
+  body {
+    font-family: var(--font-ui);
+    color: var(--foreground, #12292B);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  button { font: inherit; }
+
+  .board {
+    width: 100%;
+    max-width: 748px;
+    margin: 0 auto;
+    padding: 26px 10px 34px;
+    display: grid;
+    grid-template-columns: 330px minmax(0, 1fr);
+    gap: 30px;
+    align-items: start;
+  }
+
+  .stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 330px;
+  }
+
+  .device {
+    position: relative;
+    width: 330px;
+    height: 700px;
+    border-radius: 40px;
+    background: var(--ink);
+    border: 1px solid var(--line);
+    box-shadow:
+      0 36px 70px -30px rgba(6, 18, 22, .7),
+      inset 0 0 0 1px rgba(255, 255, 255, .025);
+    overflow: hidden;
+  }
+
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    background: var(--ink);
+    color: var(--text);
+  }
+  .screen.is-active {
+    display: flex;
+    animation: screen-in .32s cubic-bezier(.2, .8, .2, 1);
+  }
+  @keyframes screen-in {
+    from { opacity: 0; transform: translateY(7px) scale(.996); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .statusbar {
+    flex: 0 0 32px;
+    height: 32px;
+    padding: 9px 15px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: .01em;
+  }
+  .status-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+    font-size: 8.5px;
+  }
+  .status-right .vpn {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    color: var(--mint);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: .04em;
+  }
+  .status-right .vpn i {
+    width: 4px; height: 4px; border-radius: 50%;
+    background: var(--mint);
+    box-shadow: 0 0 5px rgba(139, 214, 178, .8);
+  }
+  .battery {
+    position: relative;
+    width: 17px; height: 9px;
+    border: 1px solid rgba(242, 239, 228, .5);
+    border-radius: 2.5px;
+    padding: 1px;
+    display: inline-block;
+    margin-left: 1px;
+  }
+  .battery::after {
+    content: ""; position: absolute; right: -3px; top: 2.5px;
+    width: 2px; height: 4px; border-radius: 1px;
+    background: rgba(242, 239, 228, .5);
+  }
+  .battery i {
+    display: block; height: 100%; width: 72%;
+    border-radius: 1.5px; background: var(--mint);
+  }
+
+  .content {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0 18px 92px;
+    scrollbar-width: none;
+  }
+  .content::-webkit-scrollbar { display: none; }
+
+  .app-head {
+    height: 38px;
+    padding-top: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .wordmark {
+    font-family: var(--font-brand);
+    font-size: 23px;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -.02em;
+    color: var(--text);
+  }
+  .warp-chip {
+    height: 30px;
+    padding: 0 9px 0 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    border: 1px solid rgba(46, 74, 79, .95);
+    background: rgba(20, 42, 49, .55);
+    color: var(--text);
+    font-size: 9.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .18s ease, border-color .18s ease;
+  }
+  .warp-chip:hover { background: var(--high); border-color: rgba(139, 214, 178, .25); }
+  .warp-chip .dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--mint);
+    box-shadow: 0 0 0 3px rgba(139, 214, 178, .1);
+  }
+  .warp-chip .ic { width: 11px; height: 11px; color: var(--muted); }
+
+  .hero { margin-top: 20px; }
+  .hero-kicker {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 9.5px;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: .01em;
+  }
+  .live-dot {
+    position: relative;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--mint);
+    box-shadow: 0 0 0 3px rgba(139, 214, 178, .1);
+    flex: none;
+  }
+  .live-dot::after {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    border: 1px solid rgba(139, 214, 178, .35);
+    animation: pulse 2.8s ease-out infinite;
+  }
+  @keyframes pulse {
+    0% { transform: scale(.7); opacity: .8; }
+    70%, 100% { transform: scale(1.9); opacity: 0; }
+  }
+  .hero-title {
+    margin: 7px 0 8px;
+    font-size: 46px;
+    line-height: .96;
+    font-weight: 800;
+    letter-spacing: -.055em;
+    color: var(--text);
+  }
+  .hero-sub {
+    margin: 0;
+    max-width: 250px;
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+
+  .route-card {
+    position: relative;
+    margin-top: 15px;
+    padding: 13px 14px 12px;
+    border-radius: 30px 30px 10px 30px;
+    border: 1px solid rgba(46, 74, 79, .9);
+    background:
+      radial-gradient(120% 100% at 80% 0%, #1A343C 0%, #102127 55%, #0E1E24 100%);
+    overflow: hidden;
+  }
+  .card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-label {
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: .03em;
+    color: var(--muted);
+  }
+  .pill {
+    height: 20px;
+    padding: 0 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border-radius: 999px;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: .02em;
+  }
+  .pill.mint {
+    color: var(--mint);
+    background: rgba(139, 214, 178, .08);
+    border: 1px solid rgba(139, 214, 178, .2);
+  }
+  .pill.mint i {
+    width: 4px; height: 4px; border-radius: 50%;
+    background: var(--mint);
+  }
+  .route-art {
+    display: block;
+    width: 100%;
+    height: 102px;
+    margin: 1px 0 0;
+  }
+  .route-dots {
+    animation: route-drift 18s linear infinite;
+  }
+  @keyframes route-drift {
+    to { stroke-dashoffset: -160; }
+  }
+  .halo {
+    transform-origin: 250px 24px;
+    animation: halo-breathe 3.4s ease-in-out infinite alternate;
+  }
+  @keyframes halo-breathe {
+    from { opacity: .35; transform: scale(.92); }
+    to { opacity: .65; transform: scale(1.08); }
+  }
+  .route-ends {
+    display: grid;
+    grid-template-columns: 1fr 22px 1fr;
+    align-items: end;
+    gap: 4px;
+    margin-top: 2px;
+  }
+  .route-end .from-label {
+    display: block;
+    margin-bottom: 2px;
+    font-size: 8.5px;
+    letter-spacing: .02em;
+    color: var(--muted);
+  }
+  .route-end .place {
+    display: block;
+    font-size: 18px;
+    font-weight: 750;
+    line-height: 1.1;
+    letter-spacing: -.025em;
+  }
+  .route-end .meta {
+    display: block;
+    margin-top: 2px;
+    font-size: 8.5px;
+    color: var(--muted);
+  }
+  .route-end.to { text-align: right; }
+  .route-arrow {
+    display: flex;
+    justify-content: center;
+    padding-bottom: 7px;
+    color: var(--muted);
+  }
+  .route-arrow .ic { width: 15px; height: 15px; }
+
+  .stats {
+    margin-top: 10px;
+    height: 58px;
+    padding: 0 2px;
+    display: flex;
+    align-items: center;
+    border-radius: 18px;
+    border: 1px solid rgba(46, 74, 79, .7);
+    background: rgba(16, 33, 39, .72);
+  }
+  .stat { flex: 1; min-width: 0; padding: 0 11px; }
+  .stat-label {
+    font-size: 8.5px;
+    line-height: 1.2;
+    letter-spacing: .02em;
+    color: var(--muted);
+  }
+  .stat-value {
+    margin-top: 2px;
+    font-size: 17px;
+    font-weight: 750;
+    line-height: 1.1;
+    letter-spacing: -.03em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .stat-div {
+    width: 1px;
+    height: 24px;
+    background: rgba(46, 74, 79, .8);
+    flex: none;
+  }
+
+  .split {
+    width: 100%;
+    height: 54px;
+    margin-top: 10px;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 27px;
+    border: 1px solid rgba(255, 106, 61, .26);
+    background: var(--high);
+    color: var(--text);
+    cursor: pointer;
+    transition: background .18s ease, transform .18s ease;
+  }
+  .split:hover { background: #183139; }
+  .split:active { transform: scale(.992); }
+  .split-text {
+    flex: 1;
+    padding-left: 15px;
+    text-align: left;
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: -.01em;
+  }
+  .split-main {
+    width: 44px; height: 44px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--orange);
+    color: var(--ink);
+  }
+  .split-main .ic { width: 19px; height: 19px; stroke-width: 2; }
+
+  .quick {
+    margin-top: 8px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .ghost {
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-radius: 19px;
+    border: 1px solid rgba(46, 74, 79, .85);
+    background: transparent;
+    color: #D5DFD8;
+    font-size: 9.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .18s ease, color .18s ease;
+  }
+  .ghost .ic { width: 14px; height: 14px; color: var(--orange-soft); }
+  .ghost:hover { background: rgba(20, 42, 49, .8); color: var(--text); }
+
+  .dock {
+    position: absolute;
+    left: 13px;
+    right: 13px;
+    bottom: 12px;
+    z-index: 20;
+    height: 58px;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    border-radius: 29px;
+    border: 1px solid rgba(46, 74, 79, .95);
+    background: var(--panel);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, .35);
+  }
+  .dock button {
+    appearance: none;
+    height: 46px;
+    min-width: 46px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 0;
+    border-radius: 23px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 9.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color .18s ease, background .2s ease;
+  }
+  .dock button .ic { width: 18px; height: 18px; flex: none; }
+  .dock button span { display: none; }
+  .dock button.active {
+    flex: 1;
+    padding: 0 12px;
+    background: rgba(255, 106, 61, .13);
+    color: var(--orange-soft);
+  }
+  .dock button.active span { display: inline; }
+  .dock button:hover { color: var(--text); }
+  .dock button.active:hover { color: var(--orange-soft); }
+
+  .screen-head {
+    margin-top: 10px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+  .screen-head h1 {
+    margin: 0;
+    font-size: 38px;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: -.05em;
+  }
+  .screen-head p {
+    margin: 5px 0 0;
+    font-size: 10px;
+    color: var(--muted);
+  }
+  .icon-btn {
+    width: 36px; height: 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 18px;
+    border: 1px solid rgba(46, 74, 79, .9);
+    background: transparent;
+    color: var(--orange-soft);
+    cursor: pointer;
+    transition: background .18s ease;
+  }
+  .icon-btn:hover { background: rgba(255, 106, 61, .08); }
+  .icon-btn .ic { width: 17px; height: 17px; }
+
+  .rail-card {
+    margin-top: 16px;
+    padding: 14px;
+    border-radius: 28px 28px 10px 28px;
+    border: 1px solid rgba(46, 74, 79, .9);
+    background: var(--panel);
+  }
+  .rail-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .rail-icon {
+    width: 36px; height: 36px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: rgba(255, 106, 61, .11);
+    color: var(--orange);
+  }
+  .rail-icon .ic { width: 18px; height: 18px; }
+  .rail-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: -.01em;
+  }
+  .rail-sub {
+    margin-top: 2px;
+    font-size: 9px;
+    line-height: 1.35;
+    color: var(--muted);
+  }
+  .rail-top .pill { margin-left: auto; flex: none; color: var(--mint); }
+  .rail-top .pill.active {
+    color: var(--mint);
+    background: rgba(139, 214, 178, .08);
+    border: 1px solid rgba(139, 214, 178, .2);
+  }
+  .rail {
+    position: relative;
+    margin-top: 16px;
+    padding-left: 21px;
+  }
+  .rail::before {
+    content: "";
+    position: absolute;
+    left: 4.5px;
+    top: 17px;
+    bottom: 20px;
+    border-left: 1.5px dashed rgba(255, 106, 61, .5);
+  }
+  .stop {
+    position: relative;
+    min-height: 42px;
+    padding: 3px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .stop-dot {
+    position: absolute;
+    left: -21px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 1.5px solid var(--muted);
+    background: var(--panel);
+  }
+  .stop-dot.start {
+    left: -19.5px;
+    width: 7px; height: 7px;
+    border-color: var(--text);
+    background: var(--text);
+  }
+  .stop-dot.edge {
+    left: -21.5px;
+    width: 11px; height: 11px;
+    border-color: var(--orange);
+    background: var(--orange);
+    box-shadow:
+      0 0 0 4px rgba(255, 106, 61, .11),
+      0 0 14px rgba(255, 106, 61, .4);
+  }
+  .stop-dot.end {
+    left: -20px;
+    width: 8px; height: 8px;
+    border-color: var(--mint);
+    background: var(--panel);
+  }
+  .stop-text { flex: 1; min-width: 0; }
+  .stop-text b {
+    display: block;
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: -.005em;
+  }
+  .stop-text span {
+    display: block;
+    margin-top: 1px;
+    font-size: 8.5px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .stop-meta {
+    flex: none;
+    margin-left: auto;
+    text-align: right;
+    font-size: 8.5px;
+    color: var(--muted);
+  }
+  .mini-badge {
+    flex: none;
+    margin-left: auto;
+    padding: 3px 6px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 106, 61, .24);
+    background: rgba(255, 106, 61, .08);
+    color: var(--orange-soft);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: .02em;
+  }
+  .rail-note {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(46, 74, 79, .6);
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 8px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .rail-note b { color: var(--text); font-weight: 650; }
+  .detail-label { margin: 14px 0 7px; font-size: 8.5px; font-weight: 600; color: var(--muted); }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+  .detail {
+    min-height: 54px;
+    padding: 9px 10px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: rgba(16, 33, 39, .55);
+  }
+  .detail span { display: block; font-size: 8.3px; line-height: 1.2; color: var(--muted); }
+  .detail b {
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+    line-height: 1.2;
+    font-weight: 650;
+    letter-spacing: -.01em;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+
+  .test-btn {
+    width: 100%;
+    height: 50px;
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border: 0;
+    border-radius: 25px;
+    background: var(--orange);
+    color: var(--ink);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: -.01em;
+    cursor: pointer;
+    transition: filter .18s ease, transform .18s ease;
+  }
+  .test-btn .ic { width: 16px; height: 16px; stroke-width: 2.2; }
+  .test-btn:hover { filter: brightness(1.06); }
+  .test-btn:active { transform: scale(.992); }
+  .note {
+    margin: 10px 2px 0;
+    font-size: 8.5px;
+    line-height: 1.55;
+    color: var(--muted);
+  }
+
+  .warp-ready {
+    margin-top: 14px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 22px;
+    border: 1px solid rgba(46, 74, 79, .9);
+    background: var(--panel);
+  }
+  .mini-icon {
+    width: 34px; height: 34px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: 11px;
+    background: rgba(139, 214, 178, .09);
+    color: var(--mint);
+  }
+  .mini-icon .ic { width: 18px; height: 18px; }
+  .warp-ready b {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 700;
+  }
+  .warp-ready .small {
+    display: block;
+    margin-top: 2px;
+    font-size: 8.5px;
+    color: var(--muted);
+  }
+  .check {
+    width: 24px; height: 24px;
+    flex: none;
+    margin-left: auto;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(139, 214, 178, .11);
+    color: var(--mint);
+  }
+  .check .ic { width: 13px; height: 13px; stroke-width: 2.4; }
+
+  .plus {
+    margin-top: 8px;
+    padding: 11px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 22px;
+    border: 1px solid rgba(255, 106, 61, .22);
+    background: linear-gradient(120deg, rgba(255, 106, 61, .1), rgba(255, 106, 61, .015));
+  }
+  .plus-icon {
+    width: 30px; height: 30px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: rgba(255, 106, 61, .12);
+    color: var(--orange);
+  }
+  .plus-icon .ic { width: 16px; height: 16px; }
+  .plus b {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 700;
+  }
+  .plus .small {
+    display: block;
+    margin-top: 2px;
+    font-size: 8.5px;
+    color: var(--muted);
+  }
+  .plus button {
+    flex: none;
+    margin-left: auto;
+    height: 28px;
+    padding: 0 11px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 106, 61, .35);
+    background: transparent;
+    color: var(--orange-soft);
+    font-size: 8.8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .18s ease;
+  }
+  .plus button:hover { background: rgba(255, 106, 61, .1); }
+
+  .section {
+    margin: 16px 2px 6px;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: .02em;
+    color: var(--muted);
+  }
+
+  .seg {
+    height: 42px;
+    padding: 4px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    border-radius: 21px;
+    border: 1px solid rgba(46, 74, 79, .8);
+    background: var(--panel);
+  }
+  .seg button {
+    appearance: none;
+    border: 0;
+    border-radius: 17px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 9.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s ease, color .2s ease;
+  }
+  .seg button.on {
+    background: var(--orange);
+    color: var(--ink);
+    font-weight: 800;
+  }
+  .seg button:not(.on):hover { color: var(--text); }
+
+  .list {
+    overflow: hidden;
+    border-radius: 20px;
+    border: 1px solid rgba(46, 74, 79, .85);
+    background: var(--panel);
+  }
+  .row {
+    width: 100%;
+    min-height: 54px;
+    padding: 9px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    text-align: left;
+  }
+  button.row { cursor: pointer; }
+  button.row:hover { background: rgba(255, 255, 255, .025); }
+  .row + .row { border-top: 1px solid rgba(46, 74, 79, .55); }
+  .row-icon {
+    width: 30px; height: 30px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: rgba(139, 214, 178, .08);
+    color: var(--mint);
+  }
+  .row-icon .ic { width: 16px; height: 16px; }
+  .row-text { flex: 1; min-width: 0; }
+  .row-text b {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 650;
+    letter-spacing: -.005em;
+  }
+  .row-text span {
+    display: block;
+    margin-top: 2px;
+    font-size: 8.5px;
+    line-height: 1.35;
+    color: var(--muted);
+  }
+  .row .chev { width: 14px; height: 14px; flex: none; color: var(--muted); }
+
+  .switch {
+    position: relative;
+    width: 40px; height: 24px;
+    flex: none;
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    background: #233B41;
+    cursor: pointer;
+    transition: background .2s ease;
+  }
+  .switch::after {
+    content: "";
+    position: absolute;
+    left: 3px; top: 3px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--text);
+    transition: transform .24s cubic-bezier(.2, .8, .2, 1), background .2s ease;
+  }
+  .switch[aria-checked="true"] { background: var(--orange); }
+  .switch[aria-checked="true"]::after {
+    transform: translateX(16px);
+    background: var(--ink);
+  }
+
+  .update {
+    width: 100%;
+    padding: 11px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 20px 20px 8px 20px;
+    border: 1px solid rgba(255, 106, 61, .28);
+    background: rgba(255, 106, 61, .07);
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+    transition: background .18s ease;
+  }
+  .update:hover { background: rgba(255, 106, 61, .11); }
+  .update .row-icon {
+    background: var(--orange);
+    color: var(--ink);
+  }
+  .update b { display: block; font-size: 10.5px; font-weight: 700; }
+  .update .small {
+    display: block;
+    margin-top: 2px;
+    font-size: 8.5px;
+    color: var(--muted);
+  }
+  .badge-version {
+    flex: none;
+    margin-left: auto;
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 106, 61, .3);
+    background: rgba(255, 106, 61, .1);
+    color: var(--orange-soft);
+    font-size: 8.5px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .version {
+    margin: 12px 0 0;
+    text-align: center;
+    font-size: 8.5px;
+    color: var(--muted);
+    letter-spacing: .01em;
+  }
+
+  .ic {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .ic.chev { width: 11px; height: 11px; stroke-width: 2; }
+  .ic.fill { fill: currentColor; stroke: none; }
+
+  button:focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 2px;
+  }
+
+  .hint {
+    margin: 12px 0 0;
+    font-size: 10px;
+    color: var(--muted-foreground, #5B726F);
+    text-align: center;
+  }
+  .components {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 16px;
+  }
+  .components span {
+    padding: 4px 8px;
+    border: 1px solid var(--border, #C6D2C3);
+    border-radius: 999px;
+    color: var(--muted-foreground, #5B726F);
+    font-size: 8.5px;
+    line-height: 1.2;
+  }
+
+  .meta {
+    width: 100%;
+    padding-top: 6px;
+    color: var(--foreground, #12292B);
+  }
+  .tag {
+    height: 27px;
+    padding: 0 11px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    border: 1px solid var(--border, #C6D2C3);
+    color: var(--muted-foreground, #5B726F);
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: .01em;
+  }
+  .tag i {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--mint);
+  }
+  .meta h2 {
+    margin: 14px 0 8px;
+    max-width: 340px;
+    font-size: 26px;
+    line-height: 1.14;
+    font-weight: 750;
+    letter-spacing: -.035em;
+    color: var(--foreground, #12292B);
+  }
+  .meta .lead {
+    margin: 0;
+    max-width: 340px;
+    font-size: 12px;
+    line-height: 1.65;
+    color: var(--muted-foreground, #5B726F);
+  }
+  .moves {
+    margin-top: 20px;
+    display: grid;
+    gap: 14px;
+  }
+  .move {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+  }
+  .glyph {
+    width: 24px;
+    height: 24px;
+    margin-top: 1px;
+  }
+  .glyph.circle {
+    width: 17px; height: 17px;
+    margin: 4px 0 0 3px;
+    border-radius: 50%;
+    border: 1.5px solid var(--orange);
+    background: rgba(255, 106, 61, .08);
+  }
+  .glyph.cookie {
+    width: 22px; height: 22px;
+    margin-top: 1px;
+    border-radius: 9px 9px 2px 9px;
+    border: 1px solid rgba(255, 106, 61, .55);
+    background: rgba(255, 106, 61, .14);
+  }
+  .glyph.pill {
+    width: 24px; height: 12px;
+    margin-top: 7px;
+    border-radius: 999px;
+    border: 1px solid rgba(139, 214, 178, .6);
+    background: rgba(139, 214, 178, .12);
+  }
+  .move b {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--foreground, #12292B);
+  }
+  .move p {
+    margin: 0;
+    font-size: 10.2px;
+    line-height: 1.6;
+    color: var(--muted-foreground, #5B726F);
+  }
+  .palette {
+    margin-top: 22px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+  }
+  .swatch i {
+    display: block;
+    height: 30px;
+    border-radius: 9px;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .1);
+  }
+  .swatch span {
+    display: block;
+    margin-top: 5px;
+    font-size: 8px;
+    line-height: 1.45;
+    color: var(--muted-foreground, #5B726F);
+    font-variant-numeric: tabular-nums;
+  }
+  .spec {
+    margin-top: 18px;
+    padding-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    border-top: 1px solid var(--border, #C6D2C3);
+    color: var(--muted-foreground, #5B726F);
+    font-size: 9px;
+    letter-spacing: .01em;
+  }
+  .spec span { white-space: nowrap; }
+  .meta-note {
+    margin: 14px 0 0;
+    font-size: 8.5px;
+    line-height: 1.5;
+    color: var(--muted-foreground, #5B726F);
+  }
+
+  @media (max-width: 700px) {
+    .board {
+      grid-template-columns: 1fr;
+      justify-items: center;
+      gap: 28px;
+      max-width: 370px;
+      padding-left: 0;
+      padding-right: 0;
+    }
+    .meta { max-width: 340px; }
+  }
+  @media (max-width: 360px) {
+    .device { zoom: .92; }
+    .stage { width: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .001ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24">
+    <path d="M4 10.7 12 4l8 6.7V20a1 1 0 0 1-1 1h-4.4v-6.2H9.4V21H5a1 1 0 0 1-1-1z"/>
+  </symbol>
+  <symbol id="i-route" viewBox="0 0 24 24">
+    <circle cx="6" cy="6" r="2.1"/>
+    <circle cx="6" cy="18" r="2.1"/>
+    <circle cx="18" cy="12" r="2.1"/>
+    <path d="M8.1 6h2.2a2 2 0 0 1 2 2v1.8a2.2 2.2 0 0 0 2.2 2.2h1.4"/>
+    <path d="M8.1 18h2.2a2 2 0 0 0 2-2v-1.8a2.2 2.2 0 0 1 2.2-2.2h1.4"/>
+  </symbol>
+  <symbol id="i-pulse" viewBox="0 0 24 24">
+    <rect x="3" y="5" width="18" height="14" rx="3.5"/>
+    <path d="M6 12h3l2-3 2.4 6 2-3H18"/>
+  </symbol>
+  <symbol id="i-tune" viewBox="0 0 24 24">
+    <path d="M4 7h9M18.5 7H20M4 17h3M12.5 17H20"/>
+    <circle cx="15.5" cy="7" r="2.2"/>
+    <circle cx="9.5" cy="17" r="2.2"/>
+  </symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24">
+    <path d="m9 5 7 7-7 7"/>
+  </symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24">
+    <path d="M4 12h15M13.5 6.5 19 12l-5.5 5.5"/>
+  </symbol>
+  <symbol id="i-power" viewBox="0 0 24 24">
+    <path d="M12 3v8.5"/>
+    <path d="M7.2 6.2a7 7 0 1 0 9.6 0"/>
+  </symbol>
+  <symbol id="i-wave" viewBox="0 0 24 24">
+    <path d="M3 12h3.2l1.8-3 2.6 6 2-4 1.6 2H21"/>
+  </symbol>
+  <symbol id="i-split" viewBox="0 0 24 24">
+    <path d="M6 4v6.5a3.5 3.5 0 0 0 3.5 3.5H18"/>
+    <path d="m15 10.5 3.5 3.5L15 17.5"/>
+    <path d="M6 20v-2"/>
+  </symbol>
+  <symbol id="i-file" viewBox="0 0 24 24">
+    <path d="M6 3.5h7.5L18 8v12.5H6z"/>
+    <path d="M13.5 3.5V8H18"/>
+    <path d="M9 12.5h5.5M9 16h4"/>
+  </symbol>
+  <symbol id="i-download" viewBox="0 0 24 24">
+    <path d="M12 3.5v10M8 10l4 4 4-4M5 20.5h14"/>
+  </symbol>
+  <symbol id="i-check" viewBox="0 0 24 24">
+    <path d="m5.5 12.5 4.2 4L19 7"/>
+  </symbol>
+  <symbol id="i-warp" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="3"/>
+    <ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(-28 12 12)"/>
+  </symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24">
+    <path d="M12 3.5l1.7 5.5 5.5 1.7-5.5 1.7L12 18l-1.7-5.6L4.8 10.7l5.5-1.7z"/>
+    <path d="M18.5 15.5l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/>
+  </symbol>
+</svg>
+
+<main class="board">
+  <div class="stage">
+    <div class="device" role="group" aria-label="Mockup Lintas dengan Material 3 Expressive">
+
+      <section class="screen is-active" data-screen="home" aria-hidden="false">
+        <div class="statusbar">
+          <span>9:41</span>
+          <span class="status-right">
+            <span class="vpn"><i></i>VPN</span>
+            <span>5G</span>
+            <span class="battery" aria-hidden="true"><i></i></span>
+          </span>
+        </div>
+        <div class="content">
+          <header class="app-head">
+            <span class="wordmark">Lintas</span>
+            <button class="warp-chip" type="button" data-goto="settings" aria-label="Buka Setelan WARP">
+              <span class="dot" aria-hidden="true"></span>
+              WARP
+              <svg class="ic chev" aria-hidden="true"><use href="#i-chev"></use></svg>
+            </button>
+          </header>
+
+          <div class="hero">
+            <div class="hero-kicker"><span class="live-dot" aria-hidden="true"></span>Sesi WARP aktif</div>
+            <h1 class="hero-title">Terlindungi</h1>
+            <p class="hero-sub">Trafik keluar lewat WARP MASQUE.</p>
+          </div>
+
+          <div class="route-card">
+            <div class="card-top">
+              <span class="card-label">Jalur</span>
+              <span class="pill mint"><i aria-hidden="true"></i>MASQUE</span>
+            </div>
+            <svg class="route-art" viewBox="0 0 294 102" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="routeStroke" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0" stop-color="#8BD6B2"/>
+                  <stop offset=".55" stop-color="#FF8A5B"/>
+                  <stop offset="1" stop-color="#FF6A3D"/>
+                </linearGradient>
+                <radialGradient id="nodeHalo">
+                  <stop offset="0" stop-color="#FF6A3D" stop-opacity=".55"/>
+                  <stop offset="1" stop-color="#FF6A3D" stop-opacity="0"/>
+                </radialGradient>
+              </defs>
+              <path d="M-30 99C30 99 38 18 102 18s66 74 130 74 76-44 112-44" fill="none" stroke="#2E4A4F" stroke-opacity=".55" stroke-width="1"/>
+              <path d="M-30 111C30 111 38 36 102 36s66 74 130 74 76-40 112-40" fill="none" stroke="#2E4A4F" stroke-opacity=".26" stroke-width="1"/>
+              <path d="M22 92C70 92 74 58 118 56s76-8 132-32" fill="none" stroke="#FF6A3D" stroke-opacity=".12" stroke-width="7" stroke-linecap="round"/>
+              <path class="route-dots" d="M22 92C70 92 74 58 118 56s76-8 132-32" fill="none" stroke="url(#routeStroke)" stroke-width="2.3" stroke-linecap="round" stroke-dasharray="1 7"/>
+              <circle cx="22" cy="92" r="9" fill="none" stroke="#F2EFE4" stroke-opacity=".18"/>
+              <circle cx="22" cy="92" r="4" fill="#F2EFE4"/>
+              <circle class="halo" cx="250" cy="24" r="22" fill="url(#nodeHalo)"/>
+              <circle cx="250" cy="24" r="11" fill="none" stroke="#FF6A3D" stroke-opacity=".35"/>
+              <circle cx="250" cy="24" r="5.5" fill="#FF6A3D"/>
+              <circle cx="250" cy="24" r="2.4" fill="#FFD9CB"/>
+            </svg>
+            <div class="route-ends">
+              <div class="route-end">
+                <span class="from-label">Dari</span>
+                <span class="place">Anda</span>
+                <span class="meta">Perangkat ini</span>
+              </div>
+              <span class="route-arrow" aria-hidden="true">
+                <svg class="ic"><use href="#i-arrow"></use></svg>
+              </span>
+              <div class="route-end to">
+                <span class="from-label">Ke</span>
+                <span class="place">Cloudflare</span>
+                <span class="meta">Rute otomatis</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <div class="stat-label">Durasi</div>
+              <div class="stat-value">00:17</div>
+            </div>
+            <div class="stat-div" aria-hidden="true"></div>
+            <div class="stat">
+              <div class="stat-label">Paket</div>
+              <div class="stat-value">204</div>
+            </div>
+            <div class="stat-div" aria-hidden="true"></div>
+            <div class="stat">
+              <div class="stat-label">Data</div>
+              <div class="stat-value">97.4 KB</div>
+            </div>
+          </div>
+
+          <button class="split" type="button">
+            <span class="split-text">Putuskan</span>
+            <span class="split-main" aria-hidden="true">
+              <svg class="ic"><use href="#i-power"></use></svg>
+            </span>
+          </button>
+
+          <div class="quick">
+            <button class="ghost" type="button" data-goto="routes">
+              <svg class="ic" aria-hidden="true"><use href="#i-route"></use></svg>
+              Detail rute
+            </button>
+            <button class="ghost" type="button" data-goto="routes">
+              <svg class="ic" aria-hidden="true"><use href="#i-wave"></use></svg>
+              Uji koneksi
+            </button>
+          </div>
+        </div>
+        <nav class="dock" aria-label="Navigasi utama">
+          <button class="active" type="button" data-goto="home" aria-label="Beranda" aria-current="page">
+            <svg class="ic" aria-hidden="true"><use href="#i-home"></use></svg><span>Beranda</span>
+          </button>
+          <button type="button" data-goto="routes" aria-label="Rute">
+            <svg class="ic" aria-hidden="true"><use href="#i-route"></use></svg>
+          </button>
+          <button type="button" data-goto="activity" aria-label="Aktivitas">
+            <svg class="ic" aria-hidden="true"><use href="#i-pulse"></use></svg>
+          </button>
+          <button type="button" data-goto="settings" aria-label="Setelan">
+            <svg class="ic" aria-hidden="true"><use href="#i-tune"></use></svg>
+          </button>
+        </nav>
+      </section>
+
+      <section class="screen" data-screen="routes" aria-hidden="true">
+        <div class="statusbar">
+          <span>9:41</span>
+          <span class="status-right">
+            <span class="vpn"><i></i>VPN</span>
+            <span>5G</span>
+            <span class="battery" aria-hidden="true"><i></i></span>
+          </span>
+        </div>
+        <div class="content">
+          <header class="screen-head">
+            <div>
+              <h1>Rute</h1>
+              <p>Jalur WARP saat ini</p>
+            </div>
+            <button class="icon-btn" type="button" aria-label="Uji koneksi">
+              <svg class="ic"><use href="#i-wave"></use></svg>
+            </button>
+          </header>
+
+          <div class="rail-card">
+            <div class="rail-top">
+              <span class="rail-icon" aria-hidden="true">
+                <svg class="ic"><use href="#i-route"></use></svg>
+              </span>
+              <div>
+                <div class="rail-title">Rute otomatis</div>
+                <div class="rail-sub">Cloudflare memilih gerbang terdekat.</div>
+              </div>
+              <span class="pill active"><i class="dot-mint" aria-hidden="true" style="width:4px;height:4px;border-radius:50%;background:#8BD6B2"></i>Aktif</span>
+            </div>
+
+            <div class="rail">
+              <div class="stop">
+                <span class="stop-dot start" aria-hidden="true"></span>
+                <span class="stop-text"><b>Perangkat ini</b><span>Anda</span></span>
+                <span class="stop-meta">WARP</span>
+              </div>
+              <div class="stop">
+                <span class="stop-dot edge" aria-hidden="true"></span>
+                <span class="stop-text"><b>Cloudflare</b><span>Gerbang terdekat</span></span>
+                <span class="mini-badge">MASQUE</span>
+              </div>
+              <div class="stop">
+                <span class="stop-dot end" aria-hidden="true"></span>
+                <span class="stop-text"><b>Internet</b><span>Keluar lewat WARP</span></span>
+                <span class="stop-meta" style="color:var(--mint)">Aman</span>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="detail-label">Detail koneksi</div>
+          <div class="detail-grid">
+            <div class="detail"><span>Transport</span><b>MASQUE</b></div>
+            <div class="detail"><span>Endpoint</span><b>162.159.198.2:443</b></div>
+            <div class="detail"><span>Alamat WARP</span><b>172.16.0.2</b></div>
+            <div class="detail"><span>DNS</span><b>1.1.1.1</b></div>
+          </div>
+
+          <p class="note">Pemilihan gerbang manual belum tersedia. Rute mengikuti jaringan Cloudflare yang aktif.</p>
+          <button class="test-btn" type="button">
+            <svg class="ic" aria-hidden="true"><use href="#i-wave"></use></svg>
+            Uji koneksi
+          </button>
+        </div>
+        <nav class="dock" aria-label="Navigasi utama">
+          <button type="button" data-goto="home" aria-label="Beranda">
+            <svg class="ic" aria-hidden="true"><use href="#i-home"></use></svg>
+          </button>
+          <button class="active" type="button" data-goto="routes" aria-label="Rute" aria-current="page">
+            <svg class="ic" aria-hidden="true"><use href="#i-route"></use></svg><span>Rute</span>
+          </button>
+          <button type="button" data-goto="activity" aria-label="Aktivitas">
+            <svg class="ic" aria-hidden="true"><use href="#i-pulse"></use></svg>
+          </button>
+          <button type="button" data-goto="settings" aria-label="Setelan">
+            <svg class="ic" aria-hidden="true"><use href="#i-tune"></use></svg>
+          </button>
+        </nav>
+      </section>
+
+      <section class="screen" data-screen="activity" aria-hidden="true">
+        <div class="statusbar">
+          <span>9:41</span>
+          <span class="status-right">
+            <span class="vpn"><i></i>VPN</span>
+            <span>5G</span>
+            <span class="battery" aria-hidden="true"><i></i></span>
+          </span>
+        </div>
+        <div class="content">
+          <header class="screen-head">
+            <div>
+              <h1>Aktivitas</h1>
+              <p>Pemeriksaan koneksi</p>
+            </div>
+          </header>
+
+          <div class="rail-card" style="margin-top:16px;padding-bottom:14px">
+            <div class="rail-top">
+              <span class="rail-icon" style="background:rgba(139,214,178,.1);color:var(--mint)" aria-hidden="true">
+                <svg class="ic"><use href="#i-check"></use></svg>
+              </span>
+              <div>
+                <div class="rail-title">Koneksi sehat</div>
+                <div class="rail-sub">DNS 1.1.1.1 merespons melalui tunnel.</div>
+              </div>
+              <span class="pill active" style="color:var(--mint)">24 ms</span>
+            </div>
+            <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(46,74,79,.6)">
+              <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+                <div>
+                  <div class="stat-label">Latensi terakhir</div>
+                  <div style="font-size:30px;font-weight:800;letter-spacing:-.04em;line-height:1;margin-top:4px;font-variant-numeric:tabular-nums">24<span style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0;margin-left:4px">ms</span></div>
+                </div>
+                <span style="font-size:8.5px;color:var(--muted);text-align:right;line-height:1.5">Diuji 18:42<br>lewat MASQUE</span>
+              </div>
+              <svg viewBox="0 0 260 44" style="display:block;width:100%;height:44px;margin-top:10px" aria-hidden="true">
+                <path d="M2 34h30l12-14 14 22 16-32 14 26 18-10 16 8 18-18 16 14 18-6 16 10 18-22 16 12 18-4" fill="none" stroke="#8BD6B2" stroke-opacity=".55" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M2 34h30l12-14 14 22 16-32 14 26 18-10 16 8 18-18 16 14 18-6 16 10 18-22 16 12 18-4" fill="none" stroke="#8BD6B2" stroke-opacity=".08" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="section">Pemeriksaan</div>
+          <div class="list">
+            <div class="row">
+              <span class="row-icon" aria-hidden="true"><svg class="ic"><use href="#i-route"></use></svg></span>
+              <span class="row-text"><b>Rute</b><span>Otomatis, gerbang terdekat</span></span>
+              <span class="mini-badge" style="color:var(--mint);border-color:rgba(139,214,178,.25);background:rgba(139,214,178,.08)">OK</span>
+            </div>
+            <div class="row">
+              <span class="row-icon" aria-hidden="true"><svg class="ic"><use href="#i-warp"></use></svg></span>
+              <span class="row-text"><b>Transport</b><span>MASQUE aktif</span></span>
+              <span class="mini-badge" style="color:var(--mint);border-color:rgba(139,214,178,.25);background:rgba(139,214,178,.08)">OK</span>
+            </div>
+            <div class="row">
+              <span class="row-icon" aria-hidden="true"><svg class="ic"><use href="#i-file"></use></svg></span>
+              <span class="row-text"><b>DNS</b><span>1.1.1.1 di dalam tunnel</span></span>
+              <span class="mini-badge" style="color:var(--mint);border-color:rgba(139,214,178,.25);background:rgba(139,214,178,.08)">OK</span>
+            </div>
+          </div>
+
+          <p class="note">Data dihitung sejak sesi dimulai.</p>
+          <button class="test-btn" type="button" style="margin-top:14px">
+            <svg class="ic" aria-hidden="true"><use href="#i-wave"></use></svg>
+            Uji ulang
+          </button>
+        </div>
+        <nav class="dock" aria-label="Navigasi utama">
+          <button type="button" data-goto="home" aria-label="Beranda">
+            <svg class="ic" aria-hidden="true"><use href="#i-home"></use></svg>
+          </button>
+          <button type="button" data-goto="routes" aria-label="Rute">
+            <svg class="ic" aria-hidden="true"><use href="#i-route"></use></svg>
+          </button>
+          <button class="active" type="button" data-goto="activity" aria-label="Aktivitas" aria-current="page">
+            <svg class="ic" aria-hidden="true"><use href="#i-pulse"></use></svg><span>Aktivitas</span>
+          </button>
+          <button type="button" data-goto="settings" aria-label="Setelan">
+            <svg class="ic" aria-hidden="true"><use href="#i-tune"></use></svg>
+          </button>
+        </nav>
+      </section>
+
+      <section class="screen" data-screen="settings" aria-hidden="true">
+        <div class="statusbar">
+          <span>9:41</span>
+          <span class="status-right">
+            <span class="vpn"><i></i>VPN</span>
+            <span>5G</span>
+            <span class="battery" aria-hidden="true"><i></i></span>
+          </span>
+        </div>
+        <div class="content">
+          <header class="screen-head">
+            <div>
+              <h1>Setelan</h1>
+              <p>Koneksi dan protokol</p>
+            </div>
+          </header>
+
+          <div class="warp-ready">
+            <span class="mini-icon" aria-hidden="true"><svg class="ic"><use href="#i-warp"></use></svg></span>
+            <div>
+              <b>WARP siap</b>
+              <span class="small">Satu identitas untuk WireGuard dan MASQUE</span>
+            </div>
+            <span class="check" aria-label="Siap"><svg class="ic"><use href="#i-check"></use></svg></span>
+          </div>
+
+          <div class="plus">
+            <span class="plus-icon" aria-hidden="true"><svg class="ic"><use href="#i-spark"></use></svg></span>
+            <div>
+              <b>WARP+</b>
+              <span class="small">Argo Smart Routing</span>
+            </div>
+            <button type="button">Aktifkan</button>
+          </div>
+
+          <div class="section">Protokol</div>
+          <div class="seg" role="group" aria-label="Protokol">
+            <button type="button" aria-pressed="false">WireGuard</button>
+            <button class="on" type="button" aria-pressed="true">MASQUE</button>
+          </div>
+          <p class="note" style="margin-top:6px">Berlaku untuk koneksi berikutnya.</p>
+
+          <div class="section">Lalu lintas</div>
+          <div class="list">
+            <button class="row" type="button">
+              <span class="row-icon" aria-hidden="true"><svg class="ic"><use href="#i-split"></use></svg></span>
+              <span class="row-text"><b>Split tunnel</b><span>1 aplikasi dikecualikan</span></span>
+              <svg class="ic chev" aria-hidden="true"><use href="#i-chev"></use></svg>
+            </button>
+          </div>
+
+          <div class="section">Diagnostik</div>
+          <div class="list">
+            <div class="row switch-row">
+              <span class="row-icon" aria-hidden="true"><svg class="ic"><use href="#i-file"></use></svg></span>
+              <span class="row-text"><b>Log diagnostik</b><span class="switch-sub">Nonaktif. Aktifkan sebelum mereproduksi masalah.</span></span>
+              <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Log diagnostik"></button>
+            </div>
+          </div>
+
+          <div class="section">Aplikasi</div>
+          <div class="update" role="button" tabindex="0">
+            <span class="row-icon" aria-hidden="true"><svg class="ic"><use href="#i-download"></use></svg></span>
+            <div>
+              <b>Pembaruan</b>
+              <span class="small">Versi baru tersedia</span>
+            </div>
+            <span class="badge-version">1.0.8</span>
+          </div>
+        </div>
+        <nav class="dock" aria-label="Navigasi utama">
+          <button type="button" data-goto="home" aria-label="Beranda">
+            <svg class="ic" aria-hidden="true"><use href="#i-home"></use></svg>
+          </button>
+          <button type="button" data-goto="routes" aria-label="Rute">
+            <svg class="ic" aria-hidden="true"><use href="#i-route"></use></svg>
+          </button>
+          <button type="button" data-goto="activity" aria-label="Aktivitas">
+            <svg class="ic" aria-hidden="true"><use href="#i-pulse"></use></svg>
+          </button>
+          <button class="active" type="button" data-goto="settings" aria-label="Setelan" aria-current="page">
+            <svg class="ic" aria-hidden="true"><use href="#i-tune"></use></svg><span>Setelan</span>
+          </button>
+        </nav>
+      </section>
+
+    </div>
+    <p class="hint">Ketuk navigasi di layar untuk pindah layar.</p>
+  </div>
+
+  <aside class="meta">
+    <span class="tag"><i aria-hidden="true"></i>Material 3 Expressive</span>
+    <h2>Lintas, dengan keberanian bentuk.</h2>
+    <p class="lead">Sea Ink dan Signal Orange tetap jadi identitas. Yang berubah: status tampil sebagai hero, bentuk mengikuti keadaan, dan warna dipakai untuk memberi sinyal.</p>
+
+    <div class="moves">
+      <div class="move">
+        <span class="glyph circle" aria-hidden="true"></span>
+        <div>
+          <b>Status sebagai hero</b>
+          <p>“Terlindungi” naik ke 46 px dengan tracking rapat. Angka dan label lain turun satu tingkat, jadi mata langsung tahu keadaan.</p>
+        </div>
+      </div>
+      <div class="move">
+        <span class="glyph cookie" aria-hidden="true"></span>
+        <div>
+          <b>Bentuk yang hidup</b>
+          <p>Nav pil melebar untuk tab aktif, tombol utama memakai split button, dan kartu memakai sudut cookie, bukan radius yang sama di semua tempat.</p>
+        </div>
+      </div>
+      <div class="move">
+        <span class="glyph pill" aria-hidden="true"></span>
+        <div>
+          <b>Warna sebagai sinyal</b>
+          <p>Oranye hanya untuk aksi dan jalur; mint untuk aman; Sea Ink untuk jeda. Tidak ada warna hiasan yang tidak punya tugas.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="components" aria-label="Komponen utama">
+      <span>Split button</span>
+      <span>Nav pil</span>
+      <span>Kartu cookie</span>
+      <span>Segmented</span>
+    </div>
+
+    <div class="palette" aria-label="Palet warna">
+      <div class="swatch"><i style="background:#0B171B" aria-hidden="true"></i><span>Sea Ink<br>0B171B</span></div>
+      <div class="swatch"><i style="background:#102127" aria-hidden="true"></i><span>Panel<br>102127</span></div>
+      <div class="swatch"><i style="background:#FF6A3D" aria-hidden="true"></i><span>Signal<br>FF6A3D</span></div>
+      <div class="swatch"><i style="background:#8BD6B2" aria-hidden="true"></i><span>Mint<br>8BD6B2</span></div>
+      <div class="swatch"><i style="background:#F2EFE4" aria-hidden="true"></i><span>Sea Text<br>F2EFE4</span></div>
+    </div>
+
+    <div class="spec">
+      <span>Radius 30 / 22 / 999</span>
+      <span>Display 800 · UI 400–650</span>
+      <span>Transisi 320 ms</span>
+    </div>
+    <p class="meta-note">Mockup statis. Belum diimplementasikan.</p>
+  </aside>
+</main>
+
+<script>
+  const screens = Array.from(document.querySelectorAll('.screen'));
+
+  function show(name, updateHash) {
+    screens.forEach((screen) => {
+      const active = screen.dataset.screen === name;
+      screen.classList.toggle('is-active', active);
+      screen.setAttribute('aria-hidden', String(!active));
+      if (active) {
+        const content = screen.querySelector('.content');
+        if (content) content.scrollTop = 0;
+      }
+    });
+    if (updateHash) {
+      try {
+        history.replaceState(null, '', '#' + name);
+      } catch (error) {
+        // A file:// page can refuse a history update; the screen switch still works.
+      }
+    }
+  }
+
+  const initial = location.hash.replace('#', '');
+  if (['home', 'routes', 'activity', 'settings'].includes(initial)) {
+    show(initial, false);
+  }
+
+  document.addEventListener('click', (event) => {
+    const target = event.target.closest('[data-goto]');
+    if (target) {
+      event.preventDefault();
+      show(target.dataset.goto, true);
+      return;
+    }
+
+    const toggle = event.target.closest('.switch');
+    if (toggle) {
+      const pressed = toggle.getAttribute('aria-checked') === 'true';
+      toggle.setAttribute('aria-checked', String(!pressed));
+      const row = toggle.closest('.switch-row');
+      const sub = row && row.querySelector('.switch-sub');
+      if (sub) {
+        sub.textContent = pressed
+          ? 'Nonaktif. Aktifkan sebelum mereproduksi masalah.'
+          : 'Aktif. Event koneksi dan error transport dicatat.';
+      }
+      return;
+    }
+
+    const segment = event.target.closest('.seg button');
+    if (segment) {
+      const group = segment.closest('.seg');
+      group.querySelectorAll('button').forEach((button) => {
+        const selected = button === segment;
+        button.classList.toggle('on', selected);
+        button.setAttribute('aria-pressed', String(selected));
+      });
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    const update = event.target.closest('.update');
+    if (update) {
+      event.preventDefault();
+      update.animate(
+        [{ transform: 'scale(1)' }, { transform: 'scale(.985)' }, { transform: 'scale(1)' }],
+        { duration: 220, easing: 'cubic-bezier(.2,.8,.2,1)' }
+      );
+    }
+  });
+</script>
+</body>
+</html>

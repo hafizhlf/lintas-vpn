@@ -5,6 +5,8 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.net.toUri
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,6 +31,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import app.lintas.ui.theme.PaperInk
+import app.lintas.ui.theme.PaperLight
 import app.lintas.update.UpdateState
 import app.lintas.update.UpdateStatus
 import app.lintas.update.formatUpdateSize
@@ -124,7 +128,18 @@ fun UpdateDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Pembaruan Lintas") },
+        modifier = Modifier.border(1.dp, PaperInk, RoundedCornerShape(2.dp)),
+        shape = RoundedCornerShape(2.dp),
+        containerColor = PaperLight,
+        titleContentColor = PaperInk,
+        textContentColor = PaperInk,
+        tonalElevation = 0.dp,
+        title = {
+            Text(
+                "Pembaruan Lintas",
+                style = MaterialTheme.typography.headlineSmall,
+            )
+        },
         text = {
             Column {
                 when (state.status) {
@@ -282,7 +297,13 @@ fun UpdateDialog(
     if (showPermissionExplanation) {
         AlertDialog(
             onDismissRequest = { showPermissionExplanation = false },
-            title = { Text("Izin pemasangan") },
+            modifier = Modifier.border(1.dp, PaperInk, RoundedCornerShape(2.dp)),
+            shape = RoundedCornerShape(2.dp),
+            containerColor = PaperLight,
+            titleContentColor = PaperInk,
+            textContentColor = PaperInk,
+            tonalElevation = 0.dp,
+            title = { Text("Izin pemasangan", style = MaterialTheme.typography.headlineSmall) },
             text = { Text("Izinkan Lintas memasang aplikasi di pengaturan, lalu kembali.") },
             confirmButton = {
                 TextButton(
@@ -306,8 +327,17 @@ fun UpdateDialog(
         val version = state.release?.versionName
         AlertDialog(
             onDismissRequest = { showInstallWarning = false },
+            modifier = Modifier.border(1.dp, PaperInk, RoundedCornerShape(2.dp)),
+            shape = RoundedCornerShape(2.dp),
+            containerColor = PaperLight,
+            titleContentColor = PaperInk,
+            textContentColor = PaperInk,
+            tonalElevation = 0.dp,
             title = {
-                Text(if (version != null) "Pasang pembaruan $version?" else "Pasang pembaruan?")
+                Text(
+                    if (version != null) "Pasang pembaruan $version?" else "Pasang pembaruan?",
+                    style = MaterialTheme.typography.headlineSmall,
+                )
             },
             text = {
                 Text(

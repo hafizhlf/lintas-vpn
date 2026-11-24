@@ -1,0 +1,2654 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buku Lintas · Prototipe</title>
+<style>
+  :root{
+    --sans:"Roboto","Noto Sans","Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+    --serif:"Georgia","Noto Serif","Iowan Old Style",serif;
+    --mono:"Roboto Mono","Noto Sans Mono","DejaVu Sans Mono",ui-monospace,monospace;
+
+    --paper:#F2EBDD;
+    --paper-light:#FAF4E8;
+    --paper-deep:#EADFCC;
+    --ink:#1E2B24;
+    --ink-soft:#4F5E53;
+    --muted:#6D7A6E;
+    --faint:#8C988D;
+    --line:#D2C4AE;
+    --line-strong:#B9AA92;
+    --orange:#C8502C;
+    --green:#2E6A4E;
+    --blue:#3B6580;
+
+    --desk:#101A15;
+    --desk-text:#F2EBDD;
+    --desk-muted:#A7B2A7;
+    --desk-line:rgba(242,235,221,.17);
+    --desk-orange:#D96A44;
+  }
+
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  button:focus{outline:none}
+  button:focus-visible, input:focus-visible{outline:1px dashed var(--orange);outline-offset:2px}
+  html,body{margin:0;padding:0}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(900px 600px at 56% 8%, rgba(200,80,44,.10), transparent 62%),
+      radial-gradient(700px 500px at 15% 88%, rgba(46,106,78,.10), transparent 64%),
+      var(--desk);
+    color:var(--desk-text);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background-image:
+      linear-gradient(rgba(242,235,221,.022) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(242,235,221,.022) 1px, transparent 1px);
+    background-size:52px 52px;
+    mask-image:radial-gradient(circle at 50% 40%, #000 0%, transparent 80%);
+  }
+  .ico{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+  /* =========================================================
+     gallery
+     ========================================================= */
+
+  .gallery{
+    position:relative;
+    max-width:980px;
+    margin:0 auto;
+    padding:32px 24px 44px;
+  }
+  .g-head{
+    max-width:820px;
+    margin:0 auto;
+    padding-bottom:20px;
+    border-bottom:1px solid var(--desk-line);
+  }
+  .g-topline{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .g-brand{
+    font-family:var(--serif);
+    font-size:25px;
+    line-height:1;
+    letter-spacing:-.03em;
+    color:var(--desk-text);
+  }
+  .g-tag{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    height:27px;
+    padding:0 11px;
+    border:1px solid var(--desk-line);
+    border-radius:999px;
+    color:var(--desk-muted);
+    font-family:var(--mono);
+    font-size:8px;
+    letter-spacing:.1em;
+    white-space:nowrap;
+  }
+  .g-tag i{
+    width:5px;height:5px;border-radius:50%;
+    background:var(--desk-orange);
+    box-shadow:0 0 0 3px rgba(217,106,68,.12);
+  }
+  .g-head h1{
+    margin:20px 0 0;
+    font-family:var(--serif);
+    font-size:clamp(44px,6vw,56px);
+    line-height:.98;
+    letter-spacing:-.055em;
+    font-weight:400;
+    color:var(--desk-text);
+  }
+  .g-intro{
+    max-width:640px;
+    margin:12px 0 0;
+    color:var(--desk-muted);
+    font-size:12px;
+    line-height:1.7;
+  }
+  .g-intro b{color:var(--desk-text);font-weight:600}
+
+  .g-stage{
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    gap:32px;
+    max-width:860px;
+    margin:24px auto 0;
+  }
+  .g-notes{
+    width:320px;
+    flex:0 1 320px;
+    padding-top:4px;
+  }
+  .g-note-label{
+    color:var(--desk-orange);
+    font-family:var(--mono);
+    font-size:8px;
+    letter-spacing:.14em;
+  }
+  .g-steps{
+    margin:14px 0 0;
+    padding:0;
+    list-style:none;
+    display:grid;
+    gap:13px;
+  }
+  .g-steps li{
+    display:grid;
+    grid-template-columns:20px minmax(0,1fr);
+    gap:9px;
+    align-items:start;
+    color:var(--desk-muted);
+    font-size:10px;
+    line-height:1.55;
+  }
+  .g-steps b{color:var(--desk-text);font-weight:600}
+  .g-step-no{
+    display:grid;
+    place-items:center;
+    width:20px;height:20px;
+    border:1px solid var(--desk-line);
+    border-radius:50%;
+    color:var(--desk-orange);
+    font-family:var(--mono);
+    font-size:7px;
+    line-height:1;
+  }
+  .g-live{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-top:24px;
+    padding-top:14px;
+    border-top:1px solid var(--desk-line);
+    color:var(--desk-muted);
+    font-family:var(--mono);
+    font-size:8px;
+    letter-spacing:.04em;
+  }
+  .g-live i{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 0 3px rgba(46,106,78,.18);
+  }
+  .g-live i.is-idle{background:var(--desk-muted);box-shadow:0 0 0 3px rgba(167,178,167,.1)}
+  .g-live i.is-pending{background:var(--desk-orange);box-shadow:0 0 0 3px rgba(217,106,68,.14)}
+  .g-live b{color:var(--desk-text);font-weight:500}
+  .g-reset{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    height:32px;
+    margin-top:16px;
+    padding:0 12px;
+    border:1px solid var(--desk-line);
+    border-radius:2px;
+    background:transparent;
+    color:var(--desk-text);
+    font-family:var(--mono);
+    font-size:7.5px;
+    letter-spacing:.08em;
+    cursor:pointer;
+    transition:background .18s ease,border-color .18s ease;
+  }
+  .g-reset:hover{background:rgba(242,235,221,.05);border-color:rgba(242,235,221,.32)}
+  .g-fine{
+    margin:14px 0 0;
+    color:rgba(167,178,167,.72);
+    font-size:9px;
+    line-height:1.6;
+  }
+  .g-fine code{
+    font-family:var(--mono);
+    font-size:8px;
+    color:var(--desk-muted);
+  }
+
+  /* =========================================================
+     phone / paper
+     ========================================================= */
+
+  .phone{
+    position:relative;
+    width:360px;
+    max-width:100%;
+    height:700px;
+    flex:0 0 360px;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    border:1px solid #C7B69C;
+    border-radius:14px;
+    background-color:var(--paper);
+    background-image:radial-gradient(rgba(30,43,36,.052) .55px, transparent .7px);
+    background-size:4px 4px;
+    color:var(--ink);
+    box-shadow:
+      11px 11px 0 rgba(0,0,0,.22),
+      0 38px 80px rgba(0,0,0,.48);
+    isolation:isolate;
+  }
+  .phone::before{
+    content:"";
+    position:absolute;
+    left:8px;top:0;bottom:0;
+    width:1px;
+    background:rgba(30,43,36,.10);
+    z-index:40;
+    pointer-events:none;
+  }
+  .phone::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:41;
+    pointer-events:none;
+    border-radius:inherit;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);
+  }
+
+  /* status */
+
+  .bl-status{
+    flex:0 0 28px;
+    height:28px;
+    padding:8px 18px 0;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:6.5px;
+    letter-spacing:.08em;
+    position:relative;
+    z-index:2;
+  }
+  .bl-status .right{display:flex;align-items:center;gap:5px}
+  .bl-status .right i{width:4px;height:4px;border-radius:50%;background:var(--green)}
+  .bl-battery{
+    position:relative;
+    width:13px;height:7px;
+    border:1px solid var(--muted);
+    border-radius:1.5px;
+    padding:1px;
+  }
+  .bl-battery::after{
+    content:"";position:absolute;right:-2px;top:1.5px;
+    width:1.5px;height:2.5px;background:var(--muted);
+  }
+  .bl-battery i{display:block;height:100%;width:74%;background:var(--ink);border-radius:.5px}
+
+  /* passport header */
+
+  .bl-bookhead{
+    flex:0 0 39px;
+    height:39px;
+    padding:0 18px;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    position:relative;
+    z-index:2;
+  }
+  .bl-wordmark{
+    font-family:var(--serif);
+    font-size:21px;
+    line-height:1;
+    letter-spacing:-.035em;
+    color:var(--ink);
+  }
+  .bl-sub{
+    margin-top:3px;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:5.5px;
+    letter-spacing:.15em;
+  }
+  .bl-page-meta{
+    padding-top:2px;
+    text-align:right;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:5.5px;
+    line-height:1.65;
+    letter-spacing:.08em;
+  }
+  .bl-page-meta b{display:block;color:var(--ink);font-weight:500}
+  .bl-rule{
+    flex:0 0 8px;
+    height:8px;
+    margin:0 18px;
+    border-top:1px solid var(--ink);
+    border-bottom:1px solid var(--ink);
+    position:relative;
+    z-index:2;
+  }
+
+  /* pages */
+
+  .bl-pages{
+    position:relative;
+    flex:1;
+    min-height:0;
+    z-index:2;
+  }
+  .bl-page{
+    position:absolute;
+    inset:0;
+    display:none;
+    overflow-y:auto;
+    overflow-x:hidden;
+    padding:10px 18px 12px;
+    scrollbar-width:none;
+  }
+  .bl-page::-webkit-scrollbar{display:none}
+  .bl-page.is-active{
+    display:block;
+    animation:page-in .28s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes page-in{
+    from{opacity:0;transform:translateY(6px)}
+    to{opacity:1;transform:none}
+  }
+  .bl-page-head{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:12px;
+    margin-top:6px;
+  }
+  .bl-page-title{
+    margin:0;
+    font-family:var(--serif);
+    font-size:34px;
+    line-height:.98;
+    letter-spacing:-.05em;
+    font-weight:400;
+    color:var(--ink);
+  }
+  .bl-page-sub{
+    margin:4px 0 0;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:7px;
+    letter-spacing:.1em;
+  }
+  .bl-page-mark{
+    flex:none;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:5.5px;
+    letter-spacing:.1em;
+    text-align:right;
+  }
+  .bl-page-mark b{display:block;color:var(--orange);font-weight:500}
+
+  .bl-micro{
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:5.5px;
+    letter-spacing:.14em;
+  }
+  .bl-note{
+    margin:9px 0 0;
+    color:var(--muted);
+    font-size:8px;
+    line-height:1.55;
+  }
+  .bl-footnote{
+    margin:12px 0 0;
+    color:var(--faint);
+    font-family:var(--mono);
+    font-size:5.5px;
+    letter-spacing:.04em;
+    line-height:1.55;
+  }
+  .bl-section-label{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin:15px 0 6px;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:6px;
+    letter-spacing:.16em;
+  }
+  .bl-section-label::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:rgba(30,43,36,.16);
+  }
+
+  /* =========================================================
+     home
+     ========================================================= */
+
+  .bl-home{display:flex;flex-direction:column;min-height:100%}
+  .bl-hero{margin-top:9px}
+  .bl-kicker{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:7px;
+    letter-spacing:.14em;
+  }
+  .bl-kicker i{
+    width:5px;height:5px;border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 0 2px rgba(46,106,78,.13);
+  }
+  .bl-hero-title{
+    margin:8px 0 0;
+    font-family:var(--serif);
+    font-size:42px;
+    line-height:.94;
+    letter-spacing:-.055em;
+    font-weight:400;
+    color:var(--ink);
+  }
+  .bl-hero-title.is-long{font-size:35px;line-height:1.02}
+  .bl-hero-lead{
+    margin:7px 0 0;
+    max-width:260px;
+    color:var(--ink-soft);
+    font-size:9.5px;
+    line-height:1.5;
+  }
+
+  .bl-visa{
+    margin-top:14px;
+    padding:11px 12px 9px;
+    border:1px solid var(--ink);
+    background:var(--paper-light);
+    box-shadow:3px 3px 0 rgba(30,43,36,.13);
+    transition:opacity .2s ease,border-color .2s ease;
+  }
+  .bl-visa.is-muted{opacity:.72}
+  .bl-visa.is-muted .bl-barcode{opacity:.25}
+  .bl-visa-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .bl-visa-label{
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:6.5px;
+    letter-spacing:.15em;
+  }
+  .bl-visa-valid{
+    margin-top:4px;
+    color:var(--faint);
+    font-family:var(--mono);
+    font-size:6px;
+    letter-spacing:.08em;
+  }
+  .bl-ticket-stamp{
+    width:46px;height:46px;
+    flex:none;
+    display:grid;
+    place-content:center;
+    gap:1px;
+    border:1.5px double var(--orange);
+    border-radius:50%;
+    color:var(--orange);
+    text-align:center;
+    transform:rotate(8deg) translateY(-3px);
+    font-family:var(--mono);
+    line-height:1.1;
+    transition:color .2s ease,border-color .2s ease,opacity .2s ease;
+  }
+  .bl-ticket-stamp b{font-size:5.2px;letter-spacing:.07em}
+  .bl-ticket-stamp span{font-size:4.2px;letter-spacing:.11em}
+  .bl-ticket-stamp.is-muted{
+    color:var(--faint);
+    border-color:var(--faint);
+    border-style:dashed;
+    opacity:.7;
+  }
+  .bl-route{
+    display:grid;
+    grid-template-columns:1fr 40px 1fr;
+    align-items:end;
+    gap:4px;
+    margin-top:2px;
+  }
+  .bl-route .side{min-width:0}
+  .bl-route .side.to{text-align:right}
+  .bl-route .k{
+    display:block;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:6px;
+    letter-spacing:.12em;
+  }
+  .bl-route .n{
+    display:block;
+    margin-top:2px;
+    font-family:var(--serif);
+    font-size:20px;
+    line-height:1.1;
+    letter-spacing:-.03em;
+  }
+  .bl-route .s{
+    display:block;
+    margin-top:2px;
+    color:var(--muted);
+    font-size:7px;
+  }
+  .bl-line{
+    position:relative;
+    height:1px;
+    margin-bottom:12px;
+    border-top:1px dashed var(--faint);
+  }
+  .bl-line::before,.bl-line::after{
+    content:"";
+    position:absolute;
+    top:-2.5px;
+    width:5px;height:5px;
+    border-radius:50%;
+  }
+  .bl-line::before{left:0;background:var(--orange)}
+  .bl-line::after{right:0;background:var(--green)}
+  .bl-visa.is-muted .bl-line::before{background:var(--faint)}
+  .bl-visa.is-muted .bl-line::after{background:var(--faint)}
+  .bl-barcode{
+    height:13px;
+    margin-top:11px;
+    opacity:.72;
+    background:repeating-linear-gradient(90deg,var(--ink) 0 1px,transparent 1px 3px,var(--ink) 3px 4px,transparent 4px 7px);
+    transition:opacity .2s ease;
+  }
+  .bl-visa-foot{
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    margin-top:4px;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:5.2px;
+    letter-spacing:.1em;
+  }
+
+  .bl-stats{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    margin-top:11px;
+    border-top:1px solid var(--ink);
+    border-bottom:1px solid var(--ink);
+  }
+  .bl-stats div{padding:7px 8px 6px;border-left:1px solid rgba(30,43,36,.22)}
+  .bl-stats div:first-child{border-left:0;padding-left:0}
+  .bl-stats span{
+    display:block;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:6.2px;
+    letter-spacing:.1em;
+  }
+  .bl-stats b{
+    display:block;
+    margin-top:2px;
+    font-family:var(--mono);
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:-.02em;
+    font-variant-numeric:tabular-nums;
+  }
+
+  .bl-action{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    width:100%;
+    height:41px;
+    margin-top:11px;
+    border:1.5px solid var(--orange);
+    border-radius:2px;
+    background:transparent;
+    color:var(--orange);
+    font-family:var(--mono);
+    font-size:8px;
+    font-weight:700;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition:background .18s ease,color .18s ease,border-color .18s ease,opacity .18s ease;
+  }
+  .bl-action:hover{background:var(--orange);color:var(--paper-light)}
+  .bl-action.is-solid{background:var(--orange);color:var(--paper-light)}
+  .bl-action.is-solid:hover{filter:brightness(.96)}
+  .bl-action:disabled{opacity:.48;cursor:default}
+  .bl-action:disabled:hover{background:transparent;color:var(--orange)}
+  .bl-action.is-solid:disabled:hover{background:var(--orange);color:var(--paper-light)}
+  .bl-action .ico{width:12px;height:12px;stroke-width:2}
+  .bl-action-note{
+    margin:5px 0 0;
+    color:var(--faint);
+    text-align:center;
+    font-family:var(--mono);
+    font-size:5.8px;
+    letter-spacing:.1em;
+  }
+
+  .bl-watermark{
+    flex:1;
+    min-height:74px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    padding:8px 0 4px;
+    color:rgba(30,43,36,.27);
+    font-family:var(--mono);
+  }
+  .bl-watermark-seal{
+    width:68px;height:68px;
+    display:grid;
+    place-content:center;
+    gap:2px;
+    border:1px solid rgba(30,43,36,.16);
+    border-radius:50%;
+    color:rgba(30,43,36,.28);
+    text-align:center;
+    transform:rotate(-7deg);
+  }
+  .bl-watermark-seal b{font-size:6.5px;letter-spacing:.16em;font-weight:400}
+  .bl-watermark-seal span{font-size:4.2px;letter-spacing:.18em}
+  .bl-watermark p{margin:0;font-size:4.3px;letter-spacing:.2em}
+  .bl-journal{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    margin-top:0;
+    padding-top:11px;
+    border-top:1px solid rgba(30,43,36,.22);
+  }
+  .bl-journal-copy{flex:1;min-width:0}
+  .bl-journal-copy span{
+    display:block;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:5.8px;
+    letter-spacing:.14em;
+  }
+  .bl-journal-copy p{
+    margin:5px 0 0;
+    color:var(--ink);
+    font-family:var(--serif);
+    font-size:9.2px;
+    line-height:1.45;
+    letter-spacing:-.01em;
+  }
+  .bl-journal-copy small{
+    display:block;
+    margin-top:4px;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:5.8px;
+    letter-spacing:.06em;
+  }
+  .bl-seal{
+    width:91px;height:91px;
+    flex:none;
+    display:grid;
+    place-content:center;
+    gap:2px;
+    border:1.5px double var(--orange);
+    border-radius:50%;
+    color:var(--orange);
+    text-align:center;
+    transform:rotate(-7deg);
+    margin-right:1px;
+    transition:color .25s ease,border-color .25s ease;
+  }
+  .bl-seal.is-green{color:var(--green);border-color:var(--green)}
+  .bl-seal.is-blue{color:var(--blue);border-color:var(--blue)}
+  .bl-seal span{font-family:var(--mono);font-size:4.8px;letter-spacing:.13em}
+  .bl-seal b{font-family:var(--mono);font-size:6.2px;letter-spacing:.05em}
+  .bl-seal small{font-family:var(--mono);font-size:4.5px;letter-spacing:.08em}
+
+  /* =========================================================
+     route
+     ========================================================= */
+
+  .bl-route-card{
+    margin-top:12px;
+    padding:11px 12px 10px;
+    border:1px solid var(--ink);
+    background:var(--paper-light);
+    box-shadow:3px 3px 0 rgba(30,43,36,.10);
+  }
+  .bl-route-card.is-idle{opacity:.78}
+  .bl-route-top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .bl-route-top b{
+    display:block;
+    margin-top:3px;
+    color:var(--ink);
+    font-family:var(--serif);
+    font-size:14px;
+    line-height:1.15;
+    font-weight:400;
+    letter-spacing:-.02em;
+  }
+  .bl-route-top p{
+    margin:3px 0 0;
+    max-width:175px;
+    color:var(--muted);
+    font-size:6.5px;
+    line-height:1.4;
+  }
+  .bl-status-stamp{
+    flex:none;
+    padding:4px 7px;
+    border:1px solid var(--green);
+    border-radius:999px;
+    color:var(--green);
+    font-family:var(--mono);
+    font-size:5px;
+    font-weight:600;
+    letter-spacing:.12em;
+    white-space:nowrap;
+  }
+  .bl-status-stamp.is-idle{color:var(--faint);border-color:var(--faint);border-style:dashed}
+  .bl-status-stamp.is-pending{color:var(--orange);border-color:var(--orange)}
+  .bl-itinerary{
+    position:relative;
+    margin-top:12px;
+    padding-left:17px;
+  }
+  .bl-itinerary::before{
+    content:"";
+    position:absolute;
+    left:3.5px;top:12px;bottom:13px;
+    border-left:1px dashed rgba(200,80,44,.5);
+  }
+  .bl-stop{
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:9px;
+    min-height:36px;
+  }
+  .bl-stop-dot{
+    position:absolute;
+    left:-17px;
+    width:8px;height:8px;
+    border-radius:50%;
+    border:1.5px solid var(--muted);
+    background:var(--paper-light);
+  }
+  .bl-stop-dot.is-start{left:-15.5px;width:5px;height:5px;border:0;background:var(--ink)}
+  .bl-stop-dot.is-gateway{left:-17.5px;width:9px;height:9px;border-color:var(--orange);background:var(--orange);box-shadow:0 0 0 3px rgba(200,80,44,.1)}
+  .bl-stop-dot.is-end{border-color:var(--green);background:var(--paper-light)}
+  .bl-route-card.is-idle .bl-stop-dot.is-gateway{background:var(--faint);border-color:var(--faint);box-shadow:none}
+  .bl-stop-copy{flex:1;min-width:0}
+  .bl-stop-copy b{
+    display:block;
+    color:var(--ink);
+    font-size:9px;
+    line-height:1.2;
+    font-weight:600;
+  }
+  .bl-stop-copy span{
+    display:block;
+    margin-top:1px;
+    color:var(--muted);
+    font-size:6.8px;
+    line-height:1.3;
+  }
+  .bl-stop-meta{
+    flex:none;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:6.2px;
+    letter-spacing:.03em;
+    text-align:right;
+    font-variant-numeric:tabular-nums;
+  }
+  .bl-stop-meta.is-green{color:var(--green)}
+  .bl-stop-meta.is-idle{color:var(--faint)}
+
+  .bl-detail-head{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin:13px 0 4px;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:5.8px;
+    letter-spacing:.16em;
+  }
+  .bl-detail-head::after{content:"";flex:1;height:1px;background:rgba(30,43,36,.16)}
+  .bl-detail-table{border-top:1px solid rgba(30,43,36,.18)}
+  .bl-detail-row{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:10px;
+    padding:7px 0 6px;
+    border-bottom:1px dotted rgba(30,43,36,.22);
+  }
+  .bl-detail-row span{
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:6.4px;
+    letter-spacing:.04em;
+  }
+  .bl-detail-row b{
+    color:var(--ink);
+    font-family:var(--mono);
+    font-size:7.2px;
+    font-weight:500;
+    text-align:right;
+    font-variant-numeric:tabular-nums;
+  }
+
+  .bl-test-result{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin-top:8px;
+    padding:6px 8px;
+    border:1px solid rgba(46,106,78,.3);
+    background:rgba(46,106,78,.05);
+    color:var(--green);
+    font-family:var(--mono);
+    font-size:5.8px;
+    letter-spacing:.03em;
+    line-height:1.4;
+  }
+  .bl-test-result.is-running{border-color:rgba(200,80,44,.3);background:rgba(200,80,44,.05);color:var(--orange)}
+  .bl-test-result.is-error{border-color:rgba(200,80,44,.3);background:rgba(200,80,44,.05);color:var(--orange)}
+  .bl-test-result b{font-weight:600}
+
+  /* =========================================================
+     sesi
+     ========================================================= */
+
+  .bl-session-card{
+    margin-top:11px;
+    padding:10px 11px 9px;
+    border:1px solid var(--ink);
+    background:var(--paper-light);
+    box-shadow:3px 3px 0 rgba(30,43,36,.1);
+  }
+  .bl-session-card.is-idle{border-style:dashed;box-shadow:none;background:transparent}
+  .bl-session-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .bl-session-top span{
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:5.5px;
+    letter-spacing:.14em;
+  }
+  .bl-session-top b{
+    color:var(--green);
+    font-family:var(--mono);
+    font-size:5.5px;
+    font-weight:600;
+    letter-spacing:.12em;
+  }
+  .bl-session-top b.is-idle{color:var(--faint)}
+  .bl-session-top b.is-pending{color:var(--orange)}
+  .bl-session-duration{
+    display:block;
+    margin-top:6px;
+    font-family:var(--mono);
+    font-size:28px;
+    line-height:1;
+    letter-spacing:-.05em;
+    font-weight:500;
+    font-variant-numeric:tabular-nums;
+    color:var(--ink);
+  }
+  .bl-session-card.is-idle .bl-session-duration{color:var(--faint)}
+  .bl-session-stats{
+    display:flex;
+    gap:13px;
+    margin-top:8px;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:7px;
+    letter-spacing:.04em;
+    font-variant-numeric:tabular-nums;
+  }
+  .bl-session-stats b{color:var(--ink);font-weight:500}
+  .bl-session-note{
+    margin:6px 0 0;
+    color:var(--muted);
+    font-size:6.5px;
+    line-height:1.4;
+  }
+
+  #page-sesi.is-active{display:flex;flex-direction:column}
+  .bl-speed-seal{
+    width:138px;height:138px;
+    flex:none;
+    align-self:center;
+    margin:auto auto 4px;
+    display:grid;
+    place-content:center;
+    gap:2px;
+    border:1.5px double var(--orange);
+    border-radius:50%;
+    color:var(--orange);
+    text-align:center;
+    transform:rotate(-6deg);
+  }
+  .bl-speed-seal span{
+    font-family:var(--mono);
+    font-size:4.8px;
+    letter-spacing:.16em;
+  }
+  .bl-speed-seal b{
+    font-family:var(--mono);
+    font-size:15px;
+    font-weight:600;
+    letter-spacing:-.03em;
+    font-variant-numeric:tabular-nums;
+  }
+  .bl-speed-seal small{
+    font-family:var(--mono);
+    font-size:4.5px;
+    letter-spacing:.1em;
+  }
+  .bl-checks{margin-top:1px}
+  .bl-check{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    padding:6px 0;
+    border-bottom:1px dotted rgba(30,43,36,.18);
+  }
+  .bl-check:last-child{border-bottom:0}
+  .bl-check i{
+    width:5px;height:5px;
+    flex:none;
+    border-radius:50%;
+    background:var(--green);
+  }
+  .bl-check i.is-off{background:var(--faint)}
+  .bl-check b{
+    flex:1;
+    color:var(--ink);
+    font-size:8px;
+    font-weight:500;
+  }
+  .bl-check span{
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:6.3px;
+    letter-spacing:.03em;
+  }
+  .bl-check span.is-on{color:var(--green)}
+
+  /* =========================================================
+     documents
+     ========================================================= */
+
+  .bl-doc-card{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top:10px;
+    padding:10px 11px;
+    border:1px solid rgba(30,43,36,.28);
+    background:rgba(250,244,232,.55);
+  }
+  .bl-doc-mark{
+    display:grid;
+    place-content:center;
+    width:31px;height:31px;
+    flex:none;
+    border:1px solid var(--green);
+    border-radius:50%;
+    color:var(--green);
+    font-family:var(--mono);
+    font-size:5.5px;
+    letter-spacing:.06em;
+    transform:rotate(-7deg);
+  }
+  .bl-doc-copy{flex:1;min-width:0}
+  .bl-doc-copy b{
+    display:block;
+    color:var(--ink);
+    font-size:9.5px;
+    font-weight:600;
+    line-height:1.2;
+  }
+  .bl-doc-copy p{
+    margin:2px 0 0;
+    color:var(--muted);
+    font-size:7px;
+    line-height:1.4;
+  }
+  .bl-doc-status{
+    flex:none;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:5px;
+    letter-spacing:.08em;
+    text-align:right;
+    line-height:1.4;
+  }
+  .bl-doc-status b{display:block;color:var(--green);font-weight:600}
+
+  .bl-plus{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    margin-top:7px;
+    padding:9px 10px;
+    border:1px solid rgba(200,80,44,.26);
+    background:rgba(200,80,44,.045);
+  }
+  .bl-plus.is-active{border-color:rgba(46,106,78,.4);background:rgba(46,106,78,.055)}
+  .bl-plus-mark{
+    display:grid;
+    place-items:center;
+    width:24px;height:24px;
+    flex:none;
+    border:1px solid rgba(200,80,44,.4);
+    border-radius:50%;
+    color:var(--orange);
+    font-family:var(--serif);
+    font-size:13px;
+  }
+  .bl-plus.is-active .bl-plus-mark{color:var(--green);border-color:rgba(46,106,78,.45)}
+  .bl-plus-copy{flex:1;min-width:0}
+  .bl-plus-copy b{display:block;color:var(--ink);font-size:9px;font-weight:600;line-height:1.2}
+  .bl-plus-copy p{margin:2px 0 0;color:var(--muted);font-size:6.8px;line-height:1.4}
+  .bl-mini-btn{
+    flex:none;
+    height:25px;
+    padding:0 9px;
+    border:1px solid rgba(200,80,44,.4);
+    border-radius:999px;
+    background:transparent;
+    color:var(--orange);
+    font-family:var(--mono);
+    font-size:5.5px;
+    font-weight:600;
+    letter-spacing:.06em;
+    cursor:pointer;
+    transition:background .18s ease,color .18s ease;
+  }
+  .bl-mini-btn:hover{background:rgba(200,80,44,.08)}
+  .bl-plus.is-active .bl-mini-btn{color:var(--green);border-color:rgba(46,106,78,.4)}
+
+  .bl-protocols{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+  }
+  .bl-protocol{
+    position:relative;
+    min-height:71px;
+    padding:9px 9px 8px;
+    border:1px solid rgba(30,43,36,.25);
+    background:rgba(250,244,232,.5);
+    color:var(--ink);
+    text-align:left;
+    cursor:pointer;
+    transition:border-color .18s ease,background .18s ease,box-shadow .18s ease;
+  }
+  .bl-protocol:hover{border-color:rgba(30,43,36,.5)}
+  .bl-protocol.is-active{
+    border-color:var(--orange);
+    background:var(--paper-light);
+    box-shadow:2px 2px 0 rgba(200,80,44,.12);
+  }
+  .bl-proto-stamp{
+    display:grid;
+    place-items:center;
+    width:23px;height:23px;
+    border:1px solid var(--muted);
+    border-radius:50%;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:5.5px;
+    letter-spacing:.02em;
+  }
+  .bl-protocol.is-active .bl-proto-stamp{color:var(--orange);border-color:var(--orange)}
+  .bl-protocol b{
+    display:block;
+    margin-top:7px;
+    font-size:9px;
+    font-weight:600;
+    line-height:1.2;
+  }
+  .bl-protocol small{
+    display:block;
+    margin-top:2px;
+    color:var(--muted);
+    font-size:6.5px;
+    line-height:1.3;
+  }
+  .bl-proto-pick{
+    position:absolute;
+    top:7px;right:7px;
+    display:none;
+    color:var(--orange);
+    font-family:var(--mono);
+    font-style:normal;
+    font-size:4.5px;
+    letter-spacing:.1em;
+  }
+  .bl-protocol.is-active .bl-proto-pick{display:block}
+
+  .bl-prefs{border-top:1px solid rgba(30,43,36,.2)}
+  .bl-pref-row{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    width:100%;
+    min-height:41px;
+    padding:6px 0;
+    border:0;
+    border-bottom:1px dotted rgba(30,43,36,.22);
+    background:transparent;
+    color:var(--ink);
+    text-align:left;
+  }
+  button.bl-pref-row{cursor:pointer}
+  .bl-pref-copy{flex:1;min-width:0}
+  .bl-pref-copy b{
+    display:block;
+    color:var(--ink);
+    font-size:8.5px;
+    font-weight:600;
+    line-height:1.25;
+  }
+  .bl-pref-copy span{
+    display:block;
+    margin-top:1px;
+    color:var(--muted);
+    font-size:6.5px;
+    line-height:1.3;
+  }
+  .bl-pref-value{
+    flex:none;
+    display:flex;
+    align-items:center;
+    gap:4px;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:5.3px;
+    letter-spacing:.02em;
+  }
+  .bl-chev{
+    color:var(--faint);
+    font-family:var(--mono);
+    font-size:10px;
+    line-height:1;
+  }
+  .bl-stamp-check{
+    position:relative;
+    width:24px;height:24px;
+    flex:none;
+    padding:0;
+    border:1px dashed var(--line-strong);
+    border-radius:2px;
+    background:transparent;
+    cursor:pointer;
+    transform:rotate(-3deg);
+    transition:background .18s ease,border-color .18s ease;
+  }
+  .bl-stamp-check::after{
+    content:"✓";
+    position:absolute;
+    inset:0;
+    display:grid;
+    place-items:center;
+    color:var(--orange);
+    font-family:var(--serif);
+    font-size:13px;
+    line-height:1;
+    opacity:0;
+    transition:opacity .18s ease;
+  }
+  .bl-stamp-check[aria-checked="true"]{
+    border:1px solid var(--orange);
+    background:rgba(200,80,44,.08);
+  }
+  .bl-stamp-check[aria-checked="true"]::after{opacity:1}
+
+  .bl-update{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    width:100%;
+    margin-top:1px;
+    padding:9px 10px;
+    border:1px solid rgba(200,80,44,.3);
+    background:rgba(200,80,44,.05);
+    color:var(--ink);
+    text-align:left;
+    cursor:pointer;
+    transition:background .18s ease;
+  }
+  .bl-update:hover{background:rgba(200,80,44,.08)}
+  .bl-update-icon{
+    display:grid;
+    place-items:center;
+    width:26px;height:26px;
+    flex:none;
+    border:1px solid rgba(200,80,44,.4);
+    border-radius:50%;
+    color:var(--orange);
+    font-family:var(--mono);
+    font-size:9px;
+  }
+  .bl-update-copy{flex:1;min-width:0}
+  .bl-update-copy b{display:block;font-size:8.5px;font-weight:600;line-height:1.2}
+  .bl-update-copy span{display:block;margin-top:2px;color:var(--muted);font-size:6.8px;line-height:1.3}
+  .bl-update-stamp{
+    flex:none;
+    padding:3px 6px;
+    border:1px solid rgba(200,80,44,.35);
+    border-radius:999px;
+    color:var(--orange);
+    font-family:var(--mono);
+    font-size:5.5px;
+    font-weight:600;
+    letter-spacing:.04em;
+  }
+  .bl-appfoot{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    margin-top:12px;
+    padding-top:7px;
+    border-top:1px solid rgba(30,43,36,.16);
+    color:var(--faint);
+    font-family:var(--mono);
+    font-size:5.5px;
+    letter-spacing:.04em;
+  }
+
+  /* =========================================================
+     bottom booklet nav
+     ========================================================= */
+
+  .bl-booknav{
+    flex:0 0 50px;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    border-top:1px solid var(--ink);
+    background:var(--paper);
+    position:relative;
+    z-index:10;
+  }
+  .bl-booknav button{
+    appearance:none;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    justify-content:center;
+    gap:1px;
+    padding:6px 0 4px 13px;
+    border:0;
+    border-top:2px solid transparent;
+    background:transparent;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:7.2px;
+    letter-spacing:.06em;
+    text-align:left;
+    cursor:pointer;
+    transition:color .18s ease,border-color .18s ease;
+  }
+  .bl-booknav button span{
+    color:var(--faint);
+    font-size:5.5px;
+    line-height:1;
+    transition:color .18s ease;
+  }
+  .bl-booknav button.is-active{
+    border-top-color:var(--orange);
+    color:var(--ink);
+    font-weight:700;
+  }
+  .bl-booknav button.is-active span{color:var(--orange)}
+  .bl-booknav button:focus-visible{outline:1px dashed var(--orange);outline-offset:-3px}
+
+  /* =========================================================
+     toast / sheets
+     ========================================================= */
+
+  .bl-toast{
+    position:absolute;
+    left:18px;right:18px;
+    bottom:58px;
+    z-index:45;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    padding:7px 9px;
+    border:1px solid var(--ink);
+    background:var(--paper-light);
+    box-shadow:2px 2px 0 rgba(30,43,36,.15);
+    color:var(--ink);
+    font-family:var(--mono);
+    font-size:5.7px;
+    letter-spacing:.1em;
+    line-height:1.4;
+    opacity:0;
+    transform:translateY(5px);
+    pointer-events:none;
+    transition:opacity .2s ease,transform .2s ease;
+  }
+  .bl-toast::before{
+    content:"";
+    width:5px;height:5px;
+    flex:none;
+    border-radius:50%;
+    background:var(--orange);
+  }
+  .bl-toast.is-visible{opacity:1;transform:none}
+
+  .bl-sheet-layer{
+    position:absolute;
+    inset:0;
+    z-index:60;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+  }
+  .bl-backdrop{
+    position:absolute;
+    inset:0;
+    background:rgba(30,43,36,.38);
+    backdrop-filter:blur(1px);
+    opacity:0;
+    transition:opacity .2s ease;
+  }
+  .bl-sheet-layer.is-visible .bl-backdrop{opacity:1}
+  .bl-sheet-wrap{
+    position:relative;
+    z-index:1;
+    max-height:92%;
+    overflow-y:auto;
+    scrollbar-width:none;
+  }
+  .bl-sheet-wrap::-webkit-scrollbar{display:none}
+  .bl-sheet{
+    display:none;
+    padding:12px 18px 18px;
+    border-top:1px solid var(--ink);
+    border-radius:12px 12px 0 0;
+    background-color:var(--paper-light);
+    background-image:radial-gradient(rgba(30,43,36,.045) .5px, transparent .7px);
+    background-size:4px 4px;
+    box-shadow:0 -18px 40px rgba(0,0,0,.22);
+    color:var(--ink);
+  }
+  .bl-sheet.is-open{display:block;animation:sheet-in .24s cubic-bezier(.2,.8,.2,1)}
+  @keyframes sheet-in{from{transform:translateY(18px);opacity:0}to{transform:none;opacity:1}}
+  .bl-sheet-handle{
+    display:block;
+    width:34px;height:3px;
+    margin:0 auto 12px;
+    border-radius:999px;
+    background:rgba(30,43,36,.2);
+  }
+  .bl-sheet-eyebrow{
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:5.5px;
+    letter-spacing:.14em;
+  }
+  .bl-sheet h3{
+    margin:7px 0 0;
+    font-family:var(--serif);
+    font-size:24px;
+    line-height:1.05;
+    font-weight:400;
+    letter-spacing:-.04em;
+    color:var(--ink);
+  }
+  .bl-sheet p{
+    margin:7px 0 0;
+    color:var(--ink-soft);
+    font-size:8.5px;
+    line-height:1.55;
+  }
+  .bl-sheet-meta{
+    margin-top:10px;
+    padding:7px 8px;
+    border-top:1px solid rgba(30,43,36,.22);
+    border-bottom:1px solid rgba(30,43,36,.22);
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:5.8px;
+    line-height:1.5;
+    letter-spacing:.02em;
+  }
+  .bl-sheet-meta b{color:var(--ink);font-weight:500}
+  .bl-sheet-actions{
+    display:flex;
+    gap:8px;
+    margin-top:14px;
+  }
+  .bl-sheet-actions .bl-btn{flex:1}
+
+  .bl-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    height:36px;
+    padding:0 12px;
+    border:1px solid var(--ink);
+    border-radius:2px;
+    background:transparent;
+    color:var(--ink);
+    font-family:var(--mono);
+    font-size:6.5px;
+    font-weight:600;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition:background .18s ease,color .18s ease,border-color .18s ease,opacity .18s ease;
+  }
+  .bl-btn:hover{background:rgba(30,43,36,.06)}
+  .bl-btn.is-solid{background:var(--orange);border-color:var(--orange);color:var(--paper-light)}
+  .bl-btn.is-solid:hover{filter:brightness(.96)}
+  .bl-btn.is-quiet{border-color:transparent;color:var(--muted);text-decoration:underline;text-underline-offset:2px}
+  .bl-btn.is-quiet:hover{background:transparent;color:var(--ink)}
+  .bl-btn:disabled{opacity:.45;cursor:default}
+  .bl-btn:disabled:hover{background:transparent}
+
+  .bl-field{
+    display:block;
+    margin-top:11px;
+  }
+  .bl-field span{
+    display:block;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:5.5px;
+    letter-spacing:.1em;
+  }
+  .bl-field input{
+    width:100%;
+    height:34px;
+    margin-top:4px;
+    padding:0 9px;
+    border:1px solid var(--line-strong);
+    border-radius:2px;
+    background:rgba(255,255,255,.24);
+    color:var(--ink);
+    font-family:var(--mono);
+    font-size:8px;
+    letter-spacing:.08em;
+    outline:none;
+  }
+  .bl-field input:focus{border-color:var(--orange)}
+  .bl-error{
+    margin:5px 0 0;
+    color:var(--orange);
+    font-family:var(--mono);
+    font-size:5.5px;
+    letter-spacing:.04em;
+  }
+
+  .bl-split-list{border-top:1px solid rgba(30,43,36,.2)}
+  .bl-split-row{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    padding:8px 0;
+    border-bottom:1px dotted rgba(30,43,36,.22);
+  }
+  .bl-split-row .bl-app{
+    display:grid;
+    place-items:center;
+    width:22px;height:22px;
+    flex:none;
+    border:1px solid rgba(30,43,36,.22);
+    border-radius:5px;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:6px;
+  }
+  .bl-split-copy{flex:1;min-width:0}
+  .bl-split-copy b{display:block;font-size:8px;font-weight:600;line-height:1.2}
+  .bl-split-copy span{display:block;margin-top:1px;color:var(--muted);font-size:5.5px}
+  .bl-check-stamp{
+    position:relative;
+    width:18px;height:18px;
+    flex:none;
+    padding:0;
+    border:1px solid var(--line-strong);
+    border-radius:50%;
+    background:transparent;
+    cursor:pointer;
+  }
+  .bl-check-stamp[aria-pressed="true"]{border-color:var(--orange);background:var(--orange)}
+  .bl-check-stamp[aria-pressed="true"]::after{
+    content:"✓";
+    position:absolute;
+    inset:0;
+    display:grid;
+    place-items:center;
+    color:var(--paper-light);
+    font-family:var(--sans);
+    font-size:11px;
+    line-height:1;
+  }
+  .bl-split-summary{
+    margin-top:8px;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:5.5px;
+    letter-spacing:.04em;
+  }
+
+  .bl-progress{
+    position:relative;
+    height:18px;
+    margin-top:12px;
+    border:1px solid rgba(30,43,36,.22);
+    background:rgba(30,43,36,.04);
+    overflow:hidden;
+  }
+  .bl-progress-fill{
+    width:0%;
+    height:100%;
+    background:repeating-linear-gradient(135deg,rgba(200,80,44,.32) 0 4px,rgba(200,80,44,.16) 4px 8px);
+    transition:width 1.15s linear;
+  }
+  .bl-progress-label{
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    margin-top:4px;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:5.2px;
+    letter-spacing:.04em;
+  }
+  .bl-release{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    margin-top:10px;
+    padding-top:9px;
+    border-top:1px solid rgba(30,43,36,.18);
+  }
+  .bl-release-stamp{
+    display:grid;
+    place-content:center;
+    width:41px;height:41px;
+    flex:none;
+    border:1px solid var(--orange);
+    border-radius:50%;
+    color:var(--orange);
+    font-family:var(--mono);
+    font-size:6px;
+    letter-spacing:.02em;
+    transform:rotate(-7deg);
+  }
+  .bl-release b{display:block;font-size:8px;font-weight:600}
+  .bl-release span{display:block;margin-top:2px;color:var(--muted);font-size:5.8px;line-height:1.4}
+
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+  }
+
+  @media (max-width:900px){
+    .gallery{padding:32px 20px 40px}
+    .g-stage{max-width:760px;gap:26px}
+    .g-notes{width:300px;flex-basis:300px}
+  }
+  @media (max-width:760px){
+    .g-head{max-width:100%}
+    .g-stage{flex-direction:column;align-items:center;gap:30px}
+    .g-notes{width:100%;max-width:360px;flex-basis:auto}
+    .phone{flex-basis:auto}
+    .g-head h1{font-size:clamp(42px,12vw,56px)}
+  }
+  @media (max-width:390px){
+    .gallery{padding:24px 14px 32px}
+  }
+</style>
+</head>
+<body>
+
+<main class="gallery">
+  <header class="g-head">
+    <div class="g-topline">
+      <span class="g-brand">Lintas</span>
+      <span class="g-tag"><i></i>Prototipe interaktif</span>
+    </div>
+    <h1>Buku Lintas</h1>
+    <p class="g-intro">Koneksi sebagai perjalanan. <b>Cap, izin melintas, dan catatan</b> menggantikan dashboard. Semua interaksi di bawah ini bekerja: tutup sesi, berangkat lagi, uji koneksi, ganti protokol, kelola izin, dan buka pembaruan.</p>
+  </header>
+
+  <div class="g-stage">
+
+    <div class="phone" id="phone">
+      <div class="bl-status">
+        <span>9:41</span>
+        <span class="right"><i></i>VPN · 5G <span class="bl-battery"><i></i></span></span>
+      </div>
+
+      <div class="bl-bookhead">
+        <div>
+          <span class="bl-wordmark">Lintas</span>
+          <span class="bl-sub">PASPOR KONEKSI</span>
+        </div>
+        <div class="bl-page-meta">
+          <b id="pageNow">HAL. 01 / 04</b>
+          <span>24 NOV 2026</span>
+        </div>
+      </div>
+      <div class="bl-rule"></div>
+
+      <div class="bl-pages">
+
+        <!-- HOME -->
+        <section class="bl-page is-active" id="page-home" data-page="home" role="tabpanel" aria-labelledby="tab-home">
+          <div class="bl-home">
+            <div class="bl-hero">
+              <div class="bl-kicker"><i id="homeDot"></i><span id="homeKicker">SESI WARP AKTIF</span></div>
+              <h1 class="bl-hero-title" id="homeTitle">Terlindungi</h1>
+              <p class="bl-hero-lead" id="homeLead">Trafik Anda menyeberang lewat Cloudflare.</p>
+            </div>
+
+            <div class="bl-visa" id="homeVisa">
+              <div class="bl-visa-head">
+                <div>
+                  <div class="bl-visa-label" id="visaLabel">IZIN MELINTAS</div>
+                  <div class="bl-visa-valid" id="visaSub">BERLAKU · 24 NOV 2026</div>
+                </div>
+                <div class="bl-ticket-stamp" id="ticketStamp">
+                  <b id="stampTop">WARP</b>
+                  <span id="stampMid">MASQUE</span>
+                  <span id="stampBot">SIN</span>
+                </div>
+              </div>
+
+              <div class="bl-route">
+                <div class="side">
+                  <span class="k">DARI</span>
+                  <span class="n">Anda</span>
+                  <span class="s">Perangkat ini</span>
+                </div>
+                <div class="bl-line"></div>
+                <div class="side to">
+                  <span class="k">KE</span>
+                  <span class="n">Cloudflare</span>
+                  <span class="s">Rute otomatis</span>
+                </div>
+              </div>
+
+              <div class="bl-barcode" id="barcode"></div>
+              <div class="bl-visa-foot">
+                <span>LINTAS · 0042</span>
+                <span id="visaFootProtocol">WARP / MASQUE</span>
+              </div>
+            </div>
+
+            <div class="bl-stats">
+              <div><span>DURASI</span><b data-stat="duration">00:17</b></div>
+              <div><span>UNDUH</span><b data-stat="speed">1.8 MB/s</b></div>
+              <div><span>DATA</span><b data-stat="data">31.2 MB</b></div>
+            </div>
+
+            <button class="bl-action" id="homeAction" type="button">
+              <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4"/></svg>
+              <span id="homeActionLabel">Tutup sesi</span>
+            </button>
+            <p class="bl-action-note" id="homeNote">TEKAN UNTUK MENGAKHIRI PERJALANAN</p>
+
+            <div class="bl-watermark" aria-hidden="true">
+              <div class="bl-watermark-seal"><b>LINTAS</b><span>0042 · SIN</span></div>
+              <p>IZIN INI TIDAK DAPAT DIPINDAHTANGANKAN</p>
+            </div>
+
+            <div class="bl-journal">
+              <div class="bl-journal-copy">
+                <span>CATATAN PERJALANAN</span>
+                <p id="journalText">Berangkat 09:41 dari Indonesia.<br>Melintas Cloudflare SIN.</p>
+                <small id="journalMeta">17 DETIK · 31.2 MB · 24 NOV</small>
+              </div>
+              <div class="bl-seal" id="homeSeal">
+                <span id="sealTop">TERLINDUNGI</span>
+                <b id="sealMid">CLOUDFLARE</b>
+                <small id="sealDate">24 NOV 2026</small>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ROUTE -->
+        <section class="bl-page" id="page-route" data-page="route" role="tabpanel" aria-labelledby="tab-route" aria-hidden="true">
+          <div class="bl-page-head">
+            <div>
+              <h2 class="bl-page-title">Rute</h2>
+              <p class="bl-page-sub">JALUR WARP SAAT INI</p>
+            </div>
+            <div class="bl-page-mark">HAL. <b>02</b><br>RUTE</div>
+          </div>
+
+          <div class="bl-route-card" id="routeCard">
+            <div class="bl-route-top">
+              <div>
+                <span class="bl-micro">RUTE OTOMATIS</span>
+                <b>Cloudflare memilih gerbang terdekat.</b>
+                <p>Berdasarkan lokasi dan kondisi jaringan Anda.</p>
+              </div>
+              <span class="bl-status-stamp" id="routeStatus">AKTIF</span>
+            </div>
+
+            <div class="bl-itinerary">
+              <div class="bl-stop">
+                <span class="bl-stop-dot is-start"></span>
+                <span class="bl-stop-copy"><b>Perangkat ini</b><span>Anda</span></span>
+                <span class="bl-stop-meta">WARP</span>
+              </div>
+              <div class="bl-stop">
+                <span class="bl-stop-dot is-gateway"></span>
+                <span class="bl-stop-copy"><b>Cloudflare</b><span>Gerbang terdekat</span></span>
+                <span class="bl-stop-meta" id="routeProtocol">MASQUE</span>
+              </div>
+              <div class="bl-stop">
+                <span class="bl-stop-dot is-end"></span>
+                <span class="bl-stop-copy"><b>Internet</b><span>Keluar lewat WARP</span></span>
+                <span class="bl-stop-meta" id="routeNetStatus">Aman</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bl-detail-head">DETAIL KONEKSI</div>
+          <div class="bl-detail-table">
+            <div class="bl-detail-row"><span>Transport</span><b id="detailTransport">MASQUE</b></div>
+            <div class="bl-detail-row"><span>Endpoint</span><b id="detailEndpoint">162.159.198.2:443</b></div>
+            <div class="bl-detail-row"><span>Alamat WARP</span><b id="detailAddress">172.16.0.2</b></div>
+            <div class="bl-detail-row"><span>DNS</span><b id="detailDns">1.1.1.1</b></div>
+          </div>
+
+          <p class="bl-note">Pemilihan gerbang manual belum tersedia. Rute mengikuti jaringan Cloudflare yang aktif.</p>
+
+          <button class="bl-action" id="testBtn" type="button">
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h3l2-5 3 10 3-10 2 5h5"/></svg>
+            <span id="testLabel">Uji koneksi</span>
+          </button>
+          <div class="bl-test-result" id="testResult" hidden></div>
+        </section>
+
+        <!-- SESI -->
+        <section class="bl-page" id="page-sesi" data-page="sesi" role="tabpanel" aria-labelledby="tab-sesi" aria-hidden="true">
+          <div class="bl-page-head">
+            <div>
+              <h2 class="bl-page-title">Sesi</h2>
+              <p class="bl-page-sub">PEMERIKSAAN KONEKSI</p>
+            </div>
+            <div class="bl-page-mark">HAL. <b>03</b><br>SESI</div>
+          </div>
+
+          <div class="bl-session-card" id="logCurrent">
+            <div class="bl-session-top">
+              <span id="logCurrentLabel">SESI BERJALAN</span>
+              <b id="logCurrentStatus">AKTIF</b>
+            </div>
+            <b class="bl-session-duration" data-stat="duration">00:17</b>
+            <div class="bl-session-stats">
+              <span><b data-stat="speed">1.8 MB/s</b> unduh</span>
+              <span><b data-stat="data">31.2 MB</b></span>
+              <span><b id="logProtocol">MASQUE</b></span>
+            </div>
+            <p class="bl-session-note" id="logNote">Berangkat 09:41 · Indonesia → Cloudflare SIN.</p>
+          </div>
+
+          <div class="bl-section-label">PEMERIKSAAN</div>
+          <div class="bl-checks">
+            <div class="bl-check"><i id="checkTun"></i><b>TUN interface</b><span id="checkTunValue">Aktif</span></div>
+            <div class="bl-check"><i></i><b>Core Rust</b><span>Siap</span></div>
+            <div class="bl-check"><i id="checkTransport"></i><b id="checkTransportLabel">MASQUE</b><span id="checkTransportValue">Aktif</span></div>
+          </div>
+
+          <p class="bl-footnote">Data dihitung sejak sesi dimulai. Data sesi tidak memuat kunci WARP atau lisensi.</p>
+
+          <div class="bl-speed-seal" id="speedSeal" aria-hidden="true">
+            <span>UNDUH SAAT INI</span>
+            <b data-stat="speed">1.8 MB/s</b>
+            <small><span data-stat="duration">00:17</span> · 24 NOV</small>
+          </div>
+        </section>
+
+        <!-- DOCUMENTS -->
+        <section class="bl-page" id="page-documents" data-page="documents" role="tabpanel" aria-labelledby="tab-documents" aria-hidden="true">
+          <div class="bl-page-head">
+            <div>
+              <h2 class="bl-page-title">Dokumen</h2>
+              <p class="bl-page-sub">VISA DAN IZIN</p>
+            </div>
+            <div class="bl-page-mark">HAL. <b>04</b><br>DOKUMEN</div>
+          </div>
+
+          <div class="bl-doc-card">
+            <span class="bl-doc-mark">SAH</span>
+            <div class="bl-doc-copy">
+              <b>WARP siap</b>
+              <p>Satu identitas untuk WireGuard dan MASQUE.</p>
+            </div>
+            <span class="bl-doc-status"><b>TERDAFTAR</b>24 NOV 2026</span>
+          </div>
+
+          <div class="bl-plus" id="plusCard">
+            <span class="bl-plus-mark">✦</span>
+            <div class="bl-plus-copy">
+              <b id="plusTitle">WARP+ belum aktif</b>
+              <p id="plusSub">Argo Smart Routing untuk rute lebih cepat.</p>
+            </div>
+            <button class="bl-mini-btn" id="plusBtn" type="button">Aktifkan</button>
+          </div>
+
+          <div class="bl-section-label">Protokol</div>
+          <div class="bl-protocols" role="group" aria-label="Protokol">
+            <button class="bl-protocol" type="button" data-protocol="WIREGUARD" aria-pressed="false">
+              <span class="bl-proto-stamp">WG</span>
+              <b>WireGuard</b>
+              <small>Koneksi klasik</small>
+              <i class="bl-proto-pick">DIPILIH</i>
+            </button>
+            <button class="bl-protocol is-active" type="button" data-protocol="MASQUE" aria-pressed="true">
+              <span class="bl-proto-stamp">MQ</span>
+              <b>MASQUE</b>
+              <small>Tunnel modern</small>
+              <i class="bl-proto-pick">DIPILIH</i>
+            </button>
+          </div>
+          <p class="bl-note" id="protocolNote">Sedang dipakai sesi ini.</p>
+
+          <div class="bl-section-label">Preferensi</div>
+          <div class="bl-prefs">
+            <button class="bl-pref-row" id="splitRow" type="button">
+              <span class="bl-pref-copy"><b>Split tunnel</b><span>Kelola aplikasi yang tidak melewati WARP.</span></span>
+              <span class="bl-pref-value"><span id="splitCount">1 aplikasi</span><span class="bl-chev">›</span></span>
+            </button>
+            <div class="bl-pref-row">
+              <span class="bl-pref-copy"><b>Log diagnostik</b><span id="diagText">Nonaktif. Aktifkan saat perlu.</span></span>
+              <button class="bl-stamp-check" id="diagSwitch" type="button" role="checkbox" aria-checked="false" aria-label="Log diagnostik"></button>
+            </div>
+          </div>
+
+          <div class="bl-section-label">Pembaruan</div>
+          <button class="bl-update" id="updateCard" type="button">
+            <span class="bl-update-icon">↓</span>
+            <span class="bl-update-copy"><b>Pembaruan</b><span id="updateSub">Versi 1.0.8 tersedia.</span></span>
+            <span class="bl-update-stamp" id="updateStamp">1.0.8</span>
+          </button>
+
+          <div class="bl-appfoot"><span>LINTAS 1.0.7</span><span>GPL-3.0 · RUST + KOTLIN</span></div>
+        </section>
+
+      </div>
+
+      <nav class="bl-booknav" role="tablist" aria-label="Halaman buku">
+        <button class="is-active" id="tab-home" data-page="home" role="tab" aria-selected="true" aria-controls="page-home"><span>01</span>Beranda</button>
+        <button id="tab-route" data-page="route" role="tab" aria-selected="false" aria-controls="page-route"><span>02</span>Rute</button>
+        <button id="tab-sesi" data-page="sesi" role="tab" aria-selected="false" aria-controls="page-sesi"><span>03</span>Sesi</button>
+        <button id="tab-documents" data-page="documents" role="tab" aria-selected="false" aria-controls="page-documents"><span>04</span>Dokumen</button>
+      </nav>
+
+      <div class="bl-toast" id="toast" role="status" aria-live="polite"></div>
+
+      <div class="bl-sheet-layer" id="sheetLayer" hidden>
+        <div class="bl-backdrop" data-close-sheet></div>
+        <div class="bl-sheet-wrap">
+
+          <section class="bl-sheet" id="sheetDisconnect" role="dialog" aria-modal="true" aria-labelledby="disconnectTitle">
+            <span class="bl-sheet-handle"></span>
+            <div class="bl-sheet-eyebrow">KONFIRMASI · CAP KELUAR</div>
+            <h3 id="disconnectTitle">Akhiri perjalanan?</h3>
+            <p>Sesi ini akan ditutup dan koneksi WARP dihentikan. Tiket perjalanan tidak disimpan.</p>
+            <div class="bl-sheet-meta" id="disconnectMeta">00:17 · 31.2 MB</div>
+            <div class="bl-sheet-actions">
+              <button class="bl-btn is-quiet" type="button" data-close-sheet>Batal</button>
+              <button class="bl-btn is-solid" id="confirmDisconnect" type="button">Tutup sesi</button>
+            </div>
+          </section>
+
+          <section class="bl-sheet" id="sheetSplit" role="dialog" aria-modal="true" aria-labelledby="splitTitle">
+            <span class="bl-sheet-handle"></span>
+            <div class="bl-sheet-eyebrow">PREFERENSI · SPLIT TUNNEL</div>
+            <h3 id="splitTitle">Aplikasi yang dikecualikan</h3>
+            <p>Aplikasi ini tidak melewati WARP. Pilih yang perlu memakai koneksi langsung.</p>
+            <div class="bl-split-list">
+              <div class="bl-split-row">
+                <span class="bl-app">C</span>
+                <div class="bl-split-copy"><b>Chrome</b><span>com.android.chrome</span></div>
+                <button class="bl-check-stamp" type="button" data-app="chrome" aria-pressed="true" aria-label="Chrome"></button>
+              </div>
+              <div class="bl-split-row">
+                <span class="bl-app">W</span>
+                <div class="bl-split-copy"><b>WhatsApp</b><span>com.whatsapp</span></div>
+                <button class="bl-check-stamp" type="button" data-app="whatsapp" aria-pressed="false" aria-label="WhatsApp"></button>
+              </div>
+              <div class="bl-split-row">
+                <span class="bl-app">S</span>
+                <div class="bl-split-copy"><b>Spotify</b><span>com.spotify.music</span></div>
+                <button class="bl-check-stamp" type="button" data-app="spotify" aria-pressed="false" aria-label="Spotify"></button>
+              </div>
+            </div>
+            <p class="bl-split-summary" id="splitSummary">1 aplikasi dikecualikan.</p>
+            <div class="bl-sheet-actions">
+              <button class="bl-btn is-solid" type="button" data-close-sheet>Selesai</button>
+            </div>
+          </section>
+
+          <section class="bl-sheet" id="sheetPlus" role="dialog" aria-modal="true" aria-labelledby="plusTitleSheet">
+            <span class="bl-sheet-handle"></span>
+            <div class="bl-sheet-eyebrow">VISA · WARP+</div>
+            <h3 id="plusTitleSheet">Aktifkan WARP+</h3>
+            <p id="plusSheetText">Masukkan license key WARP+ untuk mengaktifkan Argo Smart Routing. Visa ini mempercepat rute tanpa mengubah protokol.</p>
+            <div id="plusForm">
+              <label class="bl-field">
+                <span>LICENSE KEY</span>
+                <input id="plusKey" type="text" placeholder="XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false">
+              </label>
+              <p class="bl-error" id="plusError" hidden>License key belum lengkap.</p>
+            </div>
+            <div class="bl-sheet-actions">
+              <button class="bl-btn is-quiet" id="plusCancel" type="button" data-close-sheet>Nanti</button>
+              <button class="bl-btn is-solid" id="plusActivate" type="button">Aktifkan visa</button>
+            </div>
+          </section>
+
+          <section class="bl-sheet" id="sheetUpdate" role="dialog" aria-modal="true" aria-labelledby="updateTitleSheet">
+            <span class="bl-sheet-handle"></span>
+            <div class="bl-sheet-eyebrow">DOKUMEN · PEMBARUAN</div>
+            <h3 id="updateTitleSheet">Lintas 1.0.8</h3>
+            <div class="bl-release">
+              <span class="bl-release-stamp">1.0.8</span>
+              <div><b id="updateReleaseTitle">Pembaruan siap diunduh</b><span id="updateReleaseSub">Verifikasi APK, rate limit, dan label antarmuka.</span></div>
+            </div>
+            <p>Unduhan tetap berada di dalam aplikasi. Setelah terverifikasi, Android installer akan dibuka.</p>
+            <div class="bl-progress"><div class="bl-progress-fill" id="updateProgress"></div></div>
+            <div class="bl-progress-label"><span id="updateStatus">Tersedia · 56.4 MB</span><span id="updatePercent">0%</span></div>
+            <div class="bl-sheet-actions">
+              <button class="bl-btn is-quiet" type="button" data-close-sheet>Nanti</button>
+              <button class="bl-btn is-solid" id="updateAction" type="button">Unduh 1.0.8</button>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+
+    <aside class="g-notes">
+      <div class="g-note-label">COBA ALURNYA</div>
+      <ol class="g-steps">
+        <li><span class="g-step-no">1</span><span><b>Tutup sesi</b> di Beranda, lalu konfirmasi cap keluar.</span></li>
+        <li><span class="g-step-no">2</span><span><b>Berangkat</b> lagi. Izin divalidasi, lalu halaman kembali “Terlindungi”.</span></li>
+        <li><span class="g-step-no">3</span><span>Buka <b>Rute</b> dan tekan <b>Uji koneksi</b> untuk melihat hasil 24 ms.</span></li>
+        <li><span class="g-step-no">4</span><span>Di <b>Dokumen</b>: ganti protokol, kelola split tunnel, aktifkan WARP+, atau buka pembaruan.</span></li>
+      </ol>
+
+      <div class="g-live"><i id="liveDot"></i><span>Status <b id="liveStatus">Terlindungi</b></span></div>
+      <button class="g-reset" id="resetProto" type="button">Reset prototipe</button>
+      <p class="g-fine">Data, timer, dan kecepatan unduh disimulasikan. Kecepatan dan total data diperbarui tiap detik selama sesi aktif. Tidak ada koneksi WARP sungguhan dari halaman ini.</p>
+    </aside>
+
+  </div>
+</main>
+
+<script>
+  const $ = (selector, root = document) => root.querySelector(selector);
+  const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+
+  const state = {
+    page: 'home',
+    connected: true,
+    connecting: false,
+    protocol: 'MASQUE',
+    sessionProtocol: 'MASQUE',
+    duration: 17,
+    speedKbps: 1840,
+    bytesKb: 31.2 * 1024,
+    plus: false,
+    diagnostics: false,
+    splitApps: new Set(['chrome']),
+    testResult: null,
+    testing: false,
+    updateDownloaded: false,
+    updateDownloading: false,
+    timer: null,
+    toastTimer: null,
+    lastFocus: null,
+  };
+
+  const endpoints = {
+    MASQUE: { endpoint: '162.159.198.2:443', label: 'MASQUE' },
+    WIREGUARD: { endpoint: '162.159.192.1:2408', label: 'WireGuard' },
+  };
+
+  function pad(value) {
+    return String(value).padStart(2, '0');
+  }
+
+  function fmtDuration(seconds) {
+    const safe = Math.max(0, Math.floor(seconds));
+    return `${pad(Math.floor(safe / 60))}:${pad(safe % 60)}`;
+  }
+
+  function fmtBytes(kb) {
+    if (!Number.isFinite(kb) || kb <= 0) return '0 KB';
+    if (kb >= 1024) return `${(kb / 1024).toFixed(1)} MB`;
+    return `${kb.toFixed(1)} KB`;
+  }
+
+  function fmtSpeed(kbps) {
+    if (!Number.isFinite(kbps) || kbps <= 0) return '0 KB/s';
+    if (kbps >= 1024) return `${(kbps / 1024).toFixed(1)} MB/s`;
+    return `${Math.round(kbps)} KB/s`;
+  }
+
+  function currentProtocol() {
+    return state.connected ? state.sessionProtocol : state.protocol;
+  }
+
+  function currentEndpoint() {
+    return endpoints[currentProtocol()].endpoint;
+  }
+
+  function setText(selector, text) {
+    $$(selector).forEach((node) => { node.textContent = text; });
+  }
+
+  function renderStats() {
+    const connected = state.connected;
+    setText('[data-stat="duration"]', connected ? fmtDuration(state.duration) : '—');
+    setText('[data-stat="speed"]', connected ? fmtSpeed(state.speedKbps) : '—');
+    setText('[data-stat="data"]', connected ? fmtBytes(state.bytesKb) : '—');
+  }
+
+  function renderHome() {
+    const title = $('#homeTitle');
+    const action = $('#homeAction');
+    const actionLabel = $('#homeActionLabel');
+    const note = $('#homeNote');
+    const visa = $('#homeVisa');
+    const stamp = $('#ticketStamp');
+    const seal = $('#homeSeal');
+
+    title.classList.toggle('is-long', !state.connected);
+
+    if (state.connecting) {
+      $('#homeKicker').textContent = 'MEMVALIDASI IZIN';
+      title.textContent = 'Menyiapkan izin';
+      $('#homeLead').textContent = 'Menyiapkan tunnel dan memvalidasi tiket perjalanan.';
+      $('#visaLabel').textContent = 'IZIN DIPROSES';
+      $('#visaSub').textContent = 'MOHON TUNGGU';
+      $('#stampTop').textContent = 'VALIDASI';
+      $('#stampMid').textContent = 'IZIN';
+      $('#stampBot').textContent = '—';
+      stamp.classList.remove('is-muted');
+      visa.classList.add('is-muted');
+      $('#journalText').innerHTML = 'Sedang memvalidasi izin.<br>Mohon tunggu sebentar.';
+      $('#journalMeta').textContent = 'MEMPROSES IZIN';
+      seal.className = 'bl-seal is-blue';
+      $('#sealTop').textContent = 'MEMPROSES';
+      $('#sealMid').textContent = 'IZIN';
+      actionLabel.textContent = 'Menyiapkan izin…';
+      action.disabled = true;
+      action.classList.remove('is-solid');
+      note.textContent = 'MOHON TUNGGU, CAP SEDANG DIPROSES';
+    } else if (state.connected) {
+      $('#homeKicker').textContent = 'SESI WARP AKTIF';
+      title.textContent = 'Terlindungi';
+      $('#homeLead').textContent = 'Trafik Anda menyeberang lewat Cloudflare.';
+      $('#visaLabel').textContent = 'IZIN MELINTAS';
+      $('#visaSub').textContent = 'BERLAKU · 24 NOV 2026';
+      $('#stampTop').textContent = 'WARP';
+      $('#stampMid').textContent = state.sessionProtocol === 'WIREGUARD' ? 'WIREGUARD' : 'MASQUE';
+      $('#stampBot').textContent = 'SIN';
+      stamp.classList.remove('is-muted');
+      visa.classList.remove('is-muted');
+      $('#journalText').innerHTML = 'Berangkat 09:41 dari Indonesia.<br>Melintas Cloudflare SIN.';
+      $('#journalMeta').textContent = `${fmtDuration(state.duration)} · ${fmtBytes(state.bytesKb)} · 24 NOV`;
+      seal.className = 'bl-seal';
+      $('#sealTop').textContent = 'TERLINDUNGI';
+      $('#sealMid').textContent = 'CLOUDFLARE';
+      actionLabel.textContent = 'Tutup sesi';
+      action.disabled = false;
+      action.classList.remove('is-solid');
+      note.textContent = 'TEKAN UNTUK MENGAKHIRI PERJALANAN';
+    } else {
+      $('#homeKicker').textContent = 'BELUM ADA SESI';
+      title.textContent = 'Siap berangkat';
+      $('#homeLead').textContent = 'Tiket belum divalidasi. Berangkat untuk memulai perjalanan.';
+      $('#visaLabel').textContent = 'IZIN BELUM DITERBITKAN';
+      $('#visaSub').textContent = 'BELUM ADA CAP';
+      $('#stampTop').textContent = 'BELUM';
+      $('#stampMid').textContent = 'MELINTAS';
+      $('#stampBot').textContent = '—';
+      stamp.classList.add('is-muted');
+      visa.classList.add('is-muted');
+      $('#journalText').innerHTML = 'Tidak ada perjalanan aktif.<br>Tiket menunggu di meja.';
+      $('#journalMeta').textContent = 'TIDAK ADA SESI';
+      seal.className = 'bl-seal is-green';
+      $('#sealTop').textContent = 'SIAP';
+      $('#sealMid').textContent = 'BERANGKAT';
+      actionLabel.textContent = 'Berangkat';
+      action.disabled = false;
+      action.classList.add('is-solid');
+      note.textContent = 'TEKAN UNTUK MEMULAI PERJALANAN';
+    }
+
+    $('#sealDate').textContent = '24 NOV 2026';
+    $('#visaFootProtocol').textContent = `WARP / ${state.connected ? state.sessionProtocol : state.protocol}`;
+    renderStats();
+  }
+
+  function renderRoute() {
+    const active = state.connected && !state.connecting;
+    const protocol = active ? state.sessionProtocol : state.protocol;
+    const info = endpoints[protocol];
+    const status = $('#routeStatus');
+    const card = $('#routeCard');
+
+    status.textContent = state.connecting ? 'PROSES' : state.connected ? 'AKTIF' : 'SIAGA';
+    status.className = 'bl-status-stamp';
+    if (!state.connected) status.classList.add('is-idle');
+    if (state.connecting) status.classList.add('is-pending');
+    card.classList.toggle('is-idle', !state.connected);
+
+    $('#routeProtocol').textContent = info.label.toUpperCase();
+    $('#routeNetStatus').textContent = state.connecting ? 'Menyiapkan' : state.connected ? 'Aman' : 'Belum aktif';
+    $('#routeNetStatus').className = 'bl-stop-meta ' + (state.connected ? 'is-green' : 'is-idle');
+    $('#detailTransport').textContent = info.label;
+    $('#detailEndpoint').textContent = info.endpoint;
+    $('#detailAddress').textContent = '172.16.0.2';
+    $('#detailDns').textContent = '1.1.1.1';
+
+    const test = $('#testBtn');
+    const label = $('#testLabel');
+    const result = $('#testResult');
+
+    test.disabled = !state.connected || state.testing;
+    label.textContent = !state.connected
+      ? 'Hubungkan dulu'
+      : state.testing
+        ? 'Menguji izin…'
+        : state.testResult
+          ? 'Uji ulang'
+          : 'Uji koneksi';
+
+    if (state.testing) {
+      result.hidden = false;
+      result.className = 'bl-test-result is-running';
+      result.innerHTML = '<b>MENGUJI</b> DNS 1.1.1.1 lewat tunnel…';
+    } else if (state.testResult && state.connected) {
+      result.hidden = false;
+      result.className = 'bl-test-result';
+      result.innerHTML = `<b>KONEKSI OK</b> · ${state.testResult} ms · DNS 1.1.1.1`;
+    } else {
+      result.hidden = true;
+      result.innerHTML = '';
+    }
+  }
+
+  function renderLog() {
+    const card = $('#logCurrent');
+    const status = $('#logCurrentStatus');
+    const label = $('#logCurrentLabel');
+    const note = $('#logNote');
+
+    card.classList.toggle('is-idle', !state.connected);
+    status.className = '';
+    if (state.connecting) {
+      label.textContent = 'MEMVALIDASI IZIN';
+      status.textContent = 'PROSES';
+      status.classList.add('is-pending');
+      note.textContent = 'Izin sedang divalidasi. Mohon tunggu.';
+    } else if (state.connected) {
+      label.textContent = 'SESI BERJALAN';
+      status.textContent = 'AKTIF';
+      note.textContent = 'Berangkat 09:41 · Indonesia → Cloudflare SIN.';
+    } else {
+      label.textContent = 'TIDAK ADA SESI';
+      status.textContent = 'TUTUP';
+      status.classList.add('is-idle');
+      note.textContent = 'Sesi ditutup. Berangkat lagi dari Beranda.';
+    }
+    $('#logProtocol').textContent = state.connected ? state.sessionProtocol : '—';
+    $('#speedSeal').hidden = !state.connected;
+
+    renderStats();
+
+    const tunOn = state.connected;
+    const transportOn = state.connected;
+    $('#checkTun').className = tunOn ? '' : 'is-off';
+    $('#checkTunValue').textContent = tunOn ? 'Aktif' : '—';
+    $('#checkTransport').className = transportOn ? '' : 'is-off';
+    $('#checkTransportLabel').textContent = state.connected ? state.sessionProtocol : state.protocol;
+    $('#checkTransportValue').textContent = transportOn ? 'Aktif' : 'Siaga';
+    $('#checkTransportValue').className = transportOn ? 'is-on' : '';
+  }
+
+  function renderDocs() {
+    const plusCard = $('#plusCard');
+    plusCard.classList.toggle('is-active', state.plus);
+    $('#plusTitle').textContent = state.plus ? 'WARP+ aktif' : 'WARP+ belum aktif';
+    $('#plusSub').textContent = state.plus
+      ? 'Argo Smart Routing aktif untuk rute berikutnya.'
+      : 'Argo Smart Routing untuk rute lebih cepat.';
+    $('#plusBtn').textContent = state.plus ? 'Aktif' : 'Aktifkan';
+
+    $$('.bl-protocol').forEach((card) => {
+      const active = card.dataset.protocol === state.protocol;
+      card.classList.toggle('is-active', active);
+      card.setAttribute('aria-pressed', String(active));
+    });
+
+    const note = $('#protocolNote');
+    if (state.connected && state.protocol !== state.sessionProtocol) {
+      note.textContent = 'Berlaku untuk koneksi berikutnya.';
+    } else if (state.connected) {
+      note.textContent = 'Sedang dipakai sesi ini.';
+    } else {
+      note.textContent = 'Protokol untuk koneksi berikutnya.';
+    }
+
+    const count = state.splitApps.size;
+    $('#splitCount').textContent = count === 0
+      ? 'Tidak ada aplikasi'
+      : `${count} aplikasi`;
+    $('#diagSwitch').setAttribute('aria-checked', String(state.diagnostics));
+    $('#diagText').textContent = state.diagnostics
+      ? 'Aktif. Event koneksi dan error transport dicatat.'
+      : 'Nonaktif. Aktifkan saat perlu.';
+
+    $('#updateSub').textContent = state.updateDownloaded
+      ? 'Siap dipasang.'
+      : 'Versi 1.0.8 tersedia.';
+    $('#updateStamp').textContent = state.updateDownloaded ? 'SIAP' : '1.0.8';
+  }
+
+  function renderChrome() {
+    const index = { home: 1, route: 2, sesi: 3, documents: 4 }[state.page];
+    $('#pageNow').textContent = `HAL. 0${index} / 04`;
+    $$('.bl-booknav button').forEach((tab) => {
+      const active = tab.dataset.page === state.page;
+      tab.classList.toggle('is-active', active);
+      tab.setAttribute('aria-selected', String(active));
+    });
+    $$('.bl-page').forEach((page) => {
+      const active = page.dataset.page === state.page;
+      page.classList.toggle('is-active', active);
+      page.setAttribute('aria-hidden', String(!active));
+    });
+
+    const dot = $('#liveDot');
+    const live = $('#liveStatus');
+    dot.className = '';
+    if (state.connecting) {
+      dot.classList.add('is-pending');
+      live.textContent = 'Menyiapkan izin';
+    } else if (state.connected) {
+      live.textContent = 'Terlindungi';
+    } else {
+      dot.classList.add('is-idle');
+      live.textContent = 'Siap berangkat';
+    }
+  }
+
+  function renderAll() {
+    renderChrome();
+    renderHome();
+    renderRoute();
+    renderLog();
+    renderDocs();
+  }
+
+  function switchPage(name, updateHash = true) {
+    if (!['home', 'route', 'sesi', 'documents'].includes(name)) return;
+    state.page = name;
+    renderChrome();
+    const page = $(`#page-${name}`);
+    if (page) page.scrollTop = 0;
+    if (updateHash) {
+      try {
+        history.replaceState(null, '', '#' + name);
+      } catch (_) {
+        // Sandboxed previews can refuse history updates.
+      }
+    }
+  }
+
+  function startClock() {
+    stopClock();
+    state.timer = setInterval(() => {
+      if (!state.connected) return;
+      state.duration += 1;
+      state.speedKbps = 1100 + Math.random() * 1800;
+      state.bytesKb += state.speedKbps;
+      renderStats();
+      renderLog();
+      $('#journalMeta').textContent = `${fmtDuration(state.duration)} · ${fmtBytes(state.bytesKb)} · 24 NOV`;
+      if ($('#sheetDisconnect').classList.contains('is-open')) updateDisconnectMeta();
+    }, 1000);
+  }
+
+  function stopClock() {
+    if (state.timer) {
+      clearInterval(state.timer);
+      state.timer = null;
+    }
+  }
+
+  function showToast(text) {
+    const toast = $('#toast');
+    toast.textContent = text;
+    toast.classList.add('is-visible');
+    clearTimeout(state.toastTimer);
+    state.toastTimer = setTimeout(() => {
+      toast.classList.remove('is-visible');
+    }, 2600);
+  }
+
+  function connect() {
+    if (state.connected || state.connecting) return;
+    stopClock();
+    state.connecting = true;
+    state.connected = false;
+    state.testResult = null;
+    state.testing = false;
+    state.duration = 0;
+    state.speedKbps = 0;
+    state.bytesKb = 0;
+    renderAll();
+    showToast('MEMVALIDASI IZIN · MENYIAPKAN TUNNEL');
+    setTimeout(() => {
+      state.connecting = false;
+      state.connected = true;
+      state.sessionProtocol = state.protocol;
+      state.duration = 0;
+      state.speedKbps = 0;
+      state.bytesKb = 0;
+      startClock();
+      renderAll();
+      showToast('IZIN DITERBITKAN · SESI DIBUKA');
+    }, 1300);
+  }
+
+  function disconnect() {
+    stopClock();
+    state.connected = false;
+    state.connecting = false;
+    state.testResult = null;
+    state.testing = false;
+    state.duration = 0;
+    state.speedKbps = 0;
+    state.bytesKb = 0;
+    closeSheet();
+    renderAll();
+    showToast('CAP: TELAH TIBA · SESI DITUTUP');
+  }
+
+  function testConnection() {
+    if (!state.connected || state.testing) return;
+    state.testing = true;
+    state.testResult = null;
+    renderRoute();
+    showToast('MENGUJI DNS 1.1.1.1 LEWAT TUNNEL');
+    setTimeout(() => {
+      state.testing = false;
+      state.testResult = 24;
+      renderRoute();
+      showToast('KONEKSI OK · 24 MS');
+    }, 1500);
+  }
+
+  function setProtocol(protocol) {
+    if (!['MASQUE', 'WIREGUARD'].includes(protocol)) return;
+    state.protocol = protocol;
+    renderAll();
+    if (state.connected && state.protocol !== state.sessionProtocol) {
+      showToast('PROTOKOL BARU BERLAKU UNTUK KONEKSI BERIKUTNYA');
+    } else {
+      showToast(`${protocol} DIPILIH`);
+    }
+  }
+
+  function renderSplitSheet() {
+    $$('.bl-check-stamp').forEach((button) => {
+      button.setAttribute('aria-pressed', String(state.splitApps.has(button.dataset.app)));
+    });
+    const count = state.splitApps.size;
+    $('#splitSummary').textContent = count === 0
+      ? 'Tidak ada aplikasi dikecualikan.'
+      : `${count} aplikasi dikecualikan.`;
+  }
+
+  function renderPlusSheet() {
+    const active = state.plus;
+    $('#plusTitleSheet').textContent = active ? 'WARP+ aktif' : 'Aktifkan WARP+';
+    $('#plusSheetText').textContent = active
+      ? 'Visa WARP+ aktif. Argo Smart Routing akan dipakai untuk koneksi berikutnya.'
+      : 'Masukkan license key WARP+ untuk mengaktifkan Argo Smart Routing. Visa ini mempercepat rute tanpa mengubah protokol.';
+    $('#plusForm').style.display = active ? 'none' : 'block';
+    $('#plusCancel').hidden = active;
+    $('#plusActivate').textContent = active ? 'Tutup' : 'Aktifkan visa';
+    $('#plusError').hidden = true;
+    if (!active) $('#plusKey').value = '';
+  }
+
+  function renderUpdateSheet() {
+    const action = $('#updateAction');
+    const status = $('#updateStatus');
+    const percent = $('#updatePercent');
+    const progress = $('#updateProgress');
+    if (state.updateDownloaded) {
+      action.textContent = 'Pasang';
+      action.disabled = false;
+      $('#updateReleaseTitle').textContent = 'Pembaruan siap dipasang';
+      $('#updateReleaseSub').textContent = 'Terverifikasi. Buka installer untuk memasang.';
+      status.textContent = 'Tersimpan dan terverifikasi';
+      percent.textContent = '100%';
+      progress.style.width = '100%';
+    } else if (state.updateDownloading) {
+      action.textContent = 'Mengunduh…';
+      action.disabled = true;
+      $('#updateReleaseTitle').textContent = 'Mengunduh pembaruan';
+      $('#updateReleaseSub').textContent = 'Jangan tutup aplikasi sampai verifikasi selesai.';
+      status.textContent = 'Mengunduh 56.4 MB';
+      percent.textContent = '…';
+      progress.style.width = '100%';
+    } else {
+      action.textContent = 'Unduh 1.0.8';
+      action.disabled = false;
+      $('#updateReleaseTitle').textContent = 'Pembaruan siap diunduh';
+      $('#updateReleaseSub').textContent = 'Verifikasi APK, rate limit, dan label antarmuka.';
+      status.textContent = 'Tersedia · 56.4 MB';
+      percent.textContent = '0%';
+      progress.style.width = '0%';
+    }
+  }
+
+  function updateDisconnectMeta() {
+    $('#disconnectMeta').textContent = `${fmtDuration(state.duration)} · ${fmtBytes(state.bytesKb)}`;
+  }
+
+  function openSheet(id, opener) {
+    state.lastFocus = opener || document.activeElement;
+    const layer = $('#sheetLayer');
+    layer.hidden = false;
+    $$('.bl-sheet', layer).forEach((sheet) => {
+      sheet.classList.toggle('is-open', sheet.id === id);
+    });
+    if (id === 'sheetSplit') renderSplitSheet();
+    if (id === 'sheetPlus') renderPlusSheet();
+    if (id === 'sheetUpdate') renderUpdateSheet();
+    if (id === 'sheetDisconnect') updateDisconnectMeta();
+    requestAnimationFrame(() => layer.classList.add('is-visible'));
+    setTimeout(() => {
+      const sheet = $('#' + id);
+      const first = sheet && sheet.querySelector('button, input');
+      if (first) first.focus();
+    }, 40);
+  }
+
+  function closeSheet() {
+    const layer = $('#sheetLayer');
+    if (layer.hidden) return;
+    layer.classList.remove('is-visible');
+    setTimeout(() => {
+      layer.hidden = true;
+      $$('.bl-sheet', layer).forEach((sheet) => sheet.classList.remove('is-open'));
+      if (state.lastFocus && typeof state.lastFocus.focus === 'function') {
+        state.lastFocus.focus();
+      }
+    }, 170);
+  }
+
+  function downloadUpdate() {
+    if (state.updateDownloading) return;
+    if (state.updateDownloaded) {
+      showToast('INSTALLER DIBUKA · MOCKUP');
+      closeSheet();
+      return;
+    }
+    state.updateDownloading = true;
+    renderUpdateSheet();
+    $('#updatePercent').textContent = '0%';
+    let pct = 0;
+    const tick = setInterval(() => {
+      pct = Math.min(100, pct + 20);
+      $('#updatePercent').textContent = `${pct}%`;
+    }, 220);
+    setTimeout(() => {
+      clearInterval(tick);
+      state.updateDownloading = false;
+      state.updateDownloaded = true;
+      renderUpdateSheet();
+      renderDocs();
+      showToast('PEMBARUAN TERSIMPAN · SIAP DIPASANG');
+    }, 1200);
+  }
+
+  /* ---------------- wiring ---------------- */
+
+  $$('.bl-booknav button').forEach((tab) => {
+    tab.addEventListener('click', () => switchPage(tab.dataset.page));
+  });
+
+  $('#homeAction').addEventListener('click', () => {
+    if (state.connecting) return;
+    if (state.connected) {
+      openSheet('sheetDisconnect', $('#homeAction'));
+    } else {
+      connect();
+    }
+  });
+
+  $('#confirmDisconnect').addEventListener('click', disconnect);
+
+  $$('.bl-protocol').forEach((card) => {
+    card.addEventListener('click', () => setProtocol(card.dataset.protocol));
+  });
+
+  $('#testBtn').addEventListener('click', testConnection);
+
+  $('#splitRow').addEventListener('click', () => openSheet('sheetSplit', $('#splitRow')));
+
+  $('#diagSwitch').addEventListener('click', () => {
+    state.diagnostics = !state.diagnostics;
+    renderDocs();
+    showToast(state.diagnostics ? 'LOG DIAGNOSTIK AKTIF' : 'LOG DIAGNOSTIK NONAKTIF');
+  });
+
+  $('#plusBtn').addEventListener('click', () => openSheet('sheetPlus', $('#plusBtn')));
+
+  $('#plusActivate').addEventListener('click', () => {
+    if (state.plus) {
+      closeSheet();
+      return;
+    }
+    const key = $('#plusKey').value.trim();
+    if (key.length < 4) {
+      $('#plusError').hidden = false;
+      $('#plusKey').focus();
+      return;
+    }
+    state.plus = true;
+    closeSheet();
+    renderDocs();
+    showToast('VISA WARP+ AKTIF · ARGO SMART ROUTING');
+  });
+
+  $('#updateCard').addEventListener('click', () => openSheet('sheetUpdate', $('#updateCard')));
+  $('#updateAction').addEventListener('click', downloadUpdate);
+
+  $('#sheetLayer').addEventListener('click', (event) => {
+    if (event.target.closest('[data-close-sheet]') || event.target.classList.contains('bl-backdrop')) {
+      closeSheet();
+    }
+  });
+
+  $$('.bl-check-stamp').forEach((button) => {
+    button.addEventListener('click', () => {
+      const app = button.dataset.app;
+      if (state.splitApps.has(app)) state.splitApps.delete(app);
+      else state.splitApps.add(app);
+      renderSplitSheet();
+      renderDocs();
+    });
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeSheet();
+  });
+
+  $('#resetProto').addEventListener('click', () => location.reload());
+
+  renderAll();
+  startClock();
+
+  const initial = location.hash.replace('#', '');
+  if (['home', 'route', 'sesi', 'documents'].includes(initial)) {
+    switchPage(initial, false);
+  }
+</script>
+</body>
+</html>
