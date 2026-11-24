@@ -174,9 +174,7 @@ fun LintasApp(
     val connected = tunnel.status == TunnelStatus.CONNECTED
     val nowMillis = rememberNow(connected)
     val downloadSpeed = rememberDownloadSpeed(tunnel)
-    val updateAvailable = update.status == UpdateStatus.AVAILABLE ||
-        update.status == UpdateStatus.DOWNLOADING ||
-        update.status == UpdateStatus.READY
+    val updateAvailable = update.status == UpdateStatus.AVAILABLE
 
     LaunchedEffect(Unit) {
         DiagnosticLog.initialize(context)
@@ -367,13 +365,7 @@ fun LintasApp(
     if (showUpdateDialog) {
         UpdateDialog(
             state = update,
-            tunnelActive = tunnel.status == TunnelStatus.CONNECTED ||
-                tunnel.status == TunnelStatus.CONNECTING,
             onCheck = { UpdateController.check(context, manual = true) },
-            onDownload = { UpdateController.download(context) },
-            onCancelDownload = { UpdateController.cancelDownload(context) },
-            onInstall = { UpdateController.launchInstaller(context) },
-            onDiscard = { UpdateController.discardReady(context) },
             onOpenRelease = { url ->
                 if (url.startsWith("https://github.com/hafizhlf/lintas-vpn/releases/")) {
                     runCatching {
@@ -2646,8 +2638,6 @@ private fun StampCheck(checked: Boolean) {
 private fun UpdateCard(update: UpdateState, onClick: () -> Unit) {
     val stamp = when (update.status) {
         UpdateStatus.AVAILABLE -> update.release?.versionName ?: "BARU"
-        UpdateStatus.READY -> "SIAP"
-        UpdateStatus.DOWNLOADING -> "${update.progress}%"
         UpdateStatus.CHECKING -> "…"
         UpdateStatus.ERROR -> "ULANG"
         else -> "CEK"
@@ -2657,8 +2647,6 @@ private fun UpdateCard(update: UpdateState, onClick: () -> Unit) {
         UpdateStatus.CHECKING -> "Memeriksa pembaruan…"
         UpdateStatus.UP_TO_DATE -> "Versi ${update.currentVersion} terbaru."
         UpdateStatus.AVAILABLE -> "Versi ${update.release?.versionName ?: "baru"} tersedia."
-        UpdateStatus.DOWNLOADING -> "Mengunduh ${update.progress}%."
-        UpdateStatus.READY -> "Pembaruan siap dipasang."
         UpdateStatus.ERROR -> "Gagal memeriksa. Coba lagi."
     }
     Row(

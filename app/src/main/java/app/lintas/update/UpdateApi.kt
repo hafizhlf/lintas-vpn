@@ -47,16 +47,19 @@ sealed class UpdateException(message: String) : Exception(message) {
 
     data class Http(val code: Int) : UpdateException("GitHub mengembalikan HTTP $code.")
     data class Network(override val message: String) : UpdateException(message)
-    data class Verification(override val message: String) : UpdateException(message)
 }
 
 object UpdateApi {
-    const val RELEASE_URL = "https://api.github.com/repos/hafizhlf/lintas-vpn/releases/latest"
+    private const val REPO = "hafizhlf/lintas-vpn"
+    const val RELEASE_URL = "https://api.github.com/repos/$REPO/releases/latest"
 
-    internal val httpClient: OkHttpClient = OkHttpClient.Builder()
+    private val httpClient: OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
         .build()
+
+    fun releasePageUrl(tag: String): String =
+        "https://github.com/$REPO/releases/tag/$tag"
 
     internal fun parseRelease(json: String, currentVersion: String): ReleaseParseResult {
         val root = runCatching { JSONObject(json) }.getOrElse {
@@ -71,36 +74,13 @@ object UpdateApi {
         if (!isNewerVersion(tag, currentVersion)) {
             return ReleaseParseResult.UpToDate(version.toString())
         }
-        val assetArray = root.optJSONArray("assets")
-        val assets = buildList {
-            if (assetArray != null) {
-                for (index in 0 until assetArray.length()) {
-                    val asset = assetArray.optJSONObject(index) ?: continue
-                    add(
-                        ReleaseAsset(
-                            name = asset.optString("name"),
-                            state = asset.optString("state"),
-                            size = asset.optLong("size"),
-                            downloadUrl = asset.optString("browser_download_url"),
-                            sha256 = parseSha256Digest(asset.optString("digest").takeIf { it.isNotBlank() }),
-                        ),
-                    )
-                }
-            }
-        }
-        val apk = pickApkAsset(assets, version.toString())
-            ?: return ReleaseParseResult.Invalid("Rilis terbaru tidak menyertakan APK.")
         return ReleaseParseResult.Newer(
             LatestRelease(
                 version = version,
                 info = ReleaseInfo(
                     versionName = version.toString(),
-                    tag = tag,
-                    notes = root.optString("body"),
-                    pageUrl = root.optString("html_url"),
-                    apkUrl = apk.downloadUrl,
-                    apkSize = apk.size,
-                    apkSha256 = apk.sha256,
+                    notes = root.optString("body").takeUnless { it == "null" }.orEmpty(),
+                    pageUrl = releasePageUrl(tag),
                 ),
             ),
         )

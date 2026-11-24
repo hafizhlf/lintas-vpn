@@ -1,33 +1,21 @@
 package app.lintas.ui
 
-import android.content.Intent
-import android.provider.Settings
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.net.toUri
 import androidx.compose.foundation.border
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -35,7 +23,6 @@ import app.lintas.ui.theme.PaperInk
 import app.lintas.ui.theme.PaperLight
 import app.lintas.update.UpdateState
 import app.lintas.update.UpdateStatus
-import app.lintas.update.formatUpdateSize
 
 internal fun updateSubtitle(state: UpdateState): String {
     val updated = state.justUpdatedTo
@@ -50,82 +37,24 @@ internal fun updateSubtitle(state: UpdateState): String {
         UpdateStatus.CHECKING -> "Memeriksa..."
         UpdateStatus.UP_TO_DATE -> "Versi ${state.currentVersion} adalah yang terbaru"
         UpdateStatus.AVAILABLE -> "Versi ${state.release?.versionName ?: "baru"} tersedia"
-        UpdateStatus.DOWNLOADING -> "Mengunduh ${state.progress}%"
-        UpdateStatus.READY -> "Siap dipasang · ${state.release?.versionName.orEmpty()}".trimEnd(' ', '·')
         UpdateStatus.ERROR -> "Gagal: ${state.error ?: "tidak diketahui"}"
     }
 }
 
 internal fun updateAction(state: UpdateState): String = when (state.status) {
-    UpdateStatus.IDLE, UpdateStatus.UP_TO_DATE -> "Cek"
-    UpdateStatus.CHECKING, UpdateStatus.DOWNLOADING -> "Lihat"
-    UpdateStatus.AVAILABLE -> "Unduh"
-    UpdateStatus.READY -> "Pasang"
+    UpdateStatus.IDLE -> "Cek"
+    UpdateStatus.CHECKING, UpdateStatus.UP_TO_DATE -> "Tutup"
+    UpdateStatus.AVAILABLE -> "Buka halaman rilis"
     UpdateStatus.ERROR -> "Coba lagi"
 }
 
 @Composable
 fun UpdateDialog(
     state: UpdateState,
-    tunnelActive: Boolean,
     onCheck: () -> Unit,
-    onDownload: () -> Unit,
-    onCancelDownload: () -> Unit,
-    onInstall: () -> Unit,
-    onDiscard: () -> Unit,
     onOpenRelease: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val context = LocalContext.current
-    var showPermissionExplanation by remember { mutableStateOf(false) }
-    var showInstallWarning by remember { mutableStateOf(false) }
-    var intentError by remember { mutableStateOf<String?>(null) }
-
-    val continueInstall: () -> Unit = {
-        showPermissionExplanation = false
-        if (tunnelActive) {
-            showInstallWarning = true
-        } else {
-            onInstall()
-        }
-    }
-
-    val settingsLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult(),
-    ) {
-        if (context.packageManager.canRequestPackageInstalls()) {
-            continueInstall()
-        }
-    }
-
-    val openSettings: () -> Unit = {
-        intentError = null
-        val specific = Intent(
-            Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-            "package:${context.packageName}".toUri(),
-        )
-        try {
-            settingsLauncher.launch(specific)
-        } catch (error: Exception) {
-            try {
-                settingsLauncher.launch(Intent(Settings.ACTION_SECURITY_SETTINGS))
-            } catch (fallback: Exception) {
-                intentError = "Tidak bisa membuka pengaturan izin. Buka Setelan Android secara manual."
-            }
-        }
-    }
-
-    val startInstall: () -> Unit = {
-        intentError = null
-        if (!context.packageManager.canRequestPackageInstalls()) {
-            showPermissionExplanation = true
-        } else if (tunnelActive) {
-            showInstallWarning = true
-        } else {
-            onInstall()
-        }
-    }
-
     AlertDialog(
         onDismissRequest = onDismiss,
         modifier = Modifier.border(1.dp, PaperInk, RoundedCornerShape(2.dp)),
@@ -166,7 +95,7 @@ fun UpdateDialog(
                         val release = state.release
                         if (release != null) {
                             Text(
-                                "Versi ${release.versionName} · ${formatUpdateSize(release.apkSize)}",
+                                "Versi ${release.versionName}",
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     fontWeight = FontWeight.SemiBold,
                                 ),
@@ -180,51 +109,14 @@ fun UpdateDialog(
                                     overflow = TextOverflow.Ellipsis,
                                 )
                             }
-                            if (release.pageUrl.isNotBlank()) {
-                                TextButton(onClick = { onOpenRelease(release.pageUrl) }) {
-                                    Text("Lihat di GitHub")
-                                }
-                            }
-                        }
-                    }
-
-                    UpdateStatus.DOWNLOADING -> {
-                        val release = state.release
-                        Text(
-                            if (release != null) {
-                                "Mengunduh ${state.progress}% dari ${formatUpdateSize(release.apkSize)}"
-                            } else {
-                                "Mengunduh ${state.progress}%"
-                            },
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        LinearProgressIndicator(
-                            progress = { state.progress / 100f },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            "Tetap buka Lintas selama mengunduh.",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-
-                    UpdateStatus.READY -> {
-                        Text("Unduhan selesai dan sudah diverifikasi.")
-                        val release = state.release
-                        if (release != null) {
-                            Spacer(Modifier.height(4.dp))
+                            Spacer(Modifier.height(8.dp))
                             Text(
-                                "Versi ${release.versionName}",
+                                "Unduh dan pasang manual dari halaman rilis.",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
-                        }
-                        Spacer(Modifier.height(4.dp))
-                        TextButton(onClick = onDiscard) {
-                            Text("Hapus unduhan")
+                        } else {
+                            Text("Versi baru tersedia.")
                         }
                     }
 
@@ -235,36 +127,27 @@ fun UpdateDialog(
                         )
                     }
                 }
-                if (intentError != null) {
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        intentError.orEmpty(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
             }
         },
         confirmButton = {
             when (state.status) {
-                UpdateStatus.CHECKING, UpdateStatus.UP_TO_DATE -> {
-                    TextButton(onClick = onDismiss) { Text("Tutup") }
-                }
-
                 UpdateStatus.IDLE -> {
                     TextButton(onClick = onCheck) { Text("Cek") }
                 }
 
+                UpdateStatus.CHECKING, UpdateStatus.UP_TO_DATE -> {
+                    TextButton(onClick = onDismiss) { Text("Tutup") }
+                }
+
                 UpdateStatus.AVAILABLE -> {
-                    TextButton(onClick = onDownload) { Text("Unduh") }
-                }
-
-                UpdateStatus.DOWNLOADING -> {
-                    TextButton(onClick = onCancelDownload) { Text("Batal") }
-                }
-
-                UpdateStatus.READY -> {
-                    TextButton(onClick = startInstall) { Text("Pasang") }
+                    val url = state.release?.pageUrl
+                    if (!url.isNullOrBlank()) {
+                        TextButton(onClick = { onOpenRelease(url) }) {
+                            Text("Buka halaman rilis")
+                        }
+                    } else {
+                        TextButton(onClick = onCheck) { Text("Cek ulang") }
+                    }
                 }
 
                 UpdateStatus.ERROR -> {
@@ -274,7 +157,6 @@ fun UpdateDialog(
         },
         dismissButton = {
             when (state.status) {
-                UpdateStatus.CHECKING, UpdateStatus.UP_TO_DATE -> Unit
                 UpdateStatus.IDLE, UpdateStatus.ERROR -> {
                     TextButton(onClick = onDismiss) { Text("Tutup") }
                 }
@@ -283,83 +165,8 @@ fun UpdateDialog(
                     TextButton(onClick = onDismiss) { Text("Nanti") }
                 }
 
-                UpdateStatus.DOWNLOADING -> {
-                    TextButton(onClick = onDismiss) { Text("Tutup") }
-                }
-
-                UpdateStatus.READY -> {
-                    TextButton(onClick = onDismiss) { Text("Nanti") }
-                }
+                UpdateStatus.CHECKING, UpdateStatus.UP_TO_DATE -> Unit
             }
         },
     )
-
-    if (showPermissionExplanation) {
-        AlertDialog(
-            onDismissRequest = { showPermissionExplanation = false },
-            modifier = Modifier.border(1.dp, PaperInk, RoundedCornerShape(2.dp)),
-            shape = RoundedCornerShape(2.dp),
-            containerColor = PaperLight,
-            titleContentColor = PaperInk,
-            textContentColor = PaperInk,
-            tonalElevation = 0.dp,
-            title = { Text("Izin pemasangan", style = MaterialTheme.typography.headlineSmall) },
-            text = { Text("Izinkan Lintas memasang aplikasi di pengaturan, lalu kembali.") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showPermissionExplanation = false
-                        openSettings()
-                    },
-                ) {
-                    Text("Buka pengaturan")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showPermissionExplanation = false }) {
-                    Text("Nanti")
-                }
-            },
-        )
-    }
-
-    if (showInstallWarning) {
-        val version = state.release?.versionName
-        AlertDialog(
-            onDismissRequest = { showInstallWarning = false },
-            modifier = Modifier.border(1.dp, PaperInk, RoundedCornerShape(2.dp)),
-            shape = RoundedCornerShape(2.dp),
-            containerColor = PaperLight,
-            titleContentColor = PaperInk,
-            textContentColor = PaperInk,
-            tonalElevation = 0.dp,
-            title = {
-                Text(
-                    if (version != null) "Pasang pembaruan $version?" else "Pasang pembaruan?",
-                    style = MaterialTheme.typography.headlineSmall,
-                )
-            },
-            text = {
-                Text(
-                    "Koneksi VPN akan terputus saat aplikasi diperbarui. " +
-                        "Sambungkan ulang setelah selesai.",
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showInstallWarning = false
-                        onInstall()
-                    },
-                ) {
-                    Text("Pasang")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showInstallWarning = false }) {
-                    Text("Batal")
-                }
-            },
-        )
-    }
 }

@@ -9,12 +9,8 @@ import org.junit.Test
 class UpdateUiTest {
     private val release = ReleaseInfo(
         versionName = "1.0.8",
-        tag = "v1.0.8",
         notes = "",
         pageUrl = "https://github.com/hafizhlf/lintas-vpn/releases/tag/v1.0.8",
-        apkUrl = "https://example.com/lintas-1.0.8.apk",
-        apkSize = 1,
-        apkSha256 = null,
     )
 
     @Test fun errorActionMatchesDialogRetry() {
@@ -26,13 +22,13 @@ class UpdateUiTest {
         assertEquals("Coba lagi", updateAction(state))
     }
 
-    @Test fun readyActionIsInstall() {
+    @Test fun availableActionOpensReleasePage() {
         val state = UpdateState(
-            status = UpdateStatus.READY,
+            status = UpdateStatus.AVAILABLE,
             currentVersion = "1.0.7",
             release = release,
         )
-        assertEquals("Pasang", updateAction(state))
+        assertEquals("Buka halaman rilis", updateAction(state))
     }
 
     @Test fun availableSubtitleWinsOverJustUpdatedNotice() {
