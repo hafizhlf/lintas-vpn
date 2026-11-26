@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.0.13 - 2026-11-26
+
+- Keep network handovers visible as **Menyambung ulang** and wait up to 20
+  seconds for a usable network instead of leaving the app on **Menyiapkan izin**
+  indefinitely.
+- Resolve WireGuard and MASQUE endpoint hosts with a 2-second deadline, so a
+  slow DNS server no longer delays the first handshake by 20+ seconds.
+- Retry MASQUE up to three times after a handshake failure.
+- After a network change, try the last working WireGuard endpoint/port first
+  and once more at the end of the retry list.
+- Add a 60-second connect watchdog and surface unexpected connect errors
+  instead of silently staying in the connecting state.
+
 ## 1.0.12 - 2026-11-26
 
 - Retry WireGuard automatically with fallback ports and endpoint hosts when
