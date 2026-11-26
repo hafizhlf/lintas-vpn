@@ -43,6 +43,7 @@ data class TunnelState(
     val netRxPackets: Long = 0L,
     val startedAtMillis: Long? = null,
     val error: String? = null,
+    val suggestMasque: Boolean = false,
 )
 
 object VpnController {
@@ -95,7 +96,7 @@ object VpnController {
 
     internal fun connecting() {
         _state.update {
-            it.copy(status = TunnelStatus.CONNECTING, error = null)
+            it.copy(status = TunnelStatus.CONNECTING, error = null, suggestMasque = false)
         }
         if (_probeState.value.status != ProbeStatus.IDLE) {
             _probeState.value = ProbeState()
@@ -110,6 +111,7 @@ object VpnController {
                 transport = transport,
                 startedAtMillis = startedAt,
                 error = null,
+                suggestMasque = false,
             )
         }
     }
@@ -130,8 +132,12 @@ object VpnController {
         _probeState.value = ProbeState()
     }
 
-    internal fun error(message: String) {
-        _state.value = TunnelState(status = TunnelStatus.ERROR, error = message)
+    internal fun error(message: String, suggestMasque: Boolean = false) {
+        _state.value = TunnelState(
+            status = TunnelStatus.ERROR,
+            error = message,
+            suggestMasque = suggestMasque,
+        )
         _probeState.value = ProbeState()
     }
 }

@@ -230,6 +230,11 @@ fun LintasApp(
                         speed = downloadSpeed,
                         nowMillis = nowMillis,
                         onConnect = { onConnect(protocol) },
+                        onConnectMasque = {
+                            protocolName = VpnProtocol.MASQUE.name
+                            VpnPreferences.saveProtocol(context, VpnProtocol.MASQUE)
+                            onConnect(VpnProtocol.MASQUE)
+                        },
                         onAskDisconnect = { showDisconnect = true },
                     )
                     1 -> RouteScreen(
@@ -628,6 +633,7 @@ private fun HomeScreen(
     speed: Long,
     nowMillis: Long,
     onConnect: () -> Unit,
+    onConnectMasque: () -> Unit,
     onAskDisconnect: () -> Unit,
 ) {
     val connected = tunnel.status == TunnelStatus.CONNECTED
@@ -811,6 +817,24 @@ private fun HomeScreen(
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth().padding(top = 5.dp),
         )
+        if (error && tunnel.suggestMasque) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "COBA MASQUE",
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = 8.5.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.8.sp,
+                ),
+                color = StampOrange,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .clip(CircleShape)
+                    .border(1.dp, StampOrange.copy(alpha = 0.35f), CircleShape)
+                    .clickable(role = Role.Button, onClick = onConnectMasque)
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+            )
+        }
 
         if (scrollable) {
             Spacer(Modifier.height(12.dp))
