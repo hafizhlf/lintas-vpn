@@ -37,4 +37,23 @@ class VpnControllerTest {
 
         assertFalse(VpnController.state.value.suggestMasque)
     }
+
+    @Test fun reconnectIsFlaggedWhileConnecting() {
+        VpnController.connecting(reconnecting = true)
+
+        assertTrue(VpnController.state.value.reconnecting)
+    }
+
+    @Test fun initialConnectIsNotFlaggedAsReconnect() {
+        VpnController.connecting()
+
+        assertFalse(VpnController.state.value.reconnecting)
+    }
+
+    @Test fun connectedClearsReconnectFlag() {
+        VpnController.connecting(reconnecting = true)
+        VpnController.connected(TunnelTransport.WIREGUARD)
+
+        assertFalse(VpnController.state.value.reconnecting)
+    }
 }

@@ -638,6 +638,7 @@ private fun HomeScreen(
 ) {
     val connected = tunnel.status == TunnelStatus.CONNECTED
     val connecting = tunnel.status == TunnelStatus.CONNECTING
+    val reconnecting = connecting && tunnel.reconnecting
     val error = tunnel.status == TunnelStatus.ERROR
     val testMode = connected && tunnel.transport == TunnelTransport.SPIKE
     val protected = connected && !testMode
@@ -649,6 +650,7 @@ private fun HomeScreen(
     val date = todayLabel()
 
     val kicker = when {
+        reconnecting -> "MENYESUAIKAN RUTE"
         connecting -> "MEMVALIDASI IZIN"
         protected -> "SESI WARP AKTIF"
         testMode -> "MODE UJI TUN"
@@ -661,6 +663,7 @@ private fun HomeScreen(
         else -> PaperFaint
     }
     val title = when {
+        reconnecting -> "Menyambung ulang"
         connecting -> "Menyiapkan izin"
         protected -> "Terlindungi"
         testMode -> "TUN aktif"
@@ -668,6 +671,7 @@ private fun HomeScreen(
         else -> "Siap berangkat"
     }
     val lead = when {
+        reconnecting -> "Jaringan berubah. Lintas sedang menyiapkan rute baru."
         connecting -> "Menyiapkan tunnel dan memvalidasi tiket perjalanan."
         protected -> "Trafik Anda menyeberang lewat Cloudflare."
         testMode -> "Mode uji: TUN dan packet loop aktif; trafik internet belum dialihkan."
@@ -675,12 +679,14 @@ private fun HomeScreen(
         else -> "Tiket belum divalidasi. Berangkat untuk memulai perjalanan."
     }
     val actionLabel = when {
+        reconnecting -> "Menyambung ulang…"
         connecting -> "Menyiapkan izin…"
         connected -> "Tutup sesi"
         error -> "Coba lagi"
         else -> "Berangkat"
     }
     val actionNote = when {
+        reconnecting -> "MOHON TUNGGU, RUTE SEDANG DISESUAIKAN"
         connecting -> "MOHON TUNGGU, CAP SEDANG DIPROSES"
         connected -> "TEKAN UNTUK MENGAKHIRI PERJALANAN"
         error -> "TEKAN UNTUK MENCOBA LAGI"
@@ -688,6 +694,7 @@ private fun HomeScreen(
     }
 
     val journalText = when {
+        reconnecting -> "Jaringan berubah.\nMenyambung ulang rute."
         connecting -> "Sedang memvalidasi izin.\nMohon tunggu sebentar."
         protected -> "Berangkat ${formatClock(tunnel.startedAtMillis)} dari perangkat ini.\nMelintas Cloudflare ${activeProtocol.label.uppercase(Locale.US)}."
         testMode -> "Mode uji TUN aktif.\nTrafik internet belum dialihkan."
@@ -695,6 +702,7 @@ private fun HomeScreen(
         else -> "Tidak ada perjalanan aktif.\nTiket menunggu di meja."
     }
     val journalMeta = when {
+        reconnecting -> "MENYESUAIKAN RUTE"
         connecting -> "MEMPROSES IZIN"
         connected -> "$duration · $data · $date"
         else -> "TIDAK ADA SESI"
@@ -706,6 +714,7 @@ private fun HomeScreen(
         else -> StampGreen
     }
     val sealTop = when {
+        reconnecting -> "MENYESUAIKAN"
         connecting -> "MEMPROSES"
         protected -> "TERLINDUNGI"
         testMode -> "MODE UJI"
@@ -713,6 +722,7 @@ private fun HomeScreen(
         else -> "SIAP"
     }
     val sealMiddle = when {
+        reconnecting -> "RUTE"
         connecting -> "IZIN"
         protected -> "CLOUDFLARE"
         testMode -> "TUN"
@@ -773,6 +783,7 @@ private fun HomeScreen(
         VisaCard(
             connected = connected,
             connecting = connecting,
+            reconnecting = reconnecting,
             error = error,
             testMode = testMode,
             protocol = activeProtocol,
@@ -858,6 +869,7 @@ private fun HomeScreen(
 private fun VisaCard(
     connected: Boolean,
     connecting: Boolean,
+    reconnecting: Boolean,
     error: Boolean,
     testMode: Boolean,
     protocol: VpnProtocol,
@@ -867,30 +879,35 @@ private fun VisaCard(
     val muted = !connected
     val stampColor = if (muted) PaperFaint else StampOrange
     val label = when {
+        reconnecting -> "RUTE DISESUAIKAN"
         connecting -> "IZIN DIPROSES"
         connected -> "IZIN MELINTAS"
         error -> "IZIN TERHENTI"
         else -> "IZIN BELUM DITERBITKAN"
     }
     val sub = when {
+        reconnecting -> "MENYAMBUNG ULANG"
         connecting -> "MOHON TUNGGU"
         connected -> "BERLAKU · $date"
         error -> "PERIKSA KONEKSI"
         else -> "BELUM ADA CAP"
     }
     val stampTop = when {
+        reconnecting -> "RUTE"
         connecting -> "VALIDASI"
         testMode -> "UJI"
         connected -> "WARP"
         else -> "BELUM"
     }
     val stampMiddle = when {
+        reconnecting -> "ULANG"
         connecting -> "IZIN"
         testMode -> "TUN"
         connected -> protocol.label.uppercase(Locale.US)
         else -> "MELINTAS"
     }
     val stampBottom = when {
+        reconnecting -> "—"
         connecting -> "—"
         testMode -> "TUN"
         connected -> if (protocol == VpnProtocol.MASQUE) "443" else "2408"
@@ -1400,6 +1417,7 @@ private fun RouteScreen(
 ) {
     val connected = tunnel.status == TunnelStatus.CONNECTED
     val connecting = tunnel.status == TunnelStatus.CONNECTING
+    val reconnecting = connecting && tunnel.reconnecting
     val error = tunnel.status == TunnelStatus.ERROR
     val testMode = connected && tunnel.transport == TunnelTransport.SPIKE
     val identity = warp.identity
@@ -1419,6 +1437,7 @@ private fun RouteScreen(
         else -> PaperFaint
     }
     val netStatus = when {
+        reconnecting -> "Menyambung ulang"
         connecting -> "Menyiapkan"
         testMode -> "Mode uji"
         connected -> "Aman"
@@ -1799,6 +1818,7 @@ private fun SessionScreen(
 ) {
     val connected = tunnel.status == TunnelStatus.CONNECTED
     val connecting = tunnel.status == TunnelStatus.CONNECTING
+    val reconnecting = connecting && tunnel.reconnecting
     val error = tunnel.status == TunnelStatus.ERROR
     val testMode = connected && tunnel.transport == TunnelTransport.SPIKE
     val visibleProtocol = sessionProtocolOf(tunnel) ?: protocol
@@ -1820,12 +1840,14 @@ private fun SessionScreen(
         else -> PaperFaint
     }
     val cardLabel = when {
+        reconnecting -> "MENYESUAIKAN RUTE"
         connecting -> "MEMVALIDASI IZIN"
         connected -> "SESI BERJALAN"
         error -> "SESI TERPUTUS"
         else -> "TIDAK ADA SESI"
     }
     val note = when {
+        reconnecting -> "Jaringan berubah. Menyambung ulang rute."
         connecting -> "Izin sedang divalidasi. Mohon tunggu."
         connected -> "Berangkat ${formatClock(tunnel.startedAtMillis)} · Perangkat ini → Cloudflare."
         error -> tunnel.error ?: "Sesi terputus. Berangkat lagi dari Beranda."

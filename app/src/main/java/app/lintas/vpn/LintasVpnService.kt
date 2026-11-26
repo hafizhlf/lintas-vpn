@@ -20,9 +20,11 @@ import app.lintas.core.NativeCore
 import app.lintas.warp.WarpApiClient
 import app.lintas.warp.WarpController
 import app.lintas.warp.WarpEndpoint
+import app.lintas.warp.WarpEndpointResolver
 import app.lintas.warp.WarpIdentity
 import app.lintas.warp.WarpIdentityStore
-import app.lintas.warp.warpEndpointCandidates
+import app.lintas.warp.warpWireGuardCandidates
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -33,7 +35,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.net.DatagramPacket
 import java.net.DatagramSocket
-import java.net.Inet4Address
 import java.net.InetAddress
 import java.io.File
 
@@ -49,8 +50,12 @@ class LintasVpnService : VpnService() {
     private var connectJob: Job? = null
     private var reconnectJob: Job? = null
     private var cleanupJob: Job? = null
+    private var connectWatchdogJob: Job? = null
+    private val endpointResolver = WarpEndpointResolver()
     @Volatile private var wireGuardAttempts: List<WarpEndpoint> = emptyList()
     @Volatile private var wireGuardAttemptIndex = 0
+    @Volatile private var masqueAttempt = 0
+    @Volatile private var lastConnectedEndpoint: WarpEndpoint? = null
     @Volatile private var latestStartId = 0
     @Volatile private var tunnelRequested = false
     @Volatile private var currentProtocol = VpnProtocol.WIREGUARD
@@ -90,15 +95,28 @@ class LintasVpnService : VpnService() {
         tunnelRequested = true
         initialConnect = true
         currentProtocol = protocol
-        clearWireGuardAttempts()
+        resetTransportAttempts()
         lastNetworkSnapshot = networkMonitor?.snapshot()
         DiagnosticLog.log("SESSION", "start protocol=${protocol.wireValue}")
         VpnController.connecting()
+        armConnectWatchdog()
         startForegroundNotification()
 
         connectJob?.cancel()
         connectJob = scope.launch(Dispatchers.IO) {
-            connect(protocol)
+            try {
+                connect(protocol)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                if (tunnelRequested) {
+                    DiagnosticLog.log(
+                        "SESSION",
+                        "connect exception=${error.javaClass.simpleName} message=${error.message}",
+                    )
+                    failAndStop(error.message ?: "Gagal menyiapkan koneksi")
+                }
+            }
         }
     }
 
@@ -115,6 +133,16 @@ class LintasVpnService : VpnService() {
             return
         }
         if (!tunnelRequested) return
+
+        val snapshot = awaitUsableNetwork()
+        if (!tunnelRequested) return
+        if (snapshot == null) {
+            failAndStop(
+                "Tidak ada koneksi internet. Sambungkan Wi-Fi atau data seluler lalu coba lagi.",
+            )
+            return
+        }
+        lastNetworkSnapshot = snapshot
 
         val prepared = runCatching {
             WarpApiClient.ensureProtocol(identity, protocol)
@@ -172,23 +200,23 @@ class LintasVpnService : VpnService() {
     private fun startWireGuard(identity: WarpIdentity) {
         if (!tunnelRequested) return
         if (wireGuardAttempts.isEmpty()) {
-            wireGuardAttempts = buildWireGuardAttempts(identity)
+            wireGuardAttempts = warpWireGuardCandidates(
+                identity,
+                lastConnectedEndpoint,
+                limit = MAX_WIREGUARD_ATTEMPTS,
+            )
             wireGuardAttemptIndex = 0
         }
         if (wireGuardAttempts.isEmpty()) {
             failAndStop("Endpoint WARP tidak bisa di-resolve", suggestMasque = true)
             return
         }
-        val attempt = wireGuardAttempts.getOrNull(wireGuardAttemptIndex)
-        if (attempt == null) {
-            failAndStop(transportFailureMessage(VpnProtocol.WIREGUARD), suggestMasque = true)
-            return
-        }
-        val address = runCatching { InetAddress.getByName(attempt.host) }.getOrNull()
-        if (address == null) {
+        val resolved = nextWireGuardEndpoint()
+        if (resolved == null) {
             failAndStop("Endpoint WARP tidak bisa di-resolve", suggestMasque = true)
             return
         }
+        val (attempt, address) = resolved
         DiagnosticLog.log(
             "TRANSPORT",
             "wireguard attempt=${wireGuardAttemptIndex + 1}/${wireGuardAttempts.size} " +
@@ -258,25 +286,25 @@ class LintasVpnService : VpnService() {
         markTransportStarted(TunnelTransport.WIREGUARD)
     }
 
-    private fun buildWireGuardAttempts(identity: WarpIdentity): List<WarpEndpoint> {
-        val resolved = mutableListOf<WarpEndpoint>()
-        for (candidate in warpEndpointCandidates(identity, limit = MAX_WIREGUARD_ATTEMPTS)) {
-            val addresses = runCatching {
-                InetAddress.getAllByName(candidate.host)
-            }.getOrNull()
-            if (addresses.isNullOrEmpty()) {
-                DiagnosticLog.log("TRANSPORT", "endpoint resolve failed host=${candidate.host}")
-                continue
-            }
-            val address = addresses.firstOrNull { it is Inet4Address } ?: addresses.first()
-            resolved += candidate.copy(host = address.hostAddress.orEmpty())
+    private fun nextWireGuardEndpoint(): Pair<WarpEndpoint, InetAddress>? {
+        while (true) {
+            val candidate = wireGuardAttempts.getOrNull(wireGuardAttemptIndex) ?: return null
+            val address = endpointResolver.resolve(candidate.host)
+            if (address != null) return candidate to address
+
+            DiagnosticLog.log(
+                "TRANSPORT",
+                "endpoint resolve failed host=${candidate.host} port=${candidate.port}",
+            )
+            wireGuardAttemptIndex += 1
         }
-        return resolved.distinct().take(MAX_WIREGUARD_ATTEMPTS)
     }
 
-    private fun clearWireGuardAttempts() {
+    private fun resetTransportAttempts() {
         wireGuardAttempts = emptyList()
         wireGuardAttemptIndex = 0
+        masqueAttempt = 0
+        endpointResolver.clearFailures()
     }
 
     private fun transportFailureMessage(protocol: VpnProtocol): String {
@@ -284,7 +312,7 @@ class LintasVpnService : VpnService() {
             VpnProtocol.WIREGUARD ->
                 "WireGuard tidak mendapat balasan. Jaringan mungkin memblokir UDP; coba MASQUE."
             VpnProtocol.MASQUE ->
-                "MASQUE tidak mendapat balasan. Periksa jaringan."
+                "MASQUE tidak mendapat balasan. Coba WireGuard di Dokumen → Protokol."
         }
     }
 
@@ -298,14 +326,11 @@ class LintasVpnService : VpnService() {
             return
         }
 
-        val addresses = runCatching {
-            InetAddress.getAllByName(identity.masqueEndpointHost)
-        }.getOrNull()
-        if (addresses.isNullOrEmpty()) {
+        val address = endpointResolver.resolve(identity.masqueEndpointHost)
+        if (address == null) {
             failAndStop("Endpoint MASQUE tidak bisa di-resolve")
             return
         }
-        val address = addresses.firstOrNull { it is Inet4Address } ?: addresses.first()
         DiagnosticLog.log("TRANSPORT", "masque endpoint=${address.hostAddress}:${identity.effectiveMasquePort}")
 
         val socket = openTunnelSocket()
@@ -422,81 +447,161 @@ class LintasVpnService : VpnService() {
         reason: String,
         immediate: Boolean = false,
         nextWireGuardAttempt: Boolean = false,
+        nextMasqueAttempt: Boolean = false,
         resetWireGuardAttempts: Boolean = false,
     ) {
         if (!tunnelRequested) return
         Log.i(
             TAG,
             "schedule reconnect reason=$reason immediate=$immediate " +
-                "nextAttempt=$nextWireGuardAttempt resetAttempts=$resetWireGuardAttempts",
+                "nextAttempt=$nextWireGuardAttempt nextMasque=$nextMasqueAttempt " +
+                "resetAttempts=$resetWireGuardAttempts",
         )
         DiagnosticLog.log(
             "RECONNECT",
             "reason=$reason immediate=$immediate nextAttempt=$nextWireGuardAttempt " +
-                "resetAttempts=$resetWireGuardAttempts network=${snapshotLabel(lastNetworkSnapshot)}",
+                "nextMasque=$nextMasqueAttempt resetAttempts=$resetWireGuardAttempts " +
+                "network=${snapshotLabel(lastNetworkSnapshot)}",
         )
         reconnectJob?.cancel()
         reconnectJob = scope.launch {
-            if (!immediate) delay(RECONNECT_DEBOUNCE_MS)
-            if (!tunnelRequested) return@launch
-
-            if (nextWireGuardAttempt) {
-                val next = wireGuardAttemptIndex + 1
-                if (currentProtocol != VpnProtocol.WIREGUARD || next !in wireGuardAttempts.indices) {
-                    failAndStop(
-                        transportFailureMessage(currentProtocol),
-                        suggestMasque = currentProtocol == VpnProtocol.WIREGUARD,
-                    )
-                    return@launch
-                }
-                wireGuardAttemptIndex = next
-                DiagnosticLog.log(
-                    "TRANSPORT",
-                    "wireguard retry attempt=${next + 1}/${wireGuardAttempts.size}",
-                )
-                delay(HANDSHAKE_RETRY_DELAY_MS)
-            }
-            if (resetWireGuardAttempts) clearWireGuardAttempts()
-            if (!tunnelRequested) return@launch
-
-            val monitor = networkMonitor ?: return@launch
-            val snapshot = monitor.snapshot()
-            transportTransition = true
             try {
-                closeTransport()
-                VpnController.connecting()
-                lastNetworkSnapshot = snapshot
-                if (!snapshot.hasNetwork) return@launch
-
-                val identity = runCatching {
-                    WarpIdentityStore.load(this@LintasVpnService)
-                }.getOrNull()
-                if (identity == null) {
-                    failAndStop("Daftarkan WARP terlebih dahulu")
-                    return@launch
-                }
+                if (!immediate) delay(RECONNECT_DEBOUNCE_MS)
                 if (!tunnelRequested) return@launch
 
-                when (currentProtocol) {
-                    VpnProtocol.WIREGUARD -> startWireGuard(identity)
-                    VpnProtocol.MASQUE -> {
-                        if (identity.hasMasqueTransport) {
-                            startMasqueTunnel(identity)
-                        } else {
-                            failAndStop("MASQUE belum siap")
+                if (nextWireGuardAttempt) {
+                    val next = wireGuardAttemptIndex + 1
+                    if (currentProtocol != VpnProtocol.WIREGUARD || next !in wireGuardAttempts.indices) {
+                        failAndStop(
+                            transportFailureMessage(currentProtocol),
+                            suggestMasque = currentProtocol == VpnProtocol.WIREGUARD,
+                        )
+                        return@launch
+                    }
+                    wireGuardAttemptIndex = next
+                    DiagnosticLog.log(
+                        "TRANSPORT",
+                        "wireguard retry attempt=${next + 1}/${wireGuardAttempts.size}",
+                    )
+                    delay(HANDSHAKE_RETRY_DELAY_MS)
+                }
+                if (nextMasqueAttempt) {
+                    if (currentProtocol != VpnProtocol.MASQUE || masqueAttempt + 1 >= MAX_MASQUE_ATTEMPTS) {
+                        failAndStop(transportFailureMessage(VpnProtocol.MASQUE))
+                        return@launch
+                    }
+                    masqueAttempt += 1
+                    DiagnosticLog.log(
+                        "TRANSPORT",
+                        "masque retry attempt=${masqueAttempt + 1}/$MAX_MASQUE_ATTEMPTS",
+                    )
+                    delay(HANDSHAKE_RETRY_DELAY_MS)
+                }
+                if (resetWireGuardAttempts) resetTransportAttempts()
+                if (!tunnelRequested) return@launch
+
+                val monitor = networkMonitor ?: return@launch
+                transportTransition = true
+                try {
+                    closeTransport()
+                    VpnController.connecting(reconnecting = true)
+                    armConnectWatchdog()
+                    val snapshot = awaitUsableNetwork()
+                    if (!tunnelRequested) return@launch
+                    if (snapshot == null) {
+                        failAndStop(
+                            "Tidak ada koneksi internet. Sambungkan Wi-Fi atau data seluler lalu coba lagi.",
+                        )
+                        return@launch
+                    }
+                    lastNetworkSnapshot = snapshot
+
+                    val identity = runCatching {
+                        WarpIdentityStore.load(this@LintasVpnService)
+                    }.getOrNull()
+                    if (identity == null) {
+                        failAndStop("Daftarkan WARP terlebih dahulu")
+                        return@launch
+                    }
+                    if (!tunnelRequested) return@launch
+
+                    when (currentProtocol) {
+                        VpnProtocol.WIREGUARD -> startWireGuard(identity)
+                        VpnProtocol.MASQUE -> {
+                            if (identity.hasMasqueTransport) {
+                                startMasqueTunnel(identity)
+                            } else {
+                                failAndStop("MASQUE belum siap")
+                            }
                         }
                     }
+                } finally {
+                    transportTransition = false
                 }
-            } finally {
-                transportTransition = false
-            }
 
-            val current = networkMonitor?.snapshot()
-            if (tunnelRequested && current != null && current != lastNetworkSnapshot) {
-                Log.i(TAG, "network changed after start ${snapshotLabel(lastNetworkSnapshot)} -> ${snapshotLabel(current)}")
-                scheduleReconnect("network-after-start", resetWireGuardAttempts = true)
+                val current = networkMonitor?.snapshot()
+                if (tunnelRequested && current != null && current != lastNetworkSnapshot) {
+                    Log.i(TAG, "network changed after start ${snapshotLabel(lastNetworkSnapshot)} -> ${snapshotLabel(current)}")
+                    scheduleReconnect("network-after-start", resetWireGuardAttempts = true)
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                if (tunnelRequested) {
+                    DiagnosticLog.log(
+                        "SESSION",
+                        "reconnect exception=${error.javaClass.simpleName} message=${error.message}",
+                    )
+                    failAndStop(error.message ?: "Gagal menyambung ulang")
+                }
             }
         }
+    }
+
+    private suspend fun awaitUsableNetwork(): UnderlyingNetworkMonitor.Snapshot? {
+        val monitor = networkMonitor ?: return null
+        var snapshot = monitor.snapshot()
+        if (snapshot.hasNetwork) return snapshot
+
+        DiagnosticLog.log("NET", "waiting for usable network")
+        val deadline = System.currentTimeMillis() + NETWORK_WAIT_TIMEOUT_MS
+        while (tunnelRequested && System.currentTimeMillis() < deadline) {
+            delay(NETWORK_WAIT_POLL_MS)
+            snapshot = monitor.snapshot()
+            if (snapshot.hasNetwork) {
+                DiagnosticLog.log("NET", "network ready ${snapshotLabel(snapshot)}")
+                return snapshot
+            }
+        }
+        if (tunnelRequested) {
+            DiagnosticLog.log("NET", "network wait timed out")
+        }
+        return null
+    }
+
+    private fun scheduleHandshakeRetry(reason: String) {
+        if (currentProtocol == VpnProtocol.MASQUE) {
+            scheduleReconnect(reason, immediate = true, nextMasqueAttempt = true)
+        } else {
+            scheduleReconnect(reason, immediate = true, nextWireGuardAttempt = true)
+        }
+    }
+
+    private fun armConnectWatchdog() {
+        connectWatchdogJob?.cancel()
+        connectWatchdogJob = scope.launch {
+            delay(CONNECT_WATCHDOG_MS)
+            if (!tunnelRequested) return@launch
+            if (VpnController.state.value.status == TunnelStatus.CONNECTING) {
+                DiagnosticLog.log("SESSION", "connect watchdog timeout")
+                failAndStop("Koneksi tidak selesai. Periksa jaringan lalu coba lagi.")
+            }
+        }
+    }
+
+    private fun disarmConnectWatchdog() {
+        connectWatchdogJob?.cancel()
+        connectWatchdogJob = null
     }
 
     private fun establishTun(rawIpv4: String, rawIpv6: String): ParcelFileDescriptor? {
@@ -567,6 +672,7 @@ class LintasVpnService : VpnService() {
             var handshakeDone = !watchHandshake
             if (handshakeDone) {
                 VpnController.connected(transport)
+                disarmConnectWatchdog()
             }
             while (isActive) {
                 val sample = sampleNative() ?: break
@@ -582,11 +688,7 @@ class LintasVpnService : VpnService() {
                             resetWireGuardAttempts = true,
                         )
                     } else if (watchHandshake && !handshakeDone) {
-                        scheduleReconnect(
-                            "native-stopped-handshake",
-                            immediate = true,
-                            nextWireGuardAttempt = true,
-                        )
+                        scheduleHandshakeRetry("native-stopped-handshake")
                     } else {
                         scheduleReconnect(
                             "native-stopped",
@@ -603,8 +705,14 @@ class LintasVpnService : VpnService() {
                     VpnController.updateStats(stats[0], stats[1], rxBytes, netRx)
                     if (watchHandshake && !handshakeDone && netRx > 0L) {
                         handshakeDone = true
+                        if (transport == TunnelTransport.WIREGUARD) {
+                            lastConnectedEndpoint = wireGuardAttempts.getOrNull(wireGuardAttemptIndex)
+                        } else {
+                            masqueAttempt = 0
+                        }
                         DiagnosticLog.log("TRANSPORT", "handshake complete transport=$transport")
                         VpnController.connected(transport)
+                        disarmConnectWatchdog()
                     }
                     if (watchHandshake && !handshakeDone && ticks >= HANDSHAKE_TIMEOUT_TICKS) {
                         val attempt = if (transport == TunnelTransport.WIREGUARD) {
@@ -623,11 +731,7 @@ class LintasVpnService : VpnService() {
                                 resetWireGuardAttempts = true,
                             )
                         } else {
-                            scheduleReconnect(
-                                "handshake-timeout",
-                                immediate = true,
-                                nextWireGuardAttempt = true,
-                            )
+                            scheduleHandshakeRetry("handshake-timeout")
                         }
                         break
                     }
@@ -777,6 +881,7 @@ class LintasVpnService : VpnService() {
         DiagnosticLog.log("SESSION", "stop")
         cleanupJob?.cancel()
         cleanupJob = null
+        disarmConnectWatchdog()
         tunnelRequested = false
         initialConnect = false
         connectJob?.cancel()
@@ -794,6 +899,7 @@ class LintasVpnService : VpnService() {
             "SESSION",
             "failed message=$message suggestMasque=$suggestMasque",
         )
+        disarmConnectWatchdog()
         tunnelRequested = false
         initialConnect = false
         connectJob?.cancel()
@@ -875,6 +981,8 @@ class LintasVpnService : VpnService() {
         connectJob?.cancel()
         reconnectJob?.cancel()
         cleanupJob?.cancel()
+        connectWatchdogJob?.cancel()
+        endpointResolver.shutdown()
         networkMonitor?.stop()
         networkMonitor = null
         closeResources()
@@ -904,8 +1012,12 @@ class LintasVpnService : VpnService() {
         private const val RECONNECT_DEBOUNCE_MS = 1200L
         private const val HANDSHAKE_TIMEOUT_TICKS = 5
         private const val HANDSHAKE_RETRY_DELAY_MS = 300L
-        private const val MAX_WIREGUARD_ATTEMPTS = 6
+        private const val MAX_WIREGUARD_ATTEMPTS = 7
+        private const val MAX_MASQUE_ATTEMPTS = 3
         private const val FAILED_IDLE_STOP_MS = 30_000L
+        private const val NETWORK_WAIT_TIMEOUT_MS = 20_000L
+        private const val NETWORK_WAIT_POLL_MS = 500L
+        private const val CONNECT_WATCHDOG_MS = 60_000L
         private const val PROBE_TIMEOUT_MS = 3500
         private const val MAX_DNS_RESPONSE = 1500
     }

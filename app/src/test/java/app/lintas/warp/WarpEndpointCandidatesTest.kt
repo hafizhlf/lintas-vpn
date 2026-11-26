@@ -51,6 +51,39 @@ class WarpEndpointCandidatesTest {
         )
     }
 
+    @Test fun preferredEndpointComesFirstAndIsRetriedLast() {
+        val identity = identity(host = "162.159.192.3", port = 2408)
+        val preferred = WarpEndpoint("162.159.192.3", 4500)
+
+        val candidates = warpWireGuardCandidates(identity, preferred, limit = 6)
+
+        assertEquals(preferred, candidates.first())
+        assertEquals(preferred, candidates.last())
+        assertEquals(6, candidates.size)
+        assertEquals(2, candidates.count { it == preferred })
+    }
+
+    @Test fun preferredFallbackPortIsKeptInTheCandidateWindow() {
+        val identity = identity(host = "162.159.192.3", port = 2408)
+        val preferred = WarpEndpoint(WARP_FALLBACK_HOST, 4500)
+
+        val candidates = warpWireGuardCandidates(identity, preferred, limit = 6)
+
+        assertEquals(preferred, candidates.first())
+        assertEquals(preferred, candidates.last())
+        assertEquals(6, candidates.size)
+        assertEquals(2, candidates.count { it == preferred })
+    }
+
+    @Test fun unknownPreferredHostIsIgnored() {
+        val identity = identity(host = "162.159.192.3", port = 2408)
+        val preferred = WarpEndpoint("stale.example", 2408)
+
+        val candidates = warpWireGuardCandidates(identity, preferred, limit = 6)
+
+        assertEquals(warpEndpointCandidates(identity, limit = 6), candidates)
+    }
+
     @Test fun fallsBackWhenConfiguredHostIsBlank() {
         val identity = identity(host = " ", port = 0)
 

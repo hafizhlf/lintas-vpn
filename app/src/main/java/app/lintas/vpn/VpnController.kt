@@ -44,6 +44,7 @@ data class TunnelState(
     val startedAtMillis: Long? = null,
     val error: String? = null,
     val suggestMasque: Boolean = false,
+    val reconnecting: Boolean = false,
 )
 
 object VpnController {
@@ -94,9 +95,14 @@ object VpnController {
         _probeState.value = ProbeState(status = ProbeStatus.FAILURE, message = message)
     }
 
-    internal fun connecting() {
+    internal fun connecting(reconnecting: Boolean = false) {
         _state.update {
-            it.copy(status = TunnelStatus.CONNECTING, error = null, suggestMasque = false)
+            it.copy(
+                status = TunnelStatus.CONNECTING,
+                error = null,
+                suggestMasque = false,
+                reconnecting = reconnecting,
+            )
         }
         if (_probeState.value.status != ProbeStatus.IDLE) {
             _probeState.value = ProbeState()
@@ -112,6 +118,7 @@ object VpnController {
                 startedAtMillis = startedAt,
                 error = null,
                 suggestMasque = false,
+                reconnecting = false,
             )
         }
     }
