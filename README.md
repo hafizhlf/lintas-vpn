@@ -38,6 +38,8 @@ Cloudflare without a relay or account server.
 
 - **WireGuard** WARP transport with the WARP `client_id` reservation.
 - **MASQUE** over QUIC / HTTP/3 with CONNECT-IP.
+- WireGuard handshake retry across UDP 2408, 500, 1701, and 4500 plus a
+  fallback WARP host; **Coba MASQUE** when WireGuard is blocked.
 - One WARP consumer identity is shared by both transports. Choose the transport
   in Dokumen; the next connection uses it.
 
@@ -89,7 +91,7 @@ A WARP+ license key is optional.
 Verify the download with the `SHA256SUMS` asset from the same release:
 
 ```bash
-sha256sum lintas-1.0.11.apk
+sha256sum lintas-1.0.12.apk
 ```
 
 ### Update checks

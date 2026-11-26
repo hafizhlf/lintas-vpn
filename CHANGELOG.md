@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.12 - 2026-11-26
+
+- Retry WireGuard automatically with fallback ports and endpoint hosts when
+  the handshake gets no response. Candidates now include UDP 2408, 500, 1701,
+  and 4500, plus `engage.cloudflareclient.com`.
+- Keep the VPN service alive briefly after a failure so **Coba lagi** reuses a
+  clean instance instead of racing the previous service teardown.
+- Use `stopSelf(startId)` and cancel the connect job during failure cleanup.
+- Offer **COBA MASQUE** when WireGuard cannot complete a handshake.
+
 ## 1.0.11 - 2026-11-24
 
 - Remove in-app APK download and installation. **Dokumen → Pembaruan** now
